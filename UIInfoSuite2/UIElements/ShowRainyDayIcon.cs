@@ -4,7 +4,9 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using System;
+using System.IO;
 using Microsoft.Xna.Framework.Graphics;
+using Netcode;
 using UIInfoSuite.Infrastructure;
 using UIInfoSuite.Infrastructure.Extensions;
 
@@ -16,13 +18,14 @@ namespace UIInfoSuite.UIElements
 
         private bool _IsNextDayRainy;
         Rectangle? _weatherIconSpriteLocation;
+        Rectangle? _islandIconSpriteLocation;
         private string _hoverText;
         private ClickableTextureComponent _rainyDayIcon;
         private Texture2D _iconSheet;
 
         private Color[] _weatherIconColors = null;
-        private const int WeatherSheetWidth = 45;
-        private const int WeatherSheetHeight = 15;
+        private const int WeatherSheetWidth = 81;
+        private const int WeatherSheetHeight = 18;
         
         private readonly IModHelper _helper;
         #endregion
@@ -58,7 +61,17 @@ namespace UIInfoSuite.UIElements
         {
             GetWeatherIconSpriteLocation();
 
-            // Draw icon
+            if (Game1.eventUp)
+            {
+                return;
+            }
+
+            if (_IsNextDayRainy && _weatherIconSpriteLocation.HasValue)
+            {
+                // Draw icon for island rain
+            }
+
+                // Draw icon
             if (!Game1.eventUp && _IsNextDayRainy && _weatherIconSpriteLocation.HasValue)
             {
                 Point iconPosition = IconHandler.Handler.GetNewIconPosition();
@@ -88,6 +101,16 @@ namespace UIInfoSuite.UIElements
 
         #region Logic
 
+        private bool HasVisitedIsland()
+        {
+            return Game1.MasterPlayer.mailReceived.Contains("willyBoatFixed");
+        }
+
+        private int GetIslandWeatherForTomorrow()
+        {
+            return Game1.netWorldState.Value.GetWeatherForLocation(GameLocation.LocationContext.Island).weatherForTomorrow.Value;
+        }
+
         /// <summary>
         /// Creates a custom tilesheet for weather icons.
         /// Meant to mimic the TV screen, which has a border around it, while the individual icons in the Cursors tilesheet don't have a border
@@ -109,29 +132,50 @@ namespace UIInfoSuite.UIElements
             // Border from TV screen
             Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(499, 307, 15, 15));
             // Copy to each destination
-            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(0, 0, 15, 15));
-            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(15, 0, 15, 15));
-            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(30, 0, 15, 15));
+            for (var i = 0; i < 3; i++)
+            {
+                Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(i * 15, 0, 15, 15));
+
+            }
+            
+            // Add in expanded sprites for the island parrot
+            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(45, 0, 15, 15));
+            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(63, 0, 15, 15));
 
             subTextureColors = new Color[13 * 13];
             // Rainy Weather
             Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(504, 333, 13, 13));
             Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth,  new Rectangle(1, 1, 13, 13));
+            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth,  new Rectangle(46, 1, 13, 13));
             
             // Stormy Weather
             Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(426, 346, 13, 13));
             Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth,  new Rectangle(16, 1, 13, 13));
-            
+            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth,  new Rectangle(64, 1, 13, 13));
+
             // Snowy Weather
             Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(465, 346, 13, 13));
             Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth,  new Rectangle(31, 1, 13, 13));
             
+            // Size of the parrot icon
+            subTextureColors = new Color[9 * 14];
+            Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(155, 148, 9, 14));
+            //Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(146, 149, 9, 14));
+            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(54, 4, 9, 14), true);
+            Tools.SetSubTexture(subTextureColors, _weatherIconColors, WeatherSheetWidth, new Rectangle(72, 4, 9, 14), true);
+
             _iconSheet.SetData(_weatherIconColors);
+
+            /*
+            using (var fs = File.Create(@"C:\Users\Drew\Downloads\Stardew Mods\final.png"))
+            {
+                _iconSheet.SaveAsPng(fs, WeatherSheetWidth, WeatherSheetHeight);
+            }
+            */
         }
 
         private void GetWeatherIconSpriteLocation()
         {
-            
             switch (Game1.weatherForTomorrow)
             {
                 case Game1.weather_sunny:
