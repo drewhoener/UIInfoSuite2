@@ -6,6 +6,7 @@ using System;
 using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Options;
 
 namespace UIInfoSuite2
@@ -14,8 +15,10 @@ namespace UIInfoSuite2
     {
 
         #region Properties
-        public static IMonitor MonitorObject { get; private set; }
-        public static DynamicGameAssetsEntry DGA { get; private set; }
+
+        private static ModEntry Instance { get; set; } = null!;
+        public static IMonitor MonitorObject { get; private set; } = null!;
+        public static DynamicGameAssetsEntry DGA { get; private set; } = null!;
 
         private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
         private static ModConfig _modConfig;
@@ -26,10 +29,18 @@ namespace UIInfoSuite2
         private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
         #endregion
 
+        #region Static Helper Methods
+
+        public static string GetTranslated(string key)
+        {
+            return Instance.Helper.SafeGetString(key);
+        }
+        #endregion
 
         #region Entry
         public override void Entry(IModHelper helper)
         {
+            Instance = this;
             MonitorObject = Monitor;
             DGA = new DynamicGameAssetsEntry(Helper, Monitor);
 
