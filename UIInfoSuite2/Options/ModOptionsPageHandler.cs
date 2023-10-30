@@ -9,6 +9,7 @@ using System.Reflection;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.UIElements;
+using UIInfoSuite2.UIElements.Base;
 
 namespace UIInfoSuite2.Options
 {
@@ -24,7 +25,7 @@ namespace UIInfoSuite2.Options
 
         private readonly IModHelper _helper;
         private readonly bool _showPersonalConfigButton;
-        
+
         private List<ModOptionsElement> _optionsElements = new();
         private readonly List<IDisposable> _elementsToDispose;
 
@@ -37,7 +38,7 @@ namespace UIInfoSuite2.Options
         private PerScreen<int?> _modOptionsTabPageNumber = new();
 
         private PerScreen<int?> _lastMenuTab = new();
-        private PerScreen<IClickableMenu?> _lastMenu = new();        
+        private PerScreen<IClickableMenu?> _lastMenu = new();
 
         // For the window resize workaround
         private List<int> _instancesWithOptionsPageOpen = new();
@@ -62,7 +63,7 @@ namespace UIInfoSuite2.Options
             _helper = helper;
             _showPersonalConfigButton = showPersonalConfigButton;
 
-            var luckOfDay = new LuckOfDay(helper);
+            var luckOfDay = new LuckOfDay(helper, options);
             var showBirthdayIcon = new ShowBirthdayIcon(helper);
             var showAccurateHearts = new ShowAccurateHearts(helper.Events);
             var locationOfTownsfolk = new LocationOfTownsfolk(helper, options);
@@ -103,6 +104,14 @@ namespace UIInfoSuite2.Options
 
             int whichOption = 1;
             _optionsElements.Add(new ModOptionsElement($"UI Info Suite 2 {GetVersionString(helper)}"));
+
+            foreach(var element in _elementsToDispose)
+            {
+                if (element is UIElementBase uiElementBase)
+                {
+                    _optionsElements.AddRange(uiElementBase.GetOptionsList());
+                }
+            }
 
             var luckIcon = new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowLuckIcon)), whichOption++, luckOfDay.ToggleOption, () => options.ShowLuckIcon, v => options.ShowLuckIcon = v);
             _optionsElements.Add(luckIcon);
@@ -150,7 +159,7 @@ namespace UIInfoSuite2.Options
             if (Game1.activeClickableMenu is GameMenu gameMenu)
             {
                 // Handle right trigger to switch to our mod options page
-                // NB The game does the correct thing for left trigger so we don't need to implement it. 
+                // NB The game does the correct thing for left trigger so we don't need to implement it.
                 if (e.Button == SButton.RightTrigger && !e.IsSuppressed())
                 {
                     if ((gameMenu.currentTab + 1 == _modOptionsTabPageNumber.Value) && gameMenu.readyToClose())
@@ -159,7 +168,7 @@ namespace UIInfoSuite2.Options
                         _helper.Input.Suppress(SButton.RightTrigger);
                     }
                 }
-                
+
                 // Based on GameMenu.receiveLeftClick and Game1.updateActiveMenu
                 if ((e.Button == SButton.MouseLeft || e.Button == SButton.ControllerA) && !e.IsSuppressed())
                 {
@@ -198,7 +207,7 @@ namespace UIInfoSuite2.Options
                         EarlyOnMenuChanged(_lastMenu.Value, Game1.activeClickableMenu);
                         _lastMenu.Value = Game1.activeClickableMenu;
                     }
-                    
+
                 });
                 ModEntry.MonitorObject.Log($"{this.GetType().Name}: Our tab was added back as the final step of the window resize workaround");
             }
@@ -224,7 +233,7 @@ namespace UIInfoSuite2.Options
                 EarlyOnMenuChanged(_lastMenu.Value, Game1.activeClickableMenu);
                 _lastMenu.Value = Game1.activeClickableMenu;
             }
-            
+
             if (_lastMenuTab.Value != gameMenu?.currentTab)
             {
                 OnGameMenuTabChanged(gameMenu);
@@ -262,7 +271,7 @@ namespace UIInfoSuite2.Options
                     _modOptionsPageButton.Value = new ModOptionsPageButton();
                     _modOptionsPageButton.Value.xPositionOnScreen = GetButtonXPosition(newGameMenu);
                 }
-                
+
                 List<IClickableMenu> tabPages = newGameMenu.pages;
                 _modOptionsTabPageNumber.Value = tabPages.Count;
                 tabPages.Add(_modOptionsPage.Value);
@@ -420,20 +429,20 @@ namespace UIInfoSuite2.Options
 
         /// <summary>Based on <see cref="GameMenu.changeTab" /></summary>
         private void ChangeToOurTab(GameMenu gameMenu)
-        {   
+        {
             var modOptionsTabIndex = (int) _modOptionsTabPageNumber.Value!;
             gameMenu.currentTab = modOptionsTabIndex;
             gameMenu.lastOpenedNonMapTab = modOptionsTabIndex;
             gameMenu.initializeUpperRightCloseButton();
             gameMenu.invisible = false;
             Game1.playSound("smallSelect");
-            
+
             // We don't need to call GameMenu.AddTabsToClickableComponents because populateClickableComponentList already does it for us.
             // However, we must add our mod options tab now because snapToDefaultClickableComponent might use it.
             gameMenu.GetCurrentPage().populateClickableComponentList();
             AddOurTabToClickableComponents(gameMenu, _modOptionsTab.Value!);
 
-            gameMenu.setTabNeighborsForCurrentPage(); 
+            gameMenu.setTabNeighborsForCurrentPage();
             if (Game1.options.SnappyMenus)
             {
                 gameMenu.snapToDefaultClickableComponent();
@@ -447,7 +456,7 @@ namespace UIInfoSuite2.Options
             var currentPage = gameMenu.GetCurrentPage()!;
             if (currentPage.allClickableComponents == null)
                 currentPage.populateClickableComponentList();
-            
+
             if (!currentPage.allClickableComponents!.Contains(modOptionsTab))
                 currentPage.allClickableComponents.Add(modOptionsTab);
         }
@@ -466,7 +475,7 @@ namespace UIInfoSuite2.Options
 
         /// <summary>
         /// Tries hard to return a version string for the mod like "v2.2.9"
-        /// 
+        ///
         /// <para>Try to get the version from the SMAPI manifest; then from the assembly in which case it is formatted as v=...;
         /// then give up and return a default value.</para>
         /// </summary>
