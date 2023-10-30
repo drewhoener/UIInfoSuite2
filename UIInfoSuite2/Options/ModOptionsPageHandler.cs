@@ -72,7 +72,7 @@ namespace UIInfoSuite2.Options
             var showScarecrowAndSprinklerRange = new ShowItemEffectRanges(helper);
             var experienceBar = new ExperienceBar(helper);
             var showItemHoverInformation = new ShowItemHoverInformation(helper);
-            var shopHarvestPrices = new ShopHarvestPrices(helper);
+            var shopHarvestPrices = new ShopHarvestPrices(helper, options);
             var showQueenOfSauceIcon = new ShowQueenOfSauceIcon(helper);
             var showTravelingMerchant = new ShowTravelingMerchant(helper);
             var showRainyDayIcon = new ShowRainyDayIcon(helper);
@@ -134,7 +134,6 @@ namespace UIInfoSuite2.Options
             _optionsElements.Add(travellingMerchantIcon);
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.HideMerchantWhenVisited)), whichOption++, showTravelingMerchant.ToggleHideWhenVisitedOption, () => options.HideMerchantWhenVisited, v => options.HideMerchantWhenVisited = v, travellingMerchantIcon));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowRainyDay)), whichOption++, showRainyDayIcon.ToggleOption, () => options.ShowRainyDay, v => options.ShowRainyDay = v));
-            _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowHarvestPricesInShop)), whichOption++, shopHarvestPrices.ToggleOption, () => options.ShowHarvestPricesInShop, v => options.ShowHarvestPricesInShop = v));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowWhenNewRecipesAreAvailable)), whichOption++, showQueenOfSauceIcon.ToggleOption, () => options.ShowWhenNewRecipesAreAvailable, v => options.ShowWhenNewRecipesAreAvailable = v));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowToolUpgradeStatus)), whichOption++, showToolUpgradeStatus.ToggleOption, () => options.ShowToolUpgradeStatus, v => options.ShowToolUpgradeStatus = v));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowRobinBuildingStatusIcon)), whichOption++, showRobinBuildingStatusIcon.ToggleOption, () => options.ShowRobinBuildingStatusIcon, v => options.ShowRobinBuildingStatusIcon = v));
