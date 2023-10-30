@@ -6,44 +6,77 @@ using System;
 
 namespace UIInfoSuite2.Options
 {
-    internal class ModOptionsCheckbox : ModOptionsElement
+    internal class ModOptionsCheckbox : ModOptionsValueElement<bool>
     {
-        private readonly Action<bool> _toggleOptionsDelegate;
         private bool _isChecked;
         private readonly Action<bool> _setOption;
-        private bool _canClick => !(_parent is ModOptionsCheckbox) || (_parent as ModOptionsCheckbox)._isChecked;
+        private bool CanClick => _parent is not ModOptionsCheckbox parentCheckbox || parentCheckbox._isChecked;
 
         public ModOptionsCheckbox(
             string label,
             int whichOption,
-            Action<bool> toggleOptionDelegate,
-            Func<bool> getOption,
+            Action<bool>? onValueUpdate,
+            Func<bool> getInitialValue,
             Action<bool> setOption,
-            ModOptionsCheckbox parent = null)
-            : base(label, whichOption, parent)
+            ModOptionsElement parent = null)
+            : this(new OptionStringWrapper(label, false),
+                whichOption,
+                (_, b) => onValueUpdate?.Invoke(b),
+                getInitialValue,
+                setOption,
+                parent
+            )
         {
-            _toggleOptionsDelegate = toggleOptionDelegate;
-            _setOption = setOption;
+        }
 
-            _isChecked = getOption();
-            _toggleOptionsDelegate(_isChecked);
+        public ModOptionsCheckbox(
+            OptionStringWrapper label,
+            int whichOption,
+            Action<string, bool>? onValueUpdate,
+            Func<bool> getInitialValue,
+            Action<bool> setOption,
+            ModOptionsElement parent = null)
+            : base(onValueUpdate, label, whichOption, parent)
+        {
+            _setOption = setOption;
+            _isChecked = getInitialValue();
+        }
+
+        public override bool GetValue()
+        {
+            return _isChecked;
+        }
+
+        public override void SetValue(bool newValue)
+        {
+            _isChecked = newValue;
+            _setOption(newValue);
+            OnValueUpdate?.Invoke(Label.Str, _isChecked);
         }
 
         public override void ReceiveLeftClick(int x, int y)
         {
-            if (_canClick)
-            {
-                Game1.playSound("drumkit6");
-                base.ReceiveLeftClick(x, y);
-                _isChecked = !_isChecked;
-                _setOption(_isChecked);
-                _toggleOptionsDelegate(_isChecked);
-            }
+            if (!CanClick)
+                return;
+            Game1.playSound("drumkit6");
+            base.ReceiveLeftClick(x, y);
+            SetValue(!_isChecked);
         }
 
         public override void Draw(SpriteBatch batch, int slotX, int slotY)
         {
-            batch.Draw(Game1.mouseCursors, new Vector2(slotX + Bounds.X, slotY + Bounds.Y), new Rectangle?(_isChecked ? OptionsCheckbox.sourceRectChecked : OptionsCheckbox.sourceRectUnchecked), Color.White * (_canClick ? 1f : 0.33f), 0.0f, Vector2.Zero, Game1.pixelZoom, SpriteEffects.None, 0.4f);
+            var sourceRect = _isChecked ? OptionsCheckbox.sourceRectChecked : OptionsCheckbox.sourceRectUnchecked;
+            batch.Draw(
+                Game1.mouseCursors,
+                new Vector2(slotX + Bounds.X, slotY + Bounds.Y),
+                sourceRect,
+                Color.White * (CanClick ? 1f : 0.33f),
+                0.0f,
+                Vector2.Zero,
+                Game1.pixelZoom,
+                SpriteEffects.None,
+                0.4f
+            );
             base.Draw(batch, slotX, slotY);
         }
 
