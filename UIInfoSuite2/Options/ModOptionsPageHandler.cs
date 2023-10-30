@@ -113,9 +113,6 @@ namespace UIInfoSuite2.Options
                 }
             }
 
-            var luckIcon = new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowLuckIcon)), whichOption++, luckOfDay.ToggleOption, () => options.ShowLuckIcon, v => options.ShowLuckIcon = v);
-            _optionsElements.Add(luckIcon);
-            _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowExactValue)), whichOption++, luckOfDay.ToggleShowExactValueOption, () => options.ShowExactValue, v => options.ShowExactValue = v, luckIcon));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowLevelUpAnimation)), whichOption++, experienceBar.ToggleLevelUpAnimation, () => options.ShowLevelUpAnimation, v => options.ShowLevelUpAnimation = v));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowExperienceBar)), whichOption++, experienceBar.ToggleShowExperienceBar, () => options.ShowExperienceBar, v => options.ShowExperienceBar = v));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.AllowExperienceBarToFadeOut)), whichOption++, experienceBar.ToggleExperienceBarFade, () => options.AllowExperienceBarToFadeOut, v => options.AllowExperienceBarToFadeOut = v));
