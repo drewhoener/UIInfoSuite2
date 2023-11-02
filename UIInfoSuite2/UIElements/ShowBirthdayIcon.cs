@@ -9,61 +9,152 @@ using System;
 using System.Collections.Generic;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Options;
+using UIInfoSuite2.UIElements.Base;
 
 namespace UIInfoSuite2.UIElements
 {
-    internal class ShowBirthdayIcon : IDisposable
+    #region Helper Classes
+
+    internal class BirthdayIconComponent
+    {
+        private const float IconScale = 2.9f;
+
+        public BirthdayIconComponent(NPC npc)
+        {
+            NPC = npc;
+            Icon = GenerateIcon();
+            HoverText = string.Format(ModEntry.GetTranslated(LanguageKeys.NpcBirthday), NPC.displayName);
+        }
+
+        internal NPC NPC { get; }
+        private ClickableTextureComponent Icon { get; }
+        private string HoverText { get; }
+
+        private ClickableTextureComponent GenerateIcon()
+        {
+            var headShot = NPC.GetHeadShot();
+            return new ClickableTextureComponent(
+                NPC.Name,
+                new Rectangle(
+                    0,
+                    0,
+                    (int)(16.0 * IconScale),
+                    (int)(16.0 * IconScale)),
+                null,
+                NPC.Name,
+                NPC.Sprite.Texture,
+                headShot,
+                2f
+            );
+        }
+
+        public void DrawIcon()
+        {
+            var iconPosition = IconHandler.Handler.GetNewIconPosition();
+
+            Game1.spriteBatch.Draw(
+                Game1.mouseCursors,
+                new Vector2(iconPosition.X, iconPosition.Y),
+                new Rectangle(228, 409, 16, 16),
+                Color.White,
+                0.0f,
+                Vector2.Zero,
+                IconScale,
+                SpriteEffects.None,
+                1f
+            );
+
+            Icon.setPosition(
+                iconPosition.X - 7,
+                iconPosition.Y - 2
+            );
+
+            Icon.draw(Game1.spriteBatch);
+        }
+
+        public void DrawHoverText()
+        {
+            if (Icon.IsHoveredOver())
+            {
+                IClickableMenu.drawHoverText(
+                    Game1.spriteBatch,
+                    HoverText,
+                    Game1.dialogueFont);
+            }
+        }
+    }
+
+    #endregion
+
+
+    // Inherit from base because we don't need the icon that UIHudElement provides
+    internal class ShowBirthdayIcon : UIElementBase
     {
         #region Properties
-        private readonly PerScreen<List<NPC>> _birthdayNPCs = new(() => new());
-        private readonly PerScreen<List<ClickableTextureComponent>> _birthdayIcons = new(() => new());
 
-        private bool Enabled { get; set; }
-        private bool HideBirthdayIfFullFriendShip { get; set; }
-        private readonly IModHelper _helper;
+        private readonly PerScreen<List<BirthdayIconComponent>> _birthdayNPCs =
+            new(() => new List<BirthdayIconComponent>());
+
         #endregion
 
 
         #region Life cycle
-        public ShowBirthdayIcon(IModHelper helper)
+
+        public ShowBirthdayIcon(IModHelper helper, ModOptions options) : base(helper, options)
         {
-            _helper = helper;
         }
 
-        public void Dispose()
+        protected override void OnOptionsChanged(string? whichOption, dynamic? newValue)
         {
-            ToggleOption(false);
+            UnregisterEvents();
+            if (!Options.ShowBirthdayIcon)
+                return;
+            CheckForBirthday();
+            RegisterEvents();
         }
 
-        public void ToggleOption(bool showBirthdayIcon)
+        protected override void RegisterEvents()
         {
-            Enabled = showBirthdayIcon;
-
-            _helper.Events.GameLoop.DayStarted -= OnDayStarted;
-            _helper.Events.Display.RenderingHud -= OnRenderingHud;
-            _helper.Events.Display.RenderedHud -= OnRenderedHud;
-            _helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
-
-            if (showBirthdayIcon)
-            {
-                CheckForBirthday();
-                _helper.Events.GameLoop.DayStarted += OnDayStarted;
-                _helper.Events.Display.RenderingHud += OnRenderingHud;
-                _helper.Events.Display.RenderedHud += OnRenderedHud;
-                _helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
-            }
+            Helper.Events.GameLoop.DayStarted += OnDayStarted;
+            Helper.Events.Display.RenderingHud += OnRenderingHud;
+            Helper.Events.Display.RenderedHud += OnRenderedHud;
+            Helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
         }
 
-        public void ToggleDisableOnMaxFriendshipOption(bool hideBirthdayIfFullFriendShip)
+        protected override void UnregisterEvents()
         {
-            HideBirthdayIfFullFriendShip = hideBirthdayIfFullFriendShip;
-            ToggleOption(Enabled);
+            Helper.Events.GameLoop.DayStarted -= OnDayStarted;
+            Helper.Events.Display.RenderingHud -= OnRenderingHud;
+            Helper.Events.Display.RenderedHud -= OnRenderedHud;
+            Helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
+        }
+
+        protected override void SetUpOptions()
+        {
+            var enabledOption = new ModOptionsCheckbox(
+                new OptionStringWrapper(nameof(Options.ShowBirthdayIcon)),
+                1,
+                (s, b) => OnOptionsChanged(s, b),
+                () => Options.ShowBirthdayIcon,
+                b => Options.ShowBirthdayIcon = b
+            );
+            OptionElements.Add(enabledOption);
+            OptionElements.Add(new ModOptionsCheckbox(
+                new OptionStringWrapper(nameof(Options.HideBirthdayIfFullFriendShip)),
+                1,
+                (_, _) => { CheckForBirthday(); }, // Refresh Birthday List on option toggle
+                () => Options.HideBirthdayIfFullFriendShip,
+                b => Options.HideBirthdayIfFullFriendShip = b,
+                enabledOption
+            ));
         }
 
         #endregion
 
 
         #region Event subscriptions
+
         private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
         {
             if (e.IsOneSecond)
@@ -79,58 +170,62 @@ namespace UIInfoSuite2.UIElements
 
         private void OnRenderingHud(object? sender, RenderingHudEventArgs e)
         {
-            if (!Game1.eventUp)
+            if (Game1.eventUp)
+                return;
+
+            // Draw Birthday Icons
+            foreach (var npcIcon in _birthdayNPCs.Value)
             {
-                DrawBirthdayIcon();
+                npcIcon.DrawIcon();
             }
         }
 
 
         private void OnRenderedHud(object? sender, RenderedHudEventArgs e)
         {
-            if (!Game1.eventUp)
+            if (Game1.eventUp)
+                return;
+
+            // Draw Icon Hover
+            foreach (var npcIcon in _birthdayNPCs.Value)
             {
-                DrawHoverText();
+                npcIcon.DrawHoverText();
             }
         }
+
         #endregion
 
 
         #region Logic
+
         private void CheckForGiftGiven()
         {
-            List<NPC> npcs = _birthdayNPCs.Value;
-            // Iterate from the end so that removing items doesn't affect indices
-            for (int i = npcs.Count - 1; i >= 0; i--)
+            _birthdayNPCs.Value.RemoveAll(pair =>
             {
-                Friendship? friendship = GetFriendshipWithNPC(npcs[i].Name);
-                if (friendship != null && friendship.GiftsToday > 0)
-                {
-                    npcs.RemoveAt(i);
-                }
-            }
+                var friendship = GetFriendshipWithNPC(pair.NPC.Name);
+                return friendship is { GiftsToday: > 0 };
+            });
         }
 
         private void CheckForBirthday()
         {
             _birthdayNPCs.Value.Clear();
-            foreach (var location in Game1.locations)
+            foreach (var character in Tools.GetAllCharacters())
             {
-                foreach (var character in location.characters)
-                {
-                    if (character.isBirthday(Game1.currentSeason, Game1.dayOfMonth))
-                    {
-                        Friendship? friendship = GetFriendshipWithNPC(character.Name);
-                        if (friendship != null)
-                        {
-                            if (HideBirthdayIfFullFriendShip && friendship.Points >= Utility.GetMaximumHeartsForCharacter(character) * NPC.friendshipPointsPerHeartLevel)
-                                continue;
+                if (!character.isBirthday(Game1.currentSeason, Game1.dayOfMonth))
+                    continue; // Early escape if it doesn't match
 
-                            _birthdayNPCs.Value.Add(character);
-                        }
+                var friendship = GetFriendshipWithNPC(character.Name);
+                if (friendship == null)
+                    continue;
 
-                    }
-                }
+                var hasMaxFriendship = friendship.Points >=
+                                       Utility.GetMaximumHeartsForCharacter(character) *
+                                       NPC.friendshipPointsPerHeartLevel;
+                if (Options.HideBirthdayIfFullFriendShip && hasMaxFriendship)
+                    continue;
+
+                _birthdayNPCs.Value.Add(new BirthdayIconComponent(character));
             }
         }
 
@@ -138,80 +233,18 @@ namespace UIInfoSuite2.UIElements
         {
             try
             {
-                if (Game1.player.friendshipData.TryGetValue(name, out Friendship friendship))
-                    return friendship;
-                else
-                    return null;
+                return Game1.player.friendshipData.TryGetValue(name, out var friendship) ? friendship : null;
             }
             catch (Exception ex)
             {
-                ModEntry.MonitorObject.LogOnce("Error while getting information about the birthday of " + name, LogLevel.Error);
+                ModEntry.MonitorObject.LogOnce("Error while getting information about the birthday of " + name,
+                    LogLevel.Error);
                 ModEntry.MonitorObject.Log(ex.ToString());
             }
 
             return null;
         }
 
-        private void DrawBirthdayIcon()
-        {
-            _birthdayIcons.Value.Clear();
-            foreach (var npc in _birthdayNPCs.Value)
-            {
-                Rectangle headShot = npc.GetHeadShot();
-                Point iconPosition = IconHandler.Handler.GetNewIconPosition();
-                float scale = 2.9f;
-
-                Game1.spriteBatch.Draw(
-                    Game1.mouseCursors,
-                    new Vector2(iconPosition.X, iconPosition.Y),
-                    new Rectangle(228, 409, 16, 16),
-                    Color.White,
-                    0.0f,
-                    Vector2.Zero,
-                    scale,
-                    SpriteEffects.None,
-                    1f);
-
-                var birthdayIcon = new ClickableTextureComponent(
-                    npc.Name,
-                    new Rectangle(
-                        iconPosition.X - 7,
-                        iconPosition.Y - 2,
-                        (int)(16.0 * scale),
-                        (int)(16.0 * scale)),
-                    null,
-                    npc.Name,
-                    npc.Sprite.Texture,
-                    headShot,
-                    2f);
-
-                birthdayIcon.draw(Game1.spriteBatch);
-                _birthdayIcons.Value.Add(birthdayIcon);
-            }
-        }
-
-        private void DrawHoverText()
-        {
-            var icons = _birthdayIcons.Value;
-            var npcs = _birthdayNPCs.Value;
-            if (icons.Count != npcs.Count)
-            {
-                ModEntry.MonitorObject.LogOnce($"{this.GetType().Name}: The number of tracked npcs and icons do not match", LogLevel.Error);
-                return;
-            }
-
-            for (int i = 0; i < icons.Count; i++)
-            {
-                if (icons[i].containsPoint(Game1.getMouseX(), Game1.getMouseY()))
-                {
-                    string hoverText = string.Format(_helper.SafeGetString(LanguageKeys.NpcBirthday), npcs[i].displayName);
-                    IClickableMenu.drawHoverText(
-                        Game1.spriteBatch,
-                        hoverText,
-                        Game1.dialogueFont);
-                }
-            }
-        }
         #endregion
     }
 }

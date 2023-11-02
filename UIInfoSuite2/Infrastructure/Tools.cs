@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace UIInfoSuite2.Infrastructure
         {
             if (item is SObject obj)
             {
-                return obj.sellToStorePrice();        
+                return obj.sellToStorePrice();
             }
             else
             {
@@ -186,7 +187,7 @@ namespace UIInfoSuite2.Infrastructure
                 {
                     var idx = (destBounds.X + xOffset) + (destWidth * (yOffset + destBounds.Y));
                     Color sourcePixel = sourceColors[srcIdx++];
-                    
+
                     // If using overlay mode, don't copy transparent pixels
                     if (overlay && emptyColor.Equals(sourcePixel))
                     {
@@ -195,6 +196,17 @@ namespace UIInfoSuite2.Infrastructure
                     destColors[idx] = sourcePixel;
                 }
             }
+        }
+
+        public static IEnumerable<NPC> GetAllCharacters()
+        {
+            var npcs = new List<NPC>();
+            foreach (var location in Game1.locations)
+            {
+                npcs.AddRange(location.characters);
+            }
+
+            return npcs;
         }
     }
 }

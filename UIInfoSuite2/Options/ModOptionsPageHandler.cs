@@ -64,7 +64,7 @@ namespace UIInfoSuite2.Options
             _showPersonalConfigButton = showPersonalConfigButton;
 
             var luckOfDay = new LuckOfDay(helper, options);
-            var showBirthdayIcon = new ShowBirthdayIcon(helper);
+            var showBirthdayIcon = new ShowBirthdayIcon(helper, options);
             var showAccurateHearts = new ShowAccurateHearts(helper.Events);
             var locationOfTownsfolk = new LocationOfTownsfolk(helper, options);
             var showWhenAnimalNeedsPet = new ShowWhenAnimalNeedsPet(helper);
@@ -119,9 +119,6 @@ namespace UIInfoSuite2.Options
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowExperienceGain)), whichOption++, experienceBar.ToggleShowExperienceGain, () => options.ShowExperienceGain, v => options.ShowExperienceGain = v));
             if (!_helper.ModRegistry.IsLoaded("Bouhm.NPCMapLocations"))
                 _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowLocationOfTownsPeople)), whichOption++, locationOfTownsfolk.ToggleShowNPCLocationsOnMap, () => options.ShowLocationOfTownsPeople, v => options.ShowLocationOfTownsPeople = v));
-            var birthdayIcon = new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowBirthdayIcon)), whichOption++, showBirthdayIcon.ToggleOption, () => options.ShowBirthdayIcon, v => options.ShowBirthdayIcon = v);
-            _optionsElements.Add(birthdayIcon);
-            _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.HideBirthdayIfFullFriendShip)), whichOption++, showBirthdayIcon.ToggleDisableOnMaxFriendshipOption, () => options.HideBirthdayIfFullFriendShip, v => options.HideBirthdayIfFullFriendShip = v, birthdayIcon));
             _optionsElements.Add(new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowHeartFills)), whichOption++, showAccurateHearts.ToggleOption, () => options.ShowHeartFills, v => options.ShowHeartFills = v));
             var animalPetIcon = new ModOptionsCheckbox(_helper.SafeGetString(nameof(options.ShowAnimalsNeedPets)), whichOption++, showWhenAnimalNeedsPet.ToggleOption, () => options.ShowAnimalsNeedPets, v => options.ShowAnimalsNeedPets = v);
             _optionsElements.Add(animalPetIcon);
