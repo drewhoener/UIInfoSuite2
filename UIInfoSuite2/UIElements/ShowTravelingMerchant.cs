@@ -8,10 +8,12 @@ using System;
 using System.Linq;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Options;
+using UIInfoSuite2.UIElements.Base;
 
 namespace UIInfoSuite2.UIElements
 {
-    public class ShowTravelingMerchant : IDisposable
+    internal class ShowTravelingMerchant : UIHudElement
     {
         #region Properties
         private bool _travelingMerchantIsHere;
@@ -26,14 +28,45 @@ namespace UIInfoSuite2.UIElements
 
 
         #region Lifecycle
-        public ShowTravelingMerchant(IModHelper helper)
+        public ShowTravelingMerchant(IModHelper helper, ModOptions options) : base(helper, options)
         {
             _helper = helper;
         }
 
-        public void Dispose()
+
+        protected override void SetUpOptions()
         {
-            ToggleOption(false);
+            var enabledOption = new ModOptionsCheckbox(
+                new OptionStringWrapper(nameof(Options.ShowTravelingMerchant)),
+                1,
+                (s, b) => OnOptionsChanged(s, b),
+                () => Options.ShowTravelingMerchant,
+                b => Options.ShowTravelingMerchant = b
+            );
+            OptionElements.Add(enabledOption);
+            OptionElements.Add(new ModOptionsCheckbox(
+                new OptionStringWrapper(nameof(Options.HideMerchantWhenVisited)),
+                1,
+                (_, _) => { }, // Option does not require refresh
+                () => Options.HideMerchantWhenVisited,
+                b => Options.HideMerchantWhenVisited = b,
+                enabledOption
+            ));
+        }
+
+        protected override void OnOptionsChanged(string? whichOption, dynamic? newValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void RegisterEvents()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void UnregisterEvents()
+        {
+            throw new NotImplementedException();
         }
 
         public void ToggleOption(bool showTravelingMerchant)
