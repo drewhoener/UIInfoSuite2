@@ -18,26 +18,26 @@ namespace UIInfoSuite2.UIElements.Base
         {
         }
 
-        #region Event Registration
-
-        protected override void _RegisterInternalEvents()
-        {
-            Helper.Events.Display.RenderingHud += Internal_RenderHudIcon;
-            base._RegisterInternalEvents();
-        }
-
-        protected override void _UnregisterInternalEvents()
-        {
-            Helper.Events.Display.RenderingHud -= Internal_RenderHudIcon;
-            base._UnregisterInternalEvents();
-        }
-
-        #endregion
-
         protected sealed override bool ShouldRenderHoverText()
         {
             return ShouldDrawIcon() && Icon.Value.IsHoveredOver();
         }
+
+        #region Event Registration
+
+        protected override void _RegisterInternalEvents()
+        {
+            base._RegisterInternalEvents();
+            Helper.Events.Display.RenderingHud += Internal_RenderHudIcon;
+        }
+
+        protected override void _UnregisterInternalEvents()
+        {
+            base._UnregisterInternalEvents();
+            Helper.Events.Display.RenderingHud -= Internal_RenderHudIcon;
+        }
+
+        #endregion
 
         #region Icon Rendering
 
