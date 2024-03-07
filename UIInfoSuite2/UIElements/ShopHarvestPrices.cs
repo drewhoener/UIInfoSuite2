@@ -53,12 +53,7 @@ namespace UIInfoSuite2.UIElements
         /// <param name="e">The event arguments.</param>
         private void OnRenderedActiveMenu(object? sender, RenderedActiveMenuEventArgs e)
         {
-            if (Game1.activeClickableMenu is not ShopMenu menu)
-            {
-                return;
-            }
-
-            if (menu.hoveredItem is not Item hoverItem)
+            if (Game1.activeClickableMenu is not ShopMenu { hoveredItem: Item hoverItem } menu)
             {
                 return;
             }
