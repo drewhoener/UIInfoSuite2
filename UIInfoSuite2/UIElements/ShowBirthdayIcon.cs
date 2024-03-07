@@ -105,13 +105,14 @@ namespace UIInfoSuite2.UIElements
         {
         }
 
-        protected override void OnOptionsChanged(string? whichOption, dynamic? newValue)
+        protected override bool ShouldEnable()
         {
-            UnregisterEvents();
-            if (!Options.ShowBirthdayIcon)
-                return;
+            return Options.ShowBirthdayIcon;
+        }
+
+        protected override void OnEnable()
+        {
             CheckForBirthday();
-            RegisterEvents();
         }
 
         protected override void RegisterEvents()
