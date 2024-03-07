@@ -68,7 +68,7 @@ namespace UIInfoSuite2.UIElements.Base
                 return;
             }
 
-            Point iconPos = point ?? IconHandler.Handler.GetNewIconPosition();
+            Point iconPos = point ?? GetRenderPoint();
             Icon.Value.setPosition(iconPos.X, iconPos.Y);
         }
 
@@ -83,6 +83,11 @@ namespace UIInfoSuite2.UIElements.Base
             {
                 DrawDelegate();
             }
+        }
+
+        protected virtual Point GetRenderPoint()
+        {
+            return IconHandler.Handler.GetNewIconPosition();
         }
 
         protected virtual void DrawDelegate()
