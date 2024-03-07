@@ -74,7 +74,7 @@ namespace UIInfoSuite2.Options
             var showItemHoverInformation = new ShowItemHoverInformation(helper);
             var shopHarvestPrices = new ShopHarvestPrices(helper, options);
             var showQueenOfSauceIcon = new ShowQueenOfSauceIcon(helper, options);
-            var showTravelingMerchant = new ShowTravelingMerchant(helper);
+            var showTravelingMerchant = new ShowTravelingMerchant(helper, options);
             var showRainyDayIcon = new ShowRainyDayIcon(helper);
             var showCropAndBarrelTime = new ShowCropAndBarrelTime(helper);
             var showToolUpgradeStatus = new ShowToolUpgradeStatus(helper);
