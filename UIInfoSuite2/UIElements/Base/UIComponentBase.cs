@@ -5,9 +5,9 @@ using UIInfoSuite2.Options;
 
 namespace UIInfoSuite2.UIElements.Base
 {
-    internal abstract class UIElementBase : IDisposable
+    internal abstract class UIComponentBase : IDisposable
     {
-        protected readonly IModHelper Helper;
+       protected readonly IModHelper Helper;
         protected readonly List<ModOptionsElement> OptionElements = new();
         protected readonly ModOptions Options;
 
@@ -16,7 +16,7 @@ namespace UIInfoSuite2.UIElements.Base
 
         #region Lifecycle
 
-        protected UIElementBase(IModHelper helper, ModOptions options)
+        protected UIComponentBase(IModHelper helper, ModOptions options)
         {
             Helper = helper;
             Options = options;

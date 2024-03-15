@@ -11,7 +11,7 @@ using UIInfoSuite2.UIElements.Base;
 
 namespace UIInfoSuite2.UIElements
 {
-    internal class LuckOfDay : UIHudElement
+    internal class LuckOfDay : HudIconComponent
     {
         #region Properties
 

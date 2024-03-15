@@ -12,10 +12,11 @@ using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Options;
 using UIInfoSuite2.UIElements.Base;
+using UIInfoSuite2.UIElements.HudIcon;
 
 namespace UIInfoSuite2.UIElements
 {
-    internal class ShowQueenOfSauceIcon : UIHudElement
+    internal class ShowQueenOfSauceIcon : HudIconComponent
     {
         #region Properties
 
@@ -35,6 +36,7 @@ namespace UIInfoSuite2.UIElements
 
         protected override void Init()
         {
+            base.Init();
             LoadRecipes();
         }
 
@@ -109,9 +111,24 @@ namespace UIInfoSuite2.UIElements
 
         #region Logic
 
-        protected override bool ShouldDrawIcon()
+        protected override List<AbstractHudIcon> GenerateIcons()
         {
-            return _drawQueenOfSauceIcon.Value && !Game1.IsFakedBlackScreen();
+            return new List<AbstractHudIcon>
+            {
+                new GenericHudIcon(
+                    new Point(40, 40),
+                    Game1.mouseCursors,
+                    new Rectangle(609, 361, 28, 28),
+                    1.3f,
+                    () => _drawQueenOfSauceIcon.Value,
+                    GetRecipeHoverText
+                )
+            };
+        }
+
+        private string GetRecipeHoverText()
+        {
+            return Helper.SafeGetString(LanguageKeys.TodaysRecipe) + _todaysRecipe?.DisplayName;
         }
 
         private void LoadRecipes()
@@ -144,15 +161,6 @@ namespace UIInfoSuite2.UIElements
             _drawQueenOfSauceIcon.Value = (Game1.dayOfMonth % 7 == 0 || (Game1.dayOfMonth - 3) % 7 == 0) &&
                                           Game1.stats.DaysPlayed > 5 &&
                                           !Game1.player.knowsRecipe(_todaysRecipe?.name);
-
-            Icon.Value = new ClickableTextureComponent(
-                new Rectangle(0, 0, 40, 40),
-                Game1.mouseCursors,
-                new Rectangle(609, 361, 28, 28),
-                1.3f
-            );
-
-            HoverText.Value = Helper.SafeGetString(LanguageKeys.TodaysRecipe) + _todaysRecipe?.DisplayName;
         }
 
         private CraftingRecipe? GetTodaysRecipe()
