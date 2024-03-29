@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
@@ -19,11 +18,25 @@ namespace UIInfoSuite2.UIElements;
 
 internal class ShowItemHoverInformation : IDisposable
 {
-  private readonly ClickableTextureComponent _bundleIcon = new(
+  public static readonly ClickableTextureComponent BundleIcon = new(
     new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
     Game1.mouseCursors,
     new Rectangle(331, 374, 15, 14),
     3f
+  );
+
+  public static readonly ClickableTextureComponent ShippingBottomIcon = new(
+    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
+    Game1.mouseCursors,
+    new Rectangle(526, 218, 30, 22),
+    1.2f
+  );
+
+  public static readonly ClickableTextureComponent ShippingTopIcon = new(
+    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
+    Game1.mouseCursors,
+    new Rectangle(134, 236, 30, 15),
+    1.2f
   );
 
   private readonly IModHelper _helper;
@@ -31,20 +44,6 @@ internal class ShowItemHoverInformation : IDisposable
   private readonly PerScreen<Item?> _hoverItem = new();
   private readonly ClickableTextureComponent _museumIcon;
   private readonly Dictionary<string, List<ItemAndQuality>> _prunedRequiredBundles = new();
-
-  private readonly ClickableTextureComponent _shippingBottomIcon = new(
-    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-    Game1.mouseCursors,
-    new Rectangle(526, 218, 30, 22),
-    1.2f
-  );
-
-  private readonly ClickableTextureComponent _shippingTopIcon = new(
-    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-    Game1.mouseCursors,
-    new Rectangle(134, 236, 30, 15),
-    1.2f
-  );
 
   private Dictionary<string, string> _bundleNameOverrides;
   private CommunityCenter _communityCenter;
@@ -313,16 +312,10 @@ internal class ShowItemHoverInformation : IDisposable
       string? requiredBundleName = null;
       if (hoveredObject != null)
       {
-        foreach (KeyValuePair<string, List<ItemAndQuality>> requiredBundle in _prunedRequiredBundles)
+        BundleRequiredItem? bundleDisplayData = BundleHelper.GetBundleItemIfNotDonated(hoveredObject);
+        if (bundleDisplayData != null)
         {
-          if (requiredBundle.Value.Any(
-                itemQuality => itemQuality.qualifiedItemId == hoveredObject.QualifiedItemId &&
-                               hoveredObject.Quality >= itemQuality.quality
-              ))
-          {
-            requiredBundleName = requiredBundle.Key;
-            break;
-          }
+          requiredBundleName = bundleDisplayData.Name;
         }
       }
 
@@ -532,46 +525,80 @@ internal class ShowItemHoverInformation : IDisposable
     b.DrawString(Game1.smallFont, text, position, Game1.textColor);
   }
 
-  private void DrawBundleBanner(SpriteBatch spriteBatch, string bundleName, Vector2 position, int windowWidth)
+  public static void DrawBundleBanner(
+    SpriteBatch spriteBatch,
+    string bundleName,
+    Vector2 position,
+    int windowWidth,
+    Color? color = null
+  )
   {
     // NB The dialogue font has a cap height of 30 and an offset of (3, 6)
+
+    Color drawColor = color ?? Color.Crimson;
 
     var bundleBannerX = (int)position.X;
     int bundleBannerY = (int)position.Y + 3;
     var cellCount = 36;
-    var solidCells = 6;
+    var solidCells = 8;
     int cellWidth = windowWidth / cellCount;
     for (var cell = 0; cell < cellCount; ++cell)
     {
-      float fadeAmount = 0.92f - (cell < solidCells ? 0 : 1.0f * (cell - solidCells) / (cellCount - solidCells));
+      float fadeAmount = 0.97f - (cell < solidCells ? 0 : 1.0f * (cell - solidCells) / (cellCount - solidCells));
       spriteBatch.Draw(
         Game1.staminaRect,
         new Rectangle(bundleBannerX + cell * cellWidth, bundleBannerY, cellWidth, 36),
-        Color.Crimson * fadeAmount
+        // drawColor,
+        drawColor * fadeAmount
       );
     }
 
     spriteBatch.Draw(
       Game1.mouseCursors,
       position,
-      _bundleIcon.sourceRect,
+      BundleIcon.sourceRect,
       Color.White,
       0f,
       Vector2.Zero,
-      _bundleIcon.scale,
+      BundleIcon.scale,
       SpriteEffects.None,
       0.86f
     );
 
-    spriteBatch.DrawString(
-      Game1.dialogueFont,
+    // Utility.drawTextWithShadow(
+    //   spriteBatch,
+    //   bundleName,
+    //   Game1.dialogueFont,
+    //   position + new Vector2(BundleIcon.sourceRect.Width * BundleIcon.scale + 3, 0),
+    //   Color.LightGray,
+    //   // Color.LightGray,
+    //   horizontalShadowOffset: 3,
+    //   verticalShadowOffset: 3,
+    //   shadowIntensity: .8f,
+    //   numShadows: 2
+    // );
+
+    Utility.drawTextWithColoredShadow(
+      spriteBatch,
       bundleName,
-      position + new Vector2(_bundleIcon.sourceRect.Width * _bundleIcon.scale + 3, 0),
-      Color.White
+      Game1.dialogueFont,
+      position + new Vector2(BundleIcon.sourceRect.Width * BundleIcon.scale + 3, 0),
+      Color.Ivory,
+      Color.DarkSlateGray,
+      horizontalShadowOffset: 2,
+      verticalShadowOffset: 2,
+      numShadows: 3
     );
+
+    // spriteBatch.DrawString(
+    //   Game1.dialogueFont,
+    //   bundleName,
+    //   position + new Vector2(BundleIcon.sourceRect.Width * BundleIcon.scale + 3, 0),
+    //   Color.White
+    // );
   }
 
-  private void DrawShippingBin(SpriteBatch b, Vector2 position, Vector2 origin)
+  public static void DrawShippingBin(SpriteBatch b, Vector2 position, Vector2 origin)
   {
     var shippingBinOffset = new Vector2(0, 2);
     // var shippingBinLidOffset = Vector2.Zero;
@@ -579,24 +606,24 @@ internal class ShowItemHoverInformation : IDisposable
     // NB This is not the texture used to draw the shipping bin on the farm map.
     //    The one for the farm is located in "Buildings\Shipping Bin".
     b.Draw(
-      _shippingBottomIcon.texture,
+      ShippingBottomIcon.texture,
       position,
-      _shippingBottomIcon.sourceRect,
+      ShippingBottomIcon.sourceRect,
       Color.White,
       0f,
       origin - shippingBinOffset,
-      _shippingBottomIcon.scale,
+      ShippingBottomIcon.scale,
       SpriteEffects.None,
       0.86f
     );
     b.Draw(
-      _shippingTopIcon.texture,
+      ShippingTopIcon.texture,
       position,
-      _shippingTopIcon.sourceRect,
+      ShippingTopIcon.sourceRect,
       Color.White,
       0f,
       origin,
-      _shippingTopIcon.scale,
+      ShippingTopIcon.scale,
       SpriteEffects.None,
       0.86f
     );
