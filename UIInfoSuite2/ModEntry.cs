@@ -1,4 +1,5 @@
 ﻿using System;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -7,6 +8,7 @@ using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Options;
+using UIInfoSuite2.Patches;
 
 namespace UIInfoSuite2;
 
@@ -44,7 +46,7 @@ public class ModEntry : Mod
 #endregion
 
 #region Generic mod config menu
-  private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+  private void InitModConfigMenu()
   {
     // get Generic Mod Config Menu's API (if it's installed)
     ISemanticVersion? modVersion = Helper.ModRegistry.Get("spacechase0.GenericModConfigMenu")?.Manifest?.Version;
@@ -101,6 +103,14 @@ public class ModEntry : Mod
 
 
 #region Event subscriptions
+  private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+  {
+    Harmony = new Harmony(ModManifest.UniqueID);
+    InitModConfigMenu();
+
+    PatchManager.Apply(Harmony);
+  }
+
   private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
   {
     // Unload if the main player quits.
