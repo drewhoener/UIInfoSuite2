@@ -12,6 +12,19 @@ namespace UIInfoSuite2;
 
 public class ModEntry : Mod
 {
+  private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
+  private static ModConfig _modConfig;
+  private static Harmony Harmony = null!;
+
+  private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
+
+  private ModOptions _modOptions;
+  private ModOptionsPageHandler _modOptionsPageHandler;
+
+
+  public static IMonitor MonitorObject { get; private set; }
+  public static DynamicGameAssetsEntry DGA { get; private set; }
+
 #region Entry
   public override void Entry(IModHelper helper)
   {
@@ -84,19 +97,6 @@ public class ModEntry : Mod
       setValue: value => _modConfig.OpenQuestBoardKeybind = value
     );
   }
-#endregion
-
-#region Properties
-  public static IMonitor MonitorObject { get; private set; }
-  public static DynamicGameAssetsEntry DGA { get; private set; }
-
-  private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
-  private static ModConfig _modConfig;
-
-  private ModOptions _modOptions;
-  private ModOptionsPageHandler _modOptionsPageHandler;
-
-  private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
 #endregion
 
 
