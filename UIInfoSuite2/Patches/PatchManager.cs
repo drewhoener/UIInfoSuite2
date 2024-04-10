@@ -8,6 +8,7 @@ internal static class PatchManager
   {
     ItemPatches.Apply(harmony);
     ClickableMenuPatches.Apply(harmony);
+    GameLocationPatches.Apply(harmony);
     GameStateQueryPatches.Apply(harmony);
   }
 }
