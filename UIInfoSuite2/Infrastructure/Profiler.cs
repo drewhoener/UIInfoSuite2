@@ -68,9 +68,9 @@ public class Profiler
 
     _entriesSinceLastLog = 0;
     double avg = GetRollingAverage();
-    double avgMillis = avg / Stopwatch.Frequency * 1000000;
+    double avgMicros = avg / Stopwatch.Frequency * 1000000;
     _loggerFunc(
-      $"[Profiler ({_profilerName})]: Rolling average ({_rollingWindowSize} entries) / {avg:F2} ticks / {avgMillis:F2} us"
+      $"[Profiler ({_profilerName})]: Rolling average ({_rollingWindowSize} entries) / {avgMicros:F2} us / {avg / Stopwatch.Frequency:F2} s"
     );
   }
 
