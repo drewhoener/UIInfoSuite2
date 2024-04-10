@@ -269,7 +269,6 @@ public class GameLocationPatches
         if (fishRequiredSeason.GetValueOrDefault() != currentSeason)
         {
           cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongSeason);
-          // continue;
         }
       }
 
@@ -279,38 +278,32 @@ public class GameLocationPatches
           !requiredPlayerTile.GetValueOrDefault().Contains(playerTilePoint.X, playerTilePoint.Y))
       {
         cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongPlayerPos);
-        // continue;
       }
 
       if (requiredBobberTile.HasValue &&
           !requiredBobberTile.GetValueOrDefault().Contains((int)bobberTile.X, (int)bobberTile.Y))
       {
         cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongBobberPos);
-        // continue;
       }
 
       if (player.FishingLevel < data.MinFishingLevel)
       {
         cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.PlayerLevelTooLow);
-        // continue;
       }
 
       if (waterDepth < data.MinDistanceFromShore)
       {
         cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WaterTooShallow);
-        // continue;
       }
 
       if (data.MaxDistanceFromShore > -1 && waterDepth > data.MaxDistanceFromShore)
       {
         cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WaterTooDeep);
-        // continue;
       }
 
       if (data.RequireMagicBait && !usingMagicBait)
       {
         cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.RequiresMagicBait);
-        // continue;
       }
 
       foreach (Item item in cachedFishInfo.GetItems())
