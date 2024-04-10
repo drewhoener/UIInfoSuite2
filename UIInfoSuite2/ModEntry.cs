@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -7,6 +9,8 @@ using StardewValley.Menus;
 using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Infrastructure.Containers;
+using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Options;
 using UIInfoSuite2.Patches;
 
@@ -56,6 +60,39 @@ public class ModEntry : Mod
     helper.Events.GameLoop.Saved += OnSaved;
     helper.Events.GameLoop.GameLaunched += OnGameLaunched;
     helper.Events.Display.Rendering += IconHandler.Handler.Reset;
+
+    helper.Events.Display.RenderingHud += (sender, e) =>
+    {
+      Vector2 fontDimensions = Game1.smallFont.MeasureString("OOO");
+      Vector2 startingPos = new(15, 15);
+      var yOffset = 5;
+
+      IClickableMenu.drawTextureBox(
+        e.SpriteBatch,
+        Game1.menuTexture,
+        new Rectangle(0, 256, 60, 60),
+        0,
+        0,
+        1200,
+        300,
+        Color.White * 1.0f,
+        drawShadow: false
+      );
+
+      foreach (FishSpawnInfo fish in FishHelper.GetCatchableFish(Game1.player.currentLocation))
+      {
+        var renderStr =
+          $"{fish.GetDisplayName()} - {fish.EntryPickedChance:F2} - {fish.SpawnProbability:F2}{(fish.IsOnlyNonFishItems ? " - Only Item" : "")}";
+        Utility.drawTextWithShadow(e.SpriteBatch, renderStr, Game1.smallFont, startingPos, Color.Black);
+        startingPos.Y += fontDimensions.Y + yOffset;
+      }
+    };
+
+    helper.Events.Player.Warped += (sender, args) =>
+    {
+      FishHelper.PopulateWaterCacheForLocation(args.NewLocation);
+      FishHelper.SimulateFishingAtGameLocation(args.NewLocation, args.Player);
+    };
   }
 #endregion
 
