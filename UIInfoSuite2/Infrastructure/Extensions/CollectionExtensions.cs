@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace UIInfoSuite2.Infrastructure.Extensions;
+
+public record GetOrCreateResult<T>(T Result, bool WasCreated);
 
 public static class CollectionExtensions
 {
@@ -21,5 +24,34 @@ public static class CollectionExtensions
     }
 
     return value;
+  }
+
+  public static GetOrCreateResult<TValue> GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+    where TValue : new()
+  {
+    if (dictionary.TryGetValue(key, out TValue? value))
+    {
+      return new GetOrCreateResult<TValue>(value, false);
+    }
+
+    dictionary[key] = new TValue();
+
+    return new GetOrCreateResult<TValue>(dictionary[key], true);
+  }
+
+  public static GetOrCreateResult<TValue> GetOrCreate<TKey, TValue>(
+    this IDictionary<TKey, TValue> dictionary,
+    TKey key,
+    Func<TValue> defaultCreate
+  )
+  {
+    if (dictionary.TryGetValue(key, out TValue? value))
+    {
+      return new GetOrCreateResult<TValue>(value, false);
+    }
+
+    dictionary[key] = defaultCreate();
+
+    return new GetOrCreateResult<TValue>(dictionary[key], true);
   }
 }
