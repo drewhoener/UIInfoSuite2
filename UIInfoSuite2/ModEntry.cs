@@ -27,6 +27,20 @@ public class ModEntry : Mod
   public static IMonitor MonitorObject { get; private set; }
   public static DynamicGameAssetsEntry DGA { get; private set; }
 
+  public static void LogExDebug(string message)
+  {
+#if EX_LOG_1
+    MonitorObject.Log(message);
+#endif
+  }
+
+  public static void LogExDebug_2(string message)
+  {
+#if EX_LOG_2
+    LogExDebug(message);
+#endif
+  }
+
 #region Entry
   public override void Entry(IModHelper helper)
   {

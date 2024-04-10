@@ -9,10 +9,13 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug-ExtendedLogging|Any CPU = Debug-ExtendedLogging|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B6DD0C36-999B-44FD-9316-C0AA6D5A6E7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B6DD0C36-999B-44FD-9316-C0AA6D5A6E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6DD0C36-999B-44FD-9316-C0AA6D5A6E7A}.Debug-ExtendedLogging|Any CPU.ActiveCfg = Debug-ExtendedLogging|Any CPU
+		{B6DD0C36-999B-44FD-9316-C0AA6D5A6E7A}.Debug-ExtendedLogging|Any CPU.Build.0 = Debug-ExtendedLogging|Any CPU
 		{B6DD0C36-999B-44FD-9316-C0AA6D5A6E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6DD0C36-999B-44FD-9316-C0AA6D5A6E7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

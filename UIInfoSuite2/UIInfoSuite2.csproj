@@ -7,10 +7,20 @@
     <EnableHarmony>true</EnableHarmony>
 
     <TranslationClassBuilder_AddGetByKey>true</TranslationClassBuilder_AddGetByKey>
+
+    <Configurations>Debug;Release;Debug-ExtendedLogging</Configurations>
+
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;EX_LOG_1</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug-ExtendedLogging' ">
+    <DefineConstants>TRACE;DEBUG;EX_LOG_1;EX_LOG_2</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
   </PropertyGroup>
