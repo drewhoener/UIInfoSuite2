@@ -39,10 +39,11 @@ internal class ShowItemHoverInformation : IDisposable
     1.2f
   );
 
+  public static ClickableTextureComponent MuseumIcon = null!;
+
   private readonly IModHelper _helper;
 
   private readonly PerScreen<Item?> _hoverItem = new();
-  private readonly ClickableTextureComponent _museumIcon;
   private readonly Dictionary<string, List<ItemAndQuality>> _prunedRequiredBundles = new();
 
   private Dictionary<string, string> _bundleNameOverrides;
@@ -63,7 +64,7 @@ internal class ShowItemHoverInformation : IDisposable
       gunther = new NPC { Name = "Gunther", Age = 0, Sprite = new AnimatedSprite("Characters\\Gunther") };
     }
 
-    _museumIcon = new ClickableTextureComponent(
+    MuseumIcon = new ClickableTextureComponent(
       new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
       gunther.Sprite.Texture,
       gunther.GetHeadShot(),
@@ -481,12 +482,12 @@ internal class ShowItemHoverInformation : IDisposable
       if (notDonatedYet)
       {
         spriteBatch.Draw(
-          _museumIcon.texture,
+          MuseumIcon.texture,
           windowPos + new Vector2(2, windowHeight + 8),
-          _museumIcon.sourceRect,
+          MuseumIcon.sourceRect,
           Color.White,
           0f,
-          new Vector2(_museumIcon.sourceRect.Width / 2, _museumIcon.sourceRect.Height),
+          new Vector2(MuseumIcon.sourceRect.Width / 2, MuseumIcon.sourceRect.Height),
           2,
           SpriteEffects.None,
           0.86f

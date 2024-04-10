@@ -8,10 +8,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Locations;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.UIElements;
+using static UIInfoSuite2.Infrastructure.Helpers.PatchHelper;
 using Object = StardewValley.Object;
 
 namespace UIInfoSuite2.Patches;
@@ -81,15 +83,6 @@ internal class ClickableMenuPatches
     );
   }
 
-  private static CodeMatch CreateLocMatcher(OpCode code, int locIdx)
-  {
-    return new CodeMatch(
-      instruction => instruction.opcode == code &&
-                     instruction.operand is LocalBuilder builder &&
-                     builder.LocalIndex == locIdx
-    );
-  }
-
   private static bool Prefix_IClickableMenu_DrawHoverText()
   {
     _profiler.Start();
@@ -118,6 +111,9 @@ internal class ClickableMenuPatches
     catch (Exception e)
     {
       ModEntry.MonitorObject.Log($"Failed to patch drawHoverText. Message: {e.Message}");
+#if DEBUG
+      Console.WriteLine(e);
+#endif
       return null;
     }
 
@@ -312,6 +308,7 @@ internal class ClickableMenuPatches
   {
     DrawBundleTitle(spriteBatch, hoverItem, x1, y1, boxWidth);
     DrawShipmentBox(spriteBatch, hoverItem, x1, y1, boxWidth);
+    DrawMuseumIcon(spriteBatch, hoverItem, x1, y1, boxHeight);
   }
 
   private static void DrawBundleTitle(SpriteBatch spriteBatch, Item hoverItem, int x1, int y1, int boxWidth)
@@ -347,6 +344,30 @@ internal class ClickableMenuPatches
       spriteBatch,
       new Vector2(x1 + boxWidth - 6, y1 + 8),
       _shippingBinDimensions / 2
+    );
+  }
+
+  private static void DrawMuseumIcon(SpriteBatch spriteBatch, Item hoverItem, int x1, int y1, int boxHeight)
+  {
+    var museum = Game1.RequireLocation<LibraryMuseum>("ArchaeologyHouse");
+    if (!museum.isItemSuitableForDonation(hoverItem))
+    {
+      return;
+    }
+
+    spriteBatch.Draw(
+      ShowItemHoverInformation.MuseumIcon.texture,
+      new Vector2(x1, y1) + new Vector2(2, boxHeight + 8),
+      ShowItemHoverInformation.MuseumIcon.sourceRect,
+      Color.White,
+      0f,
+      new Vector2(
+        ShowItemHoverInformation.MuseumIcon.sourceRect.Width / 2f,
+        ShowItemHoverInformation.MuseumIcon.sourceRect.Height
+      ),
+      2,
+      SpriteEffects.None,
+      0.86f
     );
   }
 #endregion
