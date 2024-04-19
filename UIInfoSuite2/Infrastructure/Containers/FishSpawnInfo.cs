@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -6,6 +7,7 @@ using StardewValley;
 using StardewValley.GameData.Locations;
 using StardewValley.Internal;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.Tools;
 
 namespace UIInfoSuite2.Infrastructure.Containers;
 
@@ -25,6 +27,7 @@ public enum FishSpawnBlockedReason
   WrongGameState,
   OverCatchLimit,
   WrongSeason,
+  WrongDay,
   WrongTime,
   RequiresRain,
   RequiresSun,
@@ -35,12 +38,14 @@ public enum FishSpawnBlockedReason
   RequiresMagicBait,
   InvalidFormat,
   TutorialCatch,
+  ReachedGuaranteedItem,
   Unknown
 }
 
 public abstract class FishSpawnInfo
 {
   protected static readonly Dictionary<string, Item> CommonFishLookupCache = new();
+  private readonly MovingAverage _actualHookChance = new();
   private readonly MovingAverage _entryPickedChanceAverage = new();
   private readonly MovingAverage _spawnProbabilityAverage = new();
   protected readonly Dictionary<string, Item> LookupItems = new();
@@ -50,8 +55,7 @@ public abstract class FishSpawnInfo
   protected FishSpawnInfo()
   {
     ResetSpawnChecks();
-    ResetSpawnProbability();
-    ResetEntryPickedChance();
+    ResetProbabilities();
   }
 
   public ICollection<FishSpawnBlockedReason> SpawnBlockReasons { get; } = new SpawnBlockersContainer();
@@ -64,19 +68,30 @@ public abstract class FishSpawnInfo
   public virtual bool IsSpawnConditionUnknown => SpawnBlockReasons.Contains(FishSpawnBlockedReason.Unknown);
   public virtual bool IsSpawnConditionOnlyUnknown => SpawnBlockReasons.Count == 1 && IsSpawnConditionUnknown;
 
+  public virtual bool HasPlayerTileRequirement => false;
+  public virtual bool HasBobberTileRequirement => false;
+
   public bool IsOnlyNonFishItems { get; set; } = true;
 
   public double SpawnProbability
   {
-    get => _spawnProbabilityAverage.Avg;
+    get => Math.Min(1.0, _spawnProbabilityAverage.Mean);
     set => _spawnProbabilityAverage.AddValue(value);
   }
 
   public double EntryPickedChance
   {
-    get => _entryPickedChanceAverage.Avg;
+    get => Math.Min(1.0, _entryPickedChanceAverage.Mean);
     set => _entryPickedChanceAverage.AddValue(value);
   }
+
+  public double ActualHookChance
+  {
+    get => Math.Min(1.0, _actualHookChance.Mean);
+    set => _actualHookChance.AddValue(value);
+  }
+
+  public double ActualHookChanceVariance => _actualHookChance.Variance;
 
   public double ChanceToSpawn
   {
@@ -87,11 +102,22 @@ public abstract class FishSpawnInfo
         return EntryPickedChance;
       }
 
-      return EntryPickedChance * SpawnProbability;
+      return SpawnProbability * EntryPickedChance;
     }
   }
 
-  public double ChanceToNotSpawn => 1.0 - ChanceToSpawn;
+  public double ChanceToNotSpawn
+  {
+    get
+    {
+      double notSpawnedGivenPicked = 1.0 - SpawnProbability;
+      double probabilityEntryNotPicked = 1.0 - EntryPickedChance;
+
+      return Math.Min(1.0, notSpawnedGivenPicked * EntryPickedChance + probabilityEntryNotPicked);
+    }
+  }
+
+  public virtual string DisplayName { get; protected set; } = null!;
 
   public void ResetResolvedItems()
   {
@@ -104,14 +130,11 @@ public abstract class FishSpawnInfo
     SpawnBlockReasons.Add(FishSpawnBlockedReason.Unknown);
   }
 
-  public void ResetSpawnProbability()
+  public void ResetProbabilities()
   {
     _spawnProbabilityAverage.Reset();
-  }
-
-  public void ResetEntryPickedChance()
-  {
     _entryPickedChanceAverage.Reset();
+    _actualHookChance.Reset();
   }
 
   public void AddBlockedReason(FishSpawnBlockedReason reason)
@@ -147,11 +170,6 @@ public abstract class FishSpawnInfo
     bool forceReloadCache = false
   );
 
-  public virtual string GetDisplayName()
-  {
-    return string.Join(", ", GetItems().Select(item => item.DisplayName));
-  }
-
 
   public virtual void SetSpawnAllowed()
   {
@@ -166,7 +184,36 @@ public abstract class FishSpawnInfo
   public override string ToString()
   {
     return
-      $"DisplayName: {GetDisplayName()}, {nameof(EntryPickedChance)}: {EntryPickedChance}, {nameof(SpawnProbability)}: {SpawnProbability}, Spawnable: {CouldSpawn}, {nameof(SpawnBlockReasons)}: [{string.Join(", ", SpawnBlockReasons)}]";
+      $"DisplayName: {DisplayName}, {nameof(EntryPickedChance)}: {EntryPickedChance}, {nameof(SpawnProbability)}: {SpawnProbability}, Spawnable: {CouldSpawn}, {nameof(SpawnBlockReasons)}: [{string.Join(", ", SpawnBlockReasons)}]";
+  }
+
+  public void CheckBobberAndPlayerPos(Point? playerTile = null, Vector2? bobberTile = null)
+  {
+    Point playerTilePoint = playerTile ?? Game1.player.TilePoint;
+
+    if (bobberTile == null)
+    {
+      Item? curItem = Game1.player.CurrentItem;
+      if (curItem is FishingRod { isFishing: true } rod)
+      {
+        bobberTile = rod.bobber.Value;
+      }
+    }
+
+    Rectangle? requiredPlayerTile = SpawnData?.PlayerPosition;
+    Rectangle? requiredBobberTile = SpawnData?.BobberPosition;
+    if (requiredPlayerTile.HasValue &&
+        !requiredPlayerTile.GetValueOrDefault().Contains(playerTilePoint.X, playerTilePoint.Y))
+    {
+      AddBlockedReason(FishSpawnBlockedReason.WrongPlayerPos);
+    }
+
+    if (requiredBobberTile.HasValue &&
+        (!bobberTile.HasValue ||
+         !requiredBobberTile.GetValueOrDefault().Contains((int)bobberTile.Value.X, (int)bobberTile.Value.Y)))
+    {
+      AddBlockedReason(FishSpawnBlockedReason.WrongBobberPos);
+    }
   }
 }
 
@@ -213,6 +260,9 @@ public class FishSpawnInfoFromData : FishSpawnInfo
   public override string Id => SpawnData.Id;
   public override int Precedence => SpawnData.Precedence;
   public override SpawnFishData SpawnData { get; }
+
+  public override bool HasPlayerTileRequirement => SpawnData.PlayerPosition != null;
+  public override bool HasBobberTileRequirement => SpawnData.BobberPosition != null;
 
   public override void PopulateItemsForTile(
     ItemQueryContext queryContext,
@@ -299,6 +349,7 @@ public class FishSpawnInfoFromData : FishSpawnInfo
 
     if (resolved)
     {
+      DisplayName = string.Join(", ", GetItems().Select(item => item.DisplayName));
       return;
     }
 
@@ -316,6 +367,7 @@ public class FishSpawnInfoFromData : FishSpawnInfo
       LookupItems.TryAdd(item.QualifiedItemId, item);
     }
 
+    DisplayName = string.Join(", ", GetItems().Select(item => item.DisplayName));
     return;
 
 

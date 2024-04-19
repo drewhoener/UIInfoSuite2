@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Enchantments;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.FruitTrees;
 using StardewValley.Menus;
@@ -182,5 +183,69 @@ public static class Tools
         destColors[idx] = sourcePixel;
       }
     }
+  }
+
+  public static bool AreItemsSimilar(Item? a, Item? b)
+  {
+    if (a == null && b == null)
+    {
+      return true;
+    }
+
+    if (a == null || b == null)
+    {
+      return false;
+    }
+
+    if (a.GetType() != b.GetType())
+    {
+      return false;
+    }
+
+    if (a.canStackWith(b))
+    {
+      return true;
+    }
+
+    if (a is Tool toolA && b is Tool toolB)
+    {
+      return AreToolsSimilar(toolA, toolB);
+    }
+
+    return a.QualifiedItemId == b.QualifiedItemId && a.Name.Equals(b.Name);
+  }
+
+  public static bool AreEnchantmentsSimilar(BaseEnchantment a, BaseEnchantment b)
+  {
+    return a.ShouldBeDisplayed() == b.ShouldBeDisplayed() &&
+           a.IsForge() == b.IsForge() &&
+           a.IsSecondaryEnchantment() == b.IsSecondaryEnchantment() &&
+           a.Level == b.Level &&
+           a.GetName() == b.GetName();
+  }
+
+  public static bool AreToolsSimilar(Tool a, Tool b)
+  {
+    if (a.QualifiedItemId != b.QualifiedItemId ||
+        !a.Name.Equals(b.Name) ||
+        a.AttachmentSlotsCount != b.AttachmentSlotsCount)
+    {
+      return false;
+    }
+
+    // Unnecessarily expensive, but order needs to not matter here
+    if (a.attachments.Any(attachmentA => !b.attachments.Any(attachmentB => AreItemsSimilar(attachmentA, attachmentB))))
+    {
+      return false;
+    }
+
+    if (a.enchantments.Count != b.enchantments.Count)
+    {
+      return false;
+    }
+
+    return a.enchantments.All(
+      enchantmentsA => b.enchantments.Any(enchantmentsB => AreEnchantmentsSimilar(enchantmentsA, enchantmentsB))
+    );
   }
 }

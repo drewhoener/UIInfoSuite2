@@ -9,28 +9,19 @@ using StardewValley;
 using StardewValley.GameData.Locations;
 using StardewValley.Internal;
 using UIInfoSuite2.Infrastructure.Containers;
-using UIInfoSuite2.Infrastructure.Helpers;
+using UIInfoSuite2.Infrastructure.Helpers.FishHelper;
 using static UIInfoSuite2.Infrastructure.Helpers.PatchHelper;
 
 namespace UIInfoSuite2.Patches;
 
 public class GameLocationPatches
 {
-  private static MethodInfo CheckGenericFishRequirementsMethod = null!;
-
   public static void Apply(Harmony harmony)
   {
-    MethodInfo? checkRequirementsMethod = typeof(GameLocation).GetMethod(
-      "CheckGenericFishRequirements",
-      BindingFlags.Static | BindingFlags.NonPublic
-    );
-
-    if (checkRequirementsMethod == null)
+    if (FishHelper.CheckGenericFishRequirementsMethod.Value == null)
     {
       throw new InvalidOperationException("Couldn't find GameLocation#CheckGenericFishRequirements");
     }
-
-    CheckGenericFishRequirementsMethod = checkRequirementsMethod;
 
     MethodInfo? getFishFromLocationDataMethodInfo = typeof(GameLocation).GetMethod(
       nameof(GameLocation.GetFishFromLocationData),
@@ -59,7 +50,7 @@ public class GameLocationPatches
       );
 
       harmony.Patch(
-        checkRequirementsMethod,
+        FishHelper.CheckGenericFishRequirementsMethod.Value,
         transpiler: new HarmonyMethod(
           typeof(GameLocationPatches),
           nameof(Transpile_GameLocation_CheckGenericFishRequirements)
@@ -99,8 +90,8 @@ public class GameLocationPatches
     const int entryPickedChanceLocIdx = 24;
 
     MethodInfo? containsMethod = typeof(Rectangle).GetMethod("Contains", new[] { typeof(int), typeof(int) });
-    MethodInfo? updateFishForAreaMethod = typeof(GameLocationPatches).GetMethod(
-      nameof(UpdateFishForArea),
+    MethodInfo? updateFishForAreaMethod = typeof(FishHelper).GetMethod(
+      nameof(FishHelper.UpdateFishForArea),
       BindingFlags.NonPublic | BindingFlags.Static
     );
     (CodeInstruction ldSpawnData, CodeInstruction ldfldSpawnData) = LdlocCustomFieldInstructions(
@@ -204,155 +195,6 @@ public class GameLocationPatches
     return new Tuple<CodeInstruction, CodeInstruction>(instructions[0], instructions[1]);
   }
 
-  private static void UpdateFishForArea(
-    // Needed to track fish
-    IEnumerable<SpawnFishData> fishDatas,
-    // Location
-    GameLocation location,
-    string fishAreaId,
-    bool isInherited,
-    // Needed for GSQ
-    HashSet<string>? ignoreQueryKeys,
-    // Needed for resolver
-    Point playerTilePoint,
-    Vector2 bobberTile,
-    ItemQueryContext queryContext,
-    // Needed to check generic requirements
-    Dictionary<string, string> allFishData,
-    Farmer player,
-    int waterDepth,
-    bool usingMagicBait,
-    bool hasCuriosityLure,
-    string curBait,
-    bool isTutorialCatch
-  )
-  {
-    ModEntry.LogExDebug_2($"\nUpdating fish for area {location}");
-    FishHelper.ResetSpawnChecks(location);
-
-    var checkGenericRequirementsInvokeArgs = new object[]
-    {
-      null!, // Reserved for the item we're checking
-      allFishData,
-      location,
-      player,
-      null!, // Reserved for spawn data while iterating
-      waterDepth,
-      usingMagicBait,
-      hasCuriosityLure,
-      false, // Reserved for isUsingTargetBait while iterating
-      isTutorialCatch
-    };
-
-    foreach (SpawnFishData data in fishDatas)
-    {
-      // Spawn Data
-      checkGenericRequirementsInvokeArgs[4] = data;
-      // Is using Target Bait
-      checkGenericRequirementsInvokeArgs[8] = data.ItemId == curBait;
-
-      FishSpawnInfo cachedFishInfo = FishHelper.GetOrCreateFishInfo(location, data);
-      cachedFishInfo.PopulateItemsForTile(queryContext, bobberTile, waterDepth);
-
-      // ModEntry.LogExDebug_2($"Processing entry: {cachedFishInfo.Id}");
-
-      if ((isInherited && !data.CanBeInherited) || (data.FishAreaId != null && fishAreaId != data.FishAreaId))
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongFishingArea);
-        continue;
-      }
-
-      Season? fishRequiredSeason = data.Season;
-      if (fishRequiredSeason.HasValue && !usingMagicBait)
-      {
-        Season currentSeason = Game1.GetSeasonForLocation(location);
-        if (fishRequiredSeason.GetValueOrDefault() != currentSeason)
-        {
-          cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongSeason);
-        }
-      }
-
-      Rectangle? requiredPlayerTile = data.PlayerPosition;
-      Rectangle? requiredBobberTile = data.BobberPosition;
-      if (requiredPlayerTile.HasValue &&
-          !requiredPlayerTile.GetValueOrDefault().Contains(playerTilePoint.X, playerTilePoint.Y))
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongPlayerPos);
-      }
-
-      if (requiredBobberTile.HasValue &&
-          !requiredBobberTile.GetValueOrDefault().Contains((int)bobberTile.X, (int)bobberTile.Y))
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongBobberPos);
-      }
-
-      if (player.FishingLevel < data.MinFishingLevel)
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.PlayerLevelTooLow);
-      }
-
-      if (waterDepth < data.MinDistanceFromShore)
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WaterTooShallow);
-      }
-
-      if (data.MaxDistanceFromShore > -1 && waterDepth > data.MaxDistanceFromShore)
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WaterTooDeep);
-      }
-
-      if (data.RequireMagicBait && !usingMagicBait)
-      {
-        cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.RequiresMagicBait);
-      }
-
-      foreach (Item item in cachedFishInfo.GetItems())
-      {
-        if (data.CatchLimit >= 0)
-        {
-          if (player.fishCaught.TryGetValue(item.QualifiedItemId, out int[] numArray))
-          {
-            if (numArray[0] >= data.CatchLimit)
-            {
-              cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.OverCatchLimit);
-              break;
-            }
-          }
-        }
-
-        if (allFishData.ContainsKey(item.ItemId))
-        {
-          cachedFishInfo.IsOnlyNonFishItems = false;
-        }
-
-        // Set the item in our array of args so we can reuse the same object.
-        checkGenericRequirementsInvokeArgs[0] = item;
-
-        // Ignore the result of this method, we patch in the spawn requirement checks there ourselves.
-        // And sometimes it just returns false, since it calculates its own spawn pct internally (ugh)
-        CheckGenericFishRequirementsMethod.Invoke(null, checkGenericRequirementsInvokeArgs);
-
-        if (data.Condition != null && !GameStateHelper.CheckFishConditions(cachedFishInfo, location, ignoreQueryKeys))
-        {
-          cachedFishInfo.AddBlockedReason(FishSpawnBlockedReason.WrongGameState);
-        }
-
-        // ModEntry.LogExDebug_2(
-        //   $"{cachedFishInfo.Id} BlockReasons: {string.Join(", ", cachedFishInfo.SpawnBlockReasons)}"
-        // );
-
-        // Ok should have been set by CheckGenericFishRequirements already, if it's unknown then we can mark ok
-        if (!cachedFishInfo.IsSpawnConditionOnlyUnknown)
-        {
-          continue;
-        }
-
-        cachedFishInfo.SetSpawnAllowed();
-        break;
-      }
-    }
-  }
-
   private static IEnumerable<CodeInstruction> Transpile_GameLocation_CheckGenericFishRequirements(
     IEnumerable<CodeInstruction> instructions,
     ILGenerator generator
@@ -366,10 +208,11 @@ public class GameLocationPatches
     LocalBuilder fishInfoLocal = generator.DeclareLocal(typeof(FishSpawnInfo));
 
     const byte numLocIdx = 4;
-    const byte flag2LocIdx = 6;
-    const byte flag3LocIdx = 11;
-    const byte num3LocIdx = 17;
-    const byte num5LocIdx = 21;
+    const byte canUseTrainingRodIdx = 6;
+    const byte flag2LocIdx = 7;
+    const byte flag3LocIdx = 12;
+    const byte num3LocIdx = 18;
+    const byte num5LocIdx = 22;
 
     var callGetOrCreateFishInfoMethod = new CodeInstruction(
       OpCodes.Call,
@@ -432,8 +275,6 @@ public class GameLocationPatches
     matcher.Start();
     for (var i = 0; i < 2; i++)
     {
-      // if (!fish.HasTypeObject() || !allFishData.TryGetValue(fish.ItemId, out str1))
-      // if (ArgUtility.Get(array1, 1) == "trap")
       matcher.MatchEndForward(new CodeMatch(OpCodes.Ldc_I4_0), new CodeMatch(OpCodes.Ceq), new CodeMatch(OpCodes.Ret))
              .ThrowIfNotMatch($"Unable to find insertion point for missing fish data in generic check ({i})")
              .CreateLabel(out Label skipSetResultLabel)
@@ -446,9 +287,29 @@ public class GameLocationPatches
              );
     }
 
-    // if (difficulty >= 50) and Training Rod
-    matcher.MatchEndForward(CreateLocMatcher(OpCodes.Ldloc_S, numLocIdx), new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)50))
-           .MatchEndForward(new CodeMatch(OpCodes.Ldc_I4_0), new CodeMatch(OpCodes.Ret))
+    // canUseTrainingRod set but not allowed
+    matcher.MatchEndForward(
+      CreateLocMatcher(OpCodes.Ldloca_S, canUseTrainingRodIdx),
+      new CodeMatch(OpCodes.Call, typeof(bool?).GetMethod(nameof(Nullable<bool>.GetValueOrDefault), Array.Empty<Type>())),
+      new CodeMatch(i => i.opcode == OpCodes.Brtrue_S),
+      new CodeMatch(OpCodes.Ldc_I4_0),
+      new CodeMatch(OpCodes.Ret)
+    );
+    matcher.ThrowIfNotMatch("Unable to find insertion point for weak rod generic check")
+           .Insert(
+             new CodeInstruction(OpCodes.Ldloc_S, fishInfoLocal),
+             new CodeInstruction(OpCodes.Ldc_I4_S, (int)FishSpawnBlockedReason.PlayerRodTooWeak),
+             callAddBlockerInstruction
+           );
+
+    // if (difficulty >= 50) and cannot use Training Rod
+    matcher.MatchEndForward(
+             CreateLocMatcher(OpCodes.Ldloc_S, numLocIdx),
+             new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)50),
+             new CodeMatch(i => i.opcode == OpCodes.Blt_S),
+             new CodeMatch(OpCodes.Ldc_I4_0),
+             new CodeMatch(OpCodes.Ret)
+           )
            .ThrowIfNotMatch("Unable to find insertion point for weak rod generic check")
            .Insert(
              new CodeInstruction(OpCodes.Ldloc_S, fishInfoLocal),

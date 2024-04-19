@@ -10,7 +10,8 @@ using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Containers;
-using UIInfoSuite2.Infrastructure.Helpers;
+using UIInfoSuite2.Infrastructure.Events;
+using UIInfoSuite2.Infrastructure.Helpers.FishHelper;
 using UIInfoSuite2.Options;
 using UIInfoSuite2.Patches;
 
@@ -31,6 +32,7 @@ public class ModEntry : Mod
   public static IMonitor MonitorObject { get; private set; }
   public static DynamicGameAssetsEntry DGA { get; private set; }
 
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public static void LogExDebug(string message)
   {
 #if EX_LOG_1
@@ -38,10 +40,11 @@ public class ModEntry : Mod
 #endif
   }
 
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public static void LogExDebug_2(string message)
   {
 #if EX_LOG_2
-    LogExDebug(message);
+    MonitorObject.Log(message);
 #endif
   }
 
@@ -61,6 +64,8 @@ public class ModEntry : Mod
     helper.Events.GameLoop.GameLaunched += OnGameLaunched;
     helper.Events.Display.Rendering += IconHandler.Handler.Reset;
 
+    EventInvoker.RegisterEvents(helper);
+
     helper.Events.Display.RenderingHud += (sender, e) =>
     {
       Vector2 fontDimensions = Game1.smallFont.MeasureString("OOO");
@@ -79,13 +84,24 @@ public class ModEntry : Mod
         drawShadow: false
       );
 
-      foreach (FishSpawnInfo fish in FishHelper.GetCatchableFish(Game1.player.currentLocation))
+      double cumulativeChances = FishHelper.SimulateActualFishChance();
+      FishingInformationCache fishingCache = FishHelper.GetOrCreateFishingCache(Game1.player.currentLocation);
+
+      foreach (FishSpawnInfo fish in FishHelper.GetCatchableFishDisplayOrder(Game1.player.currentLocation))
       {
         var renderStr =
-          $"{fish.GetDisplayName()} - {fish.EntryPickedChance:F2} - {fish.SpawnProbability:F2}{(fish.IsOnlyNonFishItems ? " - Only Item" : "")}";
+          $"{fish.DisplayName} - {Math.Round(fish.ActualHookChance * 100, fishingCache.FishingChancesConverged() ? 1 : 0)}%{(fish.IsOnlyNonFishItems ? " - Only Item" : "")}";
         Utility.drawTextWithShadow(e.SpriteBatch, renderStr, Game1.smallFont, startingPos, Color.Black);
         startingPos.Y += fontDimensions.Y + yOffset;
       }
+
+      Utility.drawTextWithShadow(
+        e.SpriteBatch,
+        $"Cumulative: {cumulativeChances * 100:F1}",
+        Game1.smallFont,
+        startingPos,
+        Color.Black
+      );
     };
 
     helper.Events.Player.Warped += (sender, args) =>

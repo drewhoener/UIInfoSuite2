@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UIInfoSuite2.Infrastructure.Extensions;
 
@@ -53,5 +54,20 @@ public static class CollectionExtensions
     dictionary[key] = defaultCreate();
 
     return new GetOrCreateResult<TValue>(dictionary[key], true);
+  }
+
+  public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
+  {
+    var random = new Random();
+    List<T> shuffledList = source.ToList();
+    int n = shuffledList.Count;
+    while (n > 1)
+    {
+      n--;
+      int k = random.Next(n + 1);
+      (shuffledList[k], shuffledList[n]) = (shuffledList[n], shuffledList[k]);
+    }
+
+    return shuffledList;
   }
 }
