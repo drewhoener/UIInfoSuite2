@@ -454,7 +454,7 @@ internal class ShowCropAndBarrelTime : IDisposable
       bool isStump = tree.stump.Value;
       string treeTypeName = GetTreeTypeName(tree.treeType.Value);
       string stumpText = isStump ? $" ({I18n.Stump()})" : "";
-      entries.Add($"{treeTypeName} {I18n.Tree()}{stumpText}");
+      entries.Add($"{treeTypeName}{I18n.Tree()}{stumpText}");
 
       if (tree.growthStage.Value >= MAX_TREE_GROWTH_STAGE)
       {
