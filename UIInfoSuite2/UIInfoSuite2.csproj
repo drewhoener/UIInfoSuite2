@@ -13,6 +13,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
+
+    <ModZipPath>$(SolutionDir)\DebugBuilds</ModZipPath>
   </PropertyGroup>
 
   <ItemGroup>
