@@ -15,6 +15,7 @@ public class SoundHelper
 {
   private static readonly Lazy<SoundHelper> LazyInstance = new(() => new SoundHelper());
 
+  private string _modId = "InfoSuite";
   private bool _initialized;
 
   protected SoundHelper() { }
@@ -28,14 +29,16 @@ public class SoundHelper
       throw new InvalidOperationException("Cannot re-initialize sound helper");
     }
 
+    _modId = helper.ModContent.ModID;
+
     RegisterSound(helper, Sounds.LevelUp, "LevelUp.wav");
 
     _initialized = true;
   }
 
-  private static string GetQualifiedSoundName(Sounds sound)
+  private string GetQualifiedSoundName(Sounds sound)
   {
-    return $"UIInfoSuite.sounds.{sound.ToString()}";
+    return $"{_modId}.sounds.{sound.ToString()}";
   }
 
   private static void RegisterSound(
@@ -47,7 +50,7 @@ public class SoundHelper
     CueDefinition.LimitBehavior? limitBehavior = null
   )
   {
-    CueDefinition newCueDefinition = new() { name = GetQualifiedSoundName(sound) };
+    CueDefinition newCueDefinition = new() { name = Instance.GetQualifiedSoundName(sound) };
 
     if (instanceLimit > 0)
     {
@@ -72,6 +75,6 @@ public class SoundHelper
 
   public static void Play(Sounds sound)
   {
-    Game1.playSound(GetQualifiedSoundName(sound));
+    Game1.playSound(Instance.GetQualifiedSoundName(sound));
   }
 }
