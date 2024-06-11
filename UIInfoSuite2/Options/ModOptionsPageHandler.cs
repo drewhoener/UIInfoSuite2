@@ -76,7 +76,6 @@ internal class ModOptionsPageHandler : IDisposable
     var showAccurateHearts = new ShowAccurateHearts(helper.Events);
     var locationOfTownsfolk = new LocationOfTownsfolk(helper, options);
     var showWhenAnimalNeedsPet = new ShowWhenAnimalNeedsPet(helper);
-    var showCalendarAndBillboardOnGameMenuButton = new ShowCalendarAndBillboardOnGameMenuButton(helper);
     var showScarecrowAndSprinklerRange = new ShowItemEffectRanges(helper);
     var experienceBar = new ExperienceBar(helper);
     var showItemHoverInformation = new ShowItemHoverInformation(helper);
@@ -97,7 +96,6 @@ internal class ModOptionsPageHandler : IDisposable
       showAccurateHearts,
       locationOfTownsfolk,
       showWhenAnimalNeedsPet,
-      showCalendarAndBillboardOnGameMenuButton,
       showCropAndBarrelTime,
       showItemHoverInformation,
       showTravelingMerchant,
@@ -222,15 +220,6 @@ internal class ModOptionsPageHandler : IDisposable
         () => options.HideAnimalPetOnMaxFriendship,
         v => options.HideAnimalPetOnMaxFriendship = v,
         animalPetIcon
-      )
-    );
-    _optionsElements.Add(
-      new ModOptionsCheckbox(
-        _helper.SafeGetString(nameof(options.DisplayCalendarAndBillboard)),
-        whichOption++,
-        showCalendarAndBillboardOnGameMenuButton.ToggleOption,
-        () => options.DisplayCalendarAndBillboard,
-        v => options.DisplayCalendarAndBillboard = v
       )
     );
     _optionsElements.Add(
