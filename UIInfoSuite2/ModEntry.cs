@@ -8,6 +8,7 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Options;
+using UIInfoSuite2.UIElements.MenuShortcuts;
 
 namespace UIInfoSuite2;
 
@@ -40,6 +41,8 @@ public class ModEntry : Mod
     helper.Events.GameLoop.Saved += OnSaved;
     helper.Events.GameLoop.GameLaunched += OnGameLaunched;
     helper.Events.Display.Rendering += IconHandler.Handler.Reset;
+
+    MenuShortcutDisplay.Instance.Register(helper);
 
     IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded("MolsonCAD.DeluxeJournal");
   }
