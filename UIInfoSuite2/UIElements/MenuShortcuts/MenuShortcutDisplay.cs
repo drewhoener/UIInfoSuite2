@@ -36,6 +36,8 @@ internal class MenuShortcutDisplay
     );
 
     harmony.Patch(patchingMethod, transpiler: transpilerMethod);
+
+    AddMenuShortcut(helper, new CalendarQuestMenuShortcut(80));
   }
 
   private static void InstanceDraw(GameMenu menu, SpriteBatch b)
