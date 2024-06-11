@@ -38,6 +38,7 @@ internal class MenuShortcutDisplay
     harmony.Patch(patchingMethod, transpiler: transpilerMethod);
 
     AddMenuShortcut(helper, new CalendarQuestMenuShortcut(80));
+    AddMenuShortcut(helper, new MonsterSlayerShortcut(80));
   }
 
   private static void InstanceDraw(GameMenu menu, SpriteBatch b)
