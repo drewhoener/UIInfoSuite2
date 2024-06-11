@@ -44,7 +44,7 @@ public class ModEntry : Mod
 
     MenuShortcutDisplay.Instance.Register(helper);
 
-    IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded("MolsonCAD.DeluxeJournal");
+    IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded(ModCompat.DeluxeJournal);
   }
 #endregion
 

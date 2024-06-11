@@ -8,6 +8,7 @@ public static class ModCompat
 {
   public const string CustomBush = "furyx639.CustomBush";
   public const string Gmcm = "spacechase0.GenericModConfigMenu";
+  public const string DeluxeJournal = "MolsonCAD.DeluxeJournal";
 }
 
 public static class ApiManager
