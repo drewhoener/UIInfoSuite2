@@ -212,7 +212,32 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
           !pet.lastPetDay.Values.Any(day => day == Game1.Date.TotalDays) &&
           (pet.friendshipTowardFarmer.Value < 1000 || !HideOnMaxFriendship))
       {
+        Game1.spriteBatch.Draw(
+          Game1.staminaRect,
+          new Rectangle(
+            (int) Game1.GlobalToLocal(Game1.viewport, new Vector2(0, 0)).X,
+            (int) Game1.GlobalToLocal(Game1.viewport, new Vector2(0, 0)).Y,
+            Game1.currentLocation.map.DisplayWidth,
+            Game1.currentLocation.map.DisplayHeight
+          ),
+          Color.White * 0.25f
+        );
+
+        Game1.spriteBatch.DrawString(
+          Game1.smallFont,
+          $"Viewport: {Game1.viewport.ToString()}",
+          new Vector2(10, 80),
+          Color.White
+        );
+
+        var actualPosMaybe = pet.getLocalPosition(Game1.viewport);
+        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle((int)actualPosMaybe.X, (int)actualPosMaybe.Y, 10, 10), Color.Orange);
+
         Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(character);
+
+        Vector2 scaled = Utility.ModifyCoordinatesForUIScale(positionAboveAnimal);
+        Game1.spriteBatch.Draw(Game1.staminaRect, new Rectangle((int)scaled.X, (int)scaled.Y, 10, 10), Color.Red);
+
         positionAboveAnimal.X += 50f;
         positionAboveAnimal.Y += 30f;
         Game1.spriteBatch.Draw(
