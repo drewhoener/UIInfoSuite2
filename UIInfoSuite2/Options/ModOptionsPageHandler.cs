@@ -595,8 +595,7 @@ internal class ModOptionsPageHandler : IDisposable
       // Draw our tab's hover text
       if (_modOptionsTab.Value?.containsPoint(Game1.getMouseX(), Game1.getMouseY()) == true)
       {
-        Translation tooltip = _helper.Translation.Get(LanguageKeys.OptionsTabTooltip).Default("UI Info Mod Options");
-        IClickableMenu.drawHoverText(Game1.spriteBatch, tooltip, Game1.smallFont);
+        IClickableMenu.drawHoverText(Game1.spriteBatch, I18n.OptionsTabTooltip(), Game1.smallFont);
 
         if (!gameMenu.hoverText.Equals(""))
         {
