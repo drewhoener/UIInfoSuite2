@@ -8,6 +8,7 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Options;
+using UIInfoSuite2.UIElements.MenuShortcuts;
 
 namespace UIInfoSuite2;
 
@@ -28,9 +29,9 @@ public class ModEntry : Mod
 #region Entry
   public override void Entry(IModHelper helper)
   {
+    I18n.Init(helper.Translation);
     Reflection = helper.Reflection;
     MonitorObject = Monitor;
-    I18n.Init(helper.Translation);
 
     _skipIntro = new SkipIntro(helper.Events);
     _modConfig = Helper.ReadConfig<ModConfig>();
@@ -40,6 +41,8 @@ public class ModEntry : Mod
     helper.Events.GameLoop.Saved += OnSaved;
     helper.Events.GameLoop.GameLaunched += OnGameLaunched;
     helper.Events.Display.Rendering += IconHandler.Handler.Reset;
+
+    MenuShortcutDisplay.Instance.Register(helper);
 
     IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded("MolsonCAD.DeluxeJournal");
   }

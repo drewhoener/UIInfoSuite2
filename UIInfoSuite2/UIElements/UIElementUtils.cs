@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using StardewModdingAPI;
 using StardewValley;
 
 namespace UIInfoSuite2.UIElements;
@@ -14,7 +15,8 @@ public static class UIElementUtils
       !Game1.viewportFreeze,
       !Game1.freezeControls,
       Game1.viewportHold <= 0,
-      Game1.displayHUD
+      Game1.displayHUD,
+      Context.IsPlayerFree
     };
 
     return conditions.All(condition => condition);
