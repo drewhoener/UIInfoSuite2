@@ -28,6 +28,7 @@ internal class ShowToolUpgradeStatus : IDisposable
         or Pickaxe
         or Hoe
         or WateringCan
+        or Pan
         or GenericTool { IndexOfMenuItemView: >= 13 and <= 16 })
     {
       ParsedItemData? itemData = ItemRegistry.GetDataOrErrorItem(toolBeingUpgraded.QualifiedItemId);
@@ -60,7 +61,18 @@ internal class ShowToolUpgradeStatus : IDisposable
 #region Properties
   private readonly PerScreen<string> _hoverText = new();
   private readonly PerScreen<Tool?> _toolBeingUpgraded = new();
-  private readonly PerScreen<ClickableTextureComponent> _toolUpgradeIcon = new();
+
+  private readonly PerScreen<ClickableTextureComponent> _toolUpgradeIcon = new(
+    () =>
+    {
+      return new ClickableTextureComponent(
+        new Rectangle(0, 0, 40, 40),
+        Game1.mouseCursors,
+        new Rectangle(322, 498, 12, 12),
+        40 / 12f
+      );
+    }
+  );
 
   private readonly IModHelper _helper;
 #endregion
