@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>2.3.4</Version>
+    <Version>2.3.4+8577e509</Version>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ModZipPath>$(SolutionDir)\Releases</ModZipPath>
