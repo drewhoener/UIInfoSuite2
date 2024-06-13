@@ -93,7 +93,8 @@ public static class DropsHelper
     string? customId,
     bool includeToday,
     string displayName,
-    Func<T, DropInfo> extractDropInfo
+    Func<T, DropInfo> extractDropInfo,
+    bool independentRolls = false
   )
   {
     List<PossibleDroppedItem> items = new();

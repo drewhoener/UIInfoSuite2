@@ -1,4 +1,6 @@
 ﻿using System;
+using HarmonyLib;
+using SimpleInjector;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -18,6 +20,7 @@ public class ModEntry : Mod
   private static ModConfig _modConfig;
 
   private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
+  private readonly Container _container = new();
 
   private ModOptions _modOptions;
   private ModOptionsPageHandler _modOptionsPageHandler;
@@ -30,6 +33,16 @@ public class ModEntry : Mod
   public override void Entry(IModHelper helper)
   {
     I18n.Init(helper.Translation);
+
+    _container.RegisterInstance(Helper);
+    _container.RegisterInstance(Monitor);
+    _container.RegisterInstance(Helper.Reflection);
+    _container.RegisterInstance(Helper.Translation);
+    _container.RegisterInstance(SoundHelper.Instance);
+    _container.RegisterInstance(new Harmony(Helper.ModContent.ModID));
+
+    _container.Verify();
+
     Reflection = helper.Reflection;
     MonitorObject = Monitor;
 
