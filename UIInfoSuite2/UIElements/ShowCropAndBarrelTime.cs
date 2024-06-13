@@ -407,7 +407,13 @@ internal class ShowCropAndBarrelTime : IDisposable
         return false;
       }
 
-      string fertilizerStr = string.IsNullOrEmpty(hoeDirt.fertilizer.Value) ? "" : GetFertilizerString(hoeDirt);
+      var fertilizerStr = "";
+      // Special case, someone had a case where id "0" was set in fertilizer, which is weeds...
+      // Weird, right?
+      if (!string.IsNullOrEmpty(hoeDirt.fertilizer.Value) && !"0".Equals(hoeDirt.fertilizer.Value))
+      {
+        fertilizerStr = GetFertilizerString(hoeDirt);
+      }
 
       if (hoeDirt.crop is not null && !hoeDirt.crop.dead.Value)
       {
