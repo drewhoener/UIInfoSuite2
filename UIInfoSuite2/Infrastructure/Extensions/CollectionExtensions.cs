@@ -27,4 +27,24 @@ public static class CollectionExtensions
   {
     return dictionary.GetOrDefault(key, default);
   }
+
+  public static void AddIfNotNull<TValue>(this IList<TValue> list, TValue? value, bool allowEmptyStrings = false)
+  {
+    if (value == null)
+    {
+      return;
+    }
+
+    if (!allowEmptyStrings && value is string str && string.IsNullOrEmpty(str))
+    {
+      return;
+    }
+
+    list.Add(value);
+  }
+
+  public static bool IsEmpty<T>(this ICollection<T> list)
+  {
+    return list.Count == 0;
+  }
 }

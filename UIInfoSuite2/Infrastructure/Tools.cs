@@ -311,4 +311,20 @@ public static class Tools
 
     return mapAreaPosition ?? WorldMapManager.GetPositionData(Game1.getFarm(), Point.Zero)?.Data;
   }
+
+  public static string Capitalize(string str)
+  {
+    if (string.IsNullOrEmpty(str))
+    {
+      return str;
+    }
+
+    return char.ToUpper(str[0]) + str.Substring(1);
+  }
+
+  public static string GetLocalizedSeasonName(Season season)
+  {
+    string seasonLocalName = Game1.content.LoadString("Strings\\StringsFromCSFiles:" + Utility.getSeasonKey(season));
+    return Capitalize(seasonLocalName);
+  }
 }

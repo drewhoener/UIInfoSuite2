@@ -1,40 +1,11 @@
-﻿namespace UIInfoSuite2.Infrastructure.Extensions;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace UIInfoSuite2.Infrastructure.Extensions;
 
 internal static class StringExtensions
 {
-  public static int SafeParseInt32(this string s)
+  public static string Format(this string str, [NotNull] params object?[] args)
   {
-    var result = 0;
-
-    if (!string.IsNullOrWhiteSpace(s))
-    {
-      int.TryParse(s, out result);
-    }
-
-    return result;
-  }
-
-  public static int SafeParseInt64(this string s)
-  {
-    var result = 0;
-
-    if (!string.IsNullOrWhiteSpace(s))
-    {
-      int.TryParse(s, out result);
-    }
-
-    return result;
-  }
-
-  public static bool SafeParseBool(this string s)
-  {
-    var result = false;
-
-    if (!string.IsNullOrWhiteSpace(s))
-    {
-      bool.TryParse(s, out result);
-    }
-
-    return result;
+    return string.Format(str, args);
   }
 }
