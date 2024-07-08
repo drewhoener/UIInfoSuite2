@@ -95,5 +95,14 @@
   "ShowSeasonalBerry": "Show seasonal forageables",
   "ShowSeasonalBerryHazelnut": "Show hazelnuts on trees",
   //Others
-  "LevelUp": "Level Up"
+  "LevelUp": "Level Up",
+  // Game State Requirement Strings
+  "GSQ.Requirements.Unsupported": "Unsupported condition {0} from {1}, please report!",
+  "GSQ.Requirements.ParseError": "Requires {0}",
+  "GSQ.Requirements.DaysPlayedRange": "Requires {0} - {1} days played",
+  "GSQ.Requirements.DaysPlayedMinimum": "Requires at least {0} days played",
+  "GSQ.Requirements.GreenRain": "Requires Green Rain",
+  "GSQ.Requirements.Season": "Requires season to be {0}",
+  "GSQ.Requirements.YearRange": "Requires Year {0} - {1}",
+  "GSQ.Requirements.YearMinimum": "Requires Year {0}+"
 }
