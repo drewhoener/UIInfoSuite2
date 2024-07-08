@@ -17,6 +17,7 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
+using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 using Object = StardewValley.Object;
 
 namespace UIInfoSuite2.UIElements;
@@ -220,14 +221,14 @@ internal class ShowCropAndBarrelTime : IDisposable
     }
 
     IEnumerable<string> formattedNames = fertilizerNames.OrderBy(kv => kv.Value)
-                                                        .ThenBy(kv => kv.Key)
-                                                        .Select(
-                                                          kv =>
-                                                          {
-                                                            string quantityStr = kv.Value == 1 ? "" : $" x{kv.Value}";
-                                                            return $"{kv.Key}{quantityStr}";
-                                                          }
-                                                        );
+      .ThenBy(kv => kv.Key)
+      .Select(
+        kv =>
+        {
+          string quantityStr = kv.Value == 1 ? "" : $" x{kv.Value}";
+          return $"{kv.Key}{quantityStr}";
+        }
+      );
     return string.Join(",\n", formattedNames);
   }
 
@@ -271,13 +272,19 @@ internal class ShowCropAndBarrelTime : IDisposable
 
   private static class DetailRenderers
   {
-    private static string GetInfoStringForDrop(PossibleDroppedItem item)
+    private static string GetInfoStringForDrop(PossibleDroppedItem item, bool isReadyToday)
     {
-      (int nextDayToProduce, ParsedItemData? parsedItemData, float chance, string? _) = item;
+      (ConditionFutureResult futureHarvestDates, ParsedItemData? parsedItemData, float chance, string? _) = item;
+
+      WorldDate? nextDayToProduce = futureHarvestDates.GetNextDate(shouldIncludeToday: isReadyToday);
+      if (nextDayToProduce == null)
+      {
+        return $"Unknown {I18n.Days()}";
+      }
 
       string chanceStr = 1.0f.Equals(chance) ? "" : $" ({chance * 100:2F}%)";
-      int daysUntilReady = nextDayToProduce - Game1.dayOfMonth;
-      return daysUntilReady <= 0
+      int daysUntilReady = nextDayToProduce.DayOfMonth - Game1.dayOfMonth;
+      return daysUntilReady <= 0 || isReadyToday
         ? $"{parsedItemData.DisplayName}: {I18n.ReadyToHarvest()}"
         : $"{parsedItemData.DisplayName}: {daysUntilReady} {I18n.Days()}{chanceStr}";
     }
@@ -507,7 +514,7 @@ internal class ShowCropAndBarrelTime : IDisposable
         return true;
       }
 
-      entries.AddRange(treeInfo.Items.Select(GetInfoStringForDrop));
+      entries.AddRange(treeInfo.Items.Select(item => GetInfoStringForDrop(item, true)));
       return true;
     }
 
@@ -519,6 +526,7 @@ internal class ShowCropAndBarrelTime : IDisposable
       }
 
       var ageToMature = 20;
+      bool isReadyToday = false;
       bool willProduceThisSeason = Game1.season != Season.Winter;
       string bushName = ItemRegistry.GetData("(O)251").DisplayName;
       bool inProductionPeriod = Game1.dayOfMonth >= 22;
@@ -527,11 +535,12 @@ internal class ShowCropAndBarrelTime : IDisposable
 
       if (bush.tileSheetOffset.Value == 1)
       {
-        droppedItems.Add(new PossibleDroppedItem(Game1.dayOfMonth, ItemRegistry.GetData("(O)815"), 1.0f));
+        droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Today(), ItemRegistry.GetData("(O)815"), 1.0f));
+        isReadyToday = true;
       }
       else if (Game1.dayOfMonth >= 21 && Game1.dayOfMonth < 28)
       {
-        droppedItems.Add(new PossibleDroppedItem(Game1.dayOfMonth + 1, ItemRegistry.GetData("(O)815"), 1.0f));
+        droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Tomorrow(), ItemRegistry.GetData("(O)815"), 1.0f));
       }
 
       if (ApiManager.GetApi(ModCompat.CustomBush, out ICustomBushApi? customBushApi))
@@ -553,7 +562,8 @@ internal class ShowCropAndBarrelTime : IDisposable
 
           if (customBushData.GetShakeOffItemIfReady(bush, out ParsedItemData? shakeOffItemData))
           {
-            droppedItems.Add(new PossibleDroppedItem(Game1.dayOfMonth, shakeOffItemData, 1.0f, id));
+            droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Today(), shakeOffItemData, 1.0f, id));
+            isReadyToday = true;
           }
           else
           {
@@ -586,7 +596,7 @@ internal class ShowCropAndBarrelTime : IDisposable
         return true;
       }
 
-      entries.AddRange(droppedItems.Select(GetInfoStringForDrop));
+      entries.AddRange(droppedItems.Select(item => GetInfoStringForDrop(item, isReadyToday)));
       return true;
     }
   }

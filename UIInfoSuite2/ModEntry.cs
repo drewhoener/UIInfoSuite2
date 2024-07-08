@@ -9,6 +9,7 @@ using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 using UIInfoSuite2.Options;
 using UIInfoSuite2.UIElements.MenuShortcuts;
 
@@ -141,6 +142,7 @@ public class ModEntry : Mod
 
     _modOptionsPageHandler?.Dispose();
     _modOptionsPageHandler = null;
+    GameStateResolverCaches.Clear();
   }
 
   private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
