@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace UIInfoSuite2.Infrastructure.Structures;
+namespace UIInfoSuite2.Infrastructure.Models;
 
 public class DataCache<TKey, TValue> where TKey : IEquatable<TKey>
 {
