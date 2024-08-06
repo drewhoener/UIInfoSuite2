@@ -10,8 +10,9 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
+using UIInfoSuite2.Infrastructure.Modules;
 using UIInfoSuite2.Options;
-using UIInfoSuite2.UIElements.MenuShortcuts;
+using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 
 namespace UIInfoSuite2;
 
@@ -36,11 +37,21 @@ public class ModEntry : Mod
     I18n.Init(helper.Translation);
 
     _container.RegisterInstance(Helper);
+    _container.RegisterInstance(ModManifest);
     _container.RegisterInstance(Monitor);
+    _container.RegisterInstance(Helper.ConsoleCommands);
+    _container.RegisterInstance(Helper.Data);
+    _container.RegisterInstance(Helper.Events);
+    _container.RegisterInstance(Helper.GameContent);
+    _container.RegisterInstance(Helper.Input);
+    _container.RegisterInstance(Helper.ModContent);
+    _container.RegisterInstance(Helper.ModRegistry);
     _container.RegisterInstance(Helper.Reflection);
     _container.RegisterInstance(Helper.Translation);
     _container.RegisterInstance(SoundHelper.Instance);
     _container.RegisterInstance(new Harmony(Helper.ModContent.ModID));
+
+    _container.RegisterInstance(new ModuleManager(_container));
 
     _container.Verify();
 

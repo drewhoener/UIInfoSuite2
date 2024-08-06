@@ -1,37 +1,19 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.Menus;
-using UIInfoSuite2.Infrastructure;
-using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Models;
+using UIInfoSuite2.Infrastructure.Modules;
 
 namespace UIInfoSuite2.UIElements;
 
-internal class LuckOfDay : IDisposable
+internal class LuckOfDay : HudIconModule
 {
 #region Properties
-  private readonly PerScreen<string> _hoverText = new(() => string.Empty);
   private readonly PerScreen<Color> _color = new(() => new Color(Color.White.ToVector4()));
-
-  private readonly PerScreen<ClickableTextureComponent> _icon = new(
-    () => new ClickableTextureComponent(
-      "",
-      new Rectangle(Tools.GetWidthInPlayArea() - 134, 290, 10 * Game1.pixelZoom, 10 * Game1.pixelZoom),
-      "",
-      "",
-      Game1.mouseCursors,
-      new Rectangle(50, 428, 10, 14),
-      Game1.pixelZoom
-    )
-  );
-
-  private readonly IModHelper _helper;
-
-  private bool Enabled { get; set; }
-  private bool ShowExactValue { get; set; }
 
   private static readonly Color Luck1Color = new(87, 255, 106, 255);
   private static readonly Color Luck2Color = new(148, 255, 210, 255);
@@ -42,145 +24,98 @@ internal class LuckOfDay : IDisposable
 #endregion
 
 #region Lifecycle
-  public LuckOfDay(IModHelper helper)
+  private NewModConfig config;
+
+  public LuckOfDay(IModEvents modEvents, IMonitor logger, NewModConfig config) : base(modEvents, logger)
   {
-    _helper = helper;
+    this.config = config;
   }
 
-  public void Dispose()
+  protected override ClickableIcon CreateIcon()
   {
-    ToggleOption(false);
+    return new ClickableIcon(Game1.mouseCursors, new Rectangle(50, 428, 10, 14), 40);
   }
 
-  public void ToggleOption(bool showLuckOfDay)
+  public override bool ShouldEnable()
   {
-    Enabled = showLuckOfDay;
-
-    _helper.Events.Player.Warped -= OnWarped;
-    _helper.Events.Display.RenderingHud -= OnRenderingHud;
-    _helper.Events.Display.RenderedHud -= OnRenderedHud;
-    _helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
-
-    if (showLuckOfDay)
-    {
-      AdjustIconXToBlackBorder();
-      _helper.Events.Player.Warped += OnWarped;
-      _helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
-      _helper.Events.Display.RenderingHud += OnRenderingHud;
-      _helper.Events.Display.RenderedHud += OnRenderedHud;
-    }
+    return config.ShowLuckIcon;
   }
 
-  public void ToggleShowExactValueOption(bool showExactValue)
+  public override void OnEnable()
   {
-    ShowExactValue = showExactValue;
-    ToggleOption(Enabled);
+    base.OnEnable();
+    ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
+  }
+
+  public override void OnDisable()
+  {
+    base.OnDisable();
+    ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
   }
 #endregion
 
 #region Event subscriptions
-  private void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+  private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
   {
     CalculateLuck(e);
   }
 
-  private void OnRenderedHud(object sender, RenderedHudEventArgs e)
+  protected override void DrawIcon(SpriteBatch batch)
   {
-    // draw hover text
-    if (_icon.Value.containsPoint(Game1.getMouseX(), Game1.getMouseY()))
-    {
-      IClickableMenu.drawHoverText(Game1.spriteBatch, _hoverText.Value, Game1.dialogueFont);
-    }
-  }
-
-  private void OnRenderingHud(object sender, RenderingHudEventArgs e)
-  {
-    // draw dice icon
-    if (UIElementUtils.IsRenderingNormally())
-    {
-      Point iconPosition = IconHandler.Handler.GetNewIconPosition();
-      ClickableTextureComponent icon = _icon.Value;
-      icon.bounds.X = iconPosition.X;
-      icon.bounds.Y = iconPosition.Y;
-      _icon.Value = icon;
-      _icon.Value.draw(Game1.spriteBatch, _color.Value, 1f);
-    }
+    Icon.Draw(batch, _color.Value, 1f);
   }
 #endregion
 
 #region Logic
   private void CalculateLuck(UpdateTickedEventArgs e)
   {
-    if (e.IsMultipleOf(30)) // half second
+    if (!e.IsMultipleOf(30)) // half second
     {
-      switch (Game1.player.DailyLuck)
-      {
-        // Spirits are very happy (FeelingLucky)
-        case var l when l > 0.07:
-          _hoverText.Value = I18n.LuckStatus1();
-          _color.Value = Luck1Color;
-          break;
-        // Spirits are in good humor (LuckyButNotTooLucky)
-        case var l when l > 0.02 && l <= 0.07:
-          _hoverText.Value = I18n.LuckStatus2();
-          _color.Value = Luck2Color;
-
-          break;
-        // The spirits feel neutral
-        case var l when l >= -0.02 && l <= 0.02 && l != 0:
-          _hoverText.Value = I18n.LuckStatus3();
-          _color.Value = Luck3Color;
-
-          break;
-        // The spirits feel absolutely neutral
-        case var l when l == 0:
-          _hoverText.Value = I18n.LuckStatus4();
-          _color.Value = Luck4Color;
-          break;
-        // The spirits are somewhat annoyed (NotFeelingLuckyAtAll)
-        case var l when l >= -0.07 && l < -0.02:
-          _hoverText.Value = I18n.LuckStatus5();
-          _color.Value = Luck5Color;
-
-          break;
-        // The spirits are very displeased (MaybeStayHome)
-        case var l when l < -0.07:
-          _hoverText.Value = I18n.LuckStatus6();
-          _color.Value = Luck6Color;
-          break;
-      }
-
-      // Rewrite the text, but keep the color
-      if (ShowExactValue)
-      {
-        _hoverText.Value = string.Format(
-          I18n.DailyLuckValue(),
-          Game1.player.DailyLuck.ToString("N3")
-        );
-      }
+      return;
     }
-  }
 
-  private void OnWarped(object sender, WarpedEventArgs e)
-  {
-    // adjust icon X to black border
-    if (e.IsLocalPlayer)
+    switch (Game1.player.DailyLuck)
     {
-      AdjustIconXToBlackBorder();
-    }
-  }
+      // Spirits are very happy (FeelingLucky)
+      case > 0.07:
+        Icon.HoverText = I18n.LuckStatus1();
+        _color.Value = Luck1Color;
+        break;
+      // Spirits are in good humor (LuckyButNotTooLucky)
+      case <= 0.07 and > 0.02:
+        Icon.HoverText = I18n.LuckStatus2();
+        _color.Value = Luck2Color;
 
-  private void AdjustIconXToBlackBorder()
-  {
-    _icon.Value = new ClickableTextureComponent(
-      "",
-      new Rectangle(Tools.GetWidthInPlayArea() - 134, 290, 10 * Game1.pixelZoom, 10 * Game1.pixelZoom),
-      "",
-      "",
-      Game1.mouseCursors,
-      new Rectangle(50, 428, 10, 14),
-      Game1.pixelZoom
-    );
+        break;
+      // The spirits feel neutral
+      case var l and >= -0.02 and <= 0.02 when l != 0:
+        Icon.HoverText = I18n.LuckStatus3();
+        _color.Value = Luck3Color;
+
+        break;
+      // The spirits feel absolutely neutral
+      case 0:
+        Icon.HoverText = I18n.LuckStatus4();
+        _color.Value = Luck4Color;
+        break;
+      // The spirits are somewhat annoyed (NotFeelingLuckyAtAll)
+      case < -0.02 and >= -0.07:
+        Icon.HoverText = I18n.LuckStatus5();
+        _color.Value = Luck5Color;
+
+        break;
+      // The spirits are very displeased (MaybeStayHome)
+      case < -0.07:
+        Icon.HoverText = I18n.LuckStatus6();
+        _color.Value = Luck6Color;
+        break;
+    }
+
+    // Rewrite the text, but keep the color
+    if (config.ShowExactLuckValue)
+    {
+      Icon.HoverText = string.Format(I18n.DailyLuckValue(), Game1.player.DailyLuck.ToString("N3"));
+    }
   }
 #endregion
 }
