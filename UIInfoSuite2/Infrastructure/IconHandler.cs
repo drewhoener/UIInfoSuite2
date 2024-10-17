@@ -1,37 +1,35 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI.Utilities;
 using StardewValley;
-using System;
 
-namespace UIInfoSuite2.Infrastructure
+namespace UIInfoSuite2.Infrastructure;
+
+public sealed class IconHandler
 {
-    public sealed class IconHandler
+  private readonly PerScreen<int> _amountOfVisibleIcons = new();
+
+  private IconHandler() { }
+
+  public static IconHandler Handler { get; } = new();
+
+  public bool IsQuestLogPermanent { get; set; } = false;
+
+  public Point GetNewIconPosition()
+  {
+    int yPos = Game1.options.zoomButtons ? 290 : 260;
+    int xPosition = Tools.GetWidthInPlayArea() - 70 - 48 * _amountOfVisibleIcons.Value;
+    if (IsQuestLogPermanent || Game1.player.questLog.Any() || Game1.player.team.specialOrders.Any())
     {
-        public static IconHandler Handler { get; } = new();
-
-        private readonly PerScreen<int> _amountOfVisibleIcons = new();
-
-        private IconHandler()
-        {
-
-        }
-
-        public Point GetNewIconPosition()
-        {
-            int yPos = Game1.options.zoomButtons ? 290 : 260;
-            int xPosition = Tools.GetWidthInPlayArea() - 70 - 48 * _amountOfVisibleIcons.Value;
-            if (Game1.player.questLog.Any() || Game1.player.team.specialOrders.Any())
-            {
-                xPosition -= 65;
-            }
-            ++_amountOfVisibleIcons.Value;
-            return new Point(xPosition, yPos);
-        }
-
-        public void Reset(object sender, EventArgs e)
-        {
-            _amountOfVisibleIcons.Value = 0;
-        }
-
+      xPosition -= 65;
     }
+
+    ++_amountOfVisibleIcons.Value;
+    return new Point(xPosition, yPos);
+  }
+
+  public void Reset(object sender, EventArgs e)
+  {
+    _amountOfVisibleIcons.Value = 0;
+  }
 }

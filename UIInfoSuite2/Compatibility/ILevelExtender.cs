@@ -1,8 +1,7 @@
-﻿namespace UIInfoSuite2.Compatibility
+﻿namespace UIInfoSuite2.Compatibility;
+
+public interface ILevelExtender
 {
-    public interface ILevelExtender
-    {
-        int[] CurrentXP();
-        int[] RequiredXP();
-    }
+  int[] CurrentXP();
+  int[] RequiredXP();
 }
