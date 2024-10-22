@@ -5,6 +5,8 @@ using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+
 namespace UIInfoSuite2.Compatibility;
 
 /// <summary>The API which lets other mods add a config UI through Generic Mod Config Menu.</summary>

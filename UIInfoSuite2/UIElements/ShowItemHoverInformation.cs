@@ -17,6 +17,8 @@ namespace UIInfoSuite2.UIElements;
 
 internal class ShowItemHoverInformation : IDisposable
 {
+  private readonly BundleHelper _bundleHelper;
+
   private readonly ClickableTextureComponent _bundleIcon = new(
     new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
     Game1.mouseCursors,
@@ -27,6 +29,7 @@ internal class ShowItemHoverInformation : IDisposable
   private readonly IModHelper _helper;
 
   private readonly PerScreen<Item?> _hoverItem = new();
+  private readonly IMonitor _logger;
   private readonly ClickableTextureComponent _museumIcon;
 
   private readonly ClickableTextureComponent _shippingBottomIcon = new(
@@ -45,14 +48,16 @@ internal class ShowItemHoverInformation : IDisposable
 
   private LibraryMuseum _libraryMuseum;
 
-  public ShowItemHoverInformation(IModHelper helper)
+  public ShowItemHoverInformation(IModHelper helper, IMonitor logger, BundleHelper bundleHelper)
   {
     _helper = helper;
+    _logger = logger;
+    _bundleHelper = bundleHelper;
 
     NPC? gunther = Game1.getCharacterFromName("Gunther");
     if (gunther == null)
     {
-      ModEntry.MonitorObject.Log(
+      _logger.Log(
         $"{GetType().Name}: Could not find Gunther in the game, creating a fake one for ourselves.",
         LogLevel.Warn
       );
@@ -105,7 +110,7 @@ internal class ShowItemHoverInformation : IDisposable
   /// <param name="e">The event arguments.</param>
   private void OnRenderedHud(object? sender, RenderedHudEventArgs e)
   {
-    // ModEntry.MonitorObject.Log(Game1.player.currentLocation.Name);
+    // _logger.Log(Game1.player.currentLocation.Name);
     if (Game1.activeClickableMenu == null)
     {
       DrawAdvancedTooltip(e.SpriteBatch);
@@ -158,13 +163,13 @@ internal class ShowItemHoverInformation : IDisposable
       Color? bundleColor = null;
       if (hoveredObject != null)
       {
-        BundleRequiredItem? bundleDisplayData = BundleHelper.GetBundleItemIfNotDonated(hoveredObject);
+        BundleRequiredItem? bundleDisplayData = _bundleHelper.GetBundleItemIfNotDonated(hoveredObject);
         if (bundleDisplayData != null)
         {
           requiredBundleName = bundleDisplayData.Name;
 
           // TODO cache these colors so we're not doing it every time
-          bundleColor = BundleHelper.GetRealColorFromIndex(bundleDisplayData.Id)?.Desaturate(0.35f);
+          bundleColor = _bundleHelper.GetRealColorFromIndex(bundleDisplayData.Id)?.Desaturate(0.35f);
         }
       }
 

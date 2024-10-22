@@ -15,26 +15,34 @@ public record BundleRequiredItem(string Name, int BannerWidth, int Id, string Qu
 
 public record BundleKeyData(string Name, int Color);
 
-internal static class BundleHelper
+internal class BundleHelper
 {
-  private static readonly Dictionary<int, BundleKeyData> BundleIdToBundleKeyDataMap = new();
+  private readonly Dictionary<int, BundleKeyData> _bundleIdToBundleKeyDataMap = new();
+  private readonly IMonitor _logger;
+  private readonly IReflectionHelper _reflectionHelper;
 
-  public static BundleKeyData? GetBundleKeyDataFromIndex(int bundleIdx, bool forceRefresh = false)
+  public BundleHelper(IMonitor logger, IReflectionHelper reflectionHelper)
   {
-    PopulateBundleNameMappings(forceRefresh);
-    return BundleIdToBundleKeyDataMap.GetValueOrDefault(bundleIdx);
+    _logger = logger;
+    _reflectionHelper = reflectionHelper;
   }
 
-  public static int GetBundleColorFromIndex(int bundleIdx, bool forceRefresh = false)
+  public BundleKeyData? GetBundleKeyDataFromIndex(int bundleIdx, bool forceRefresh = false)
   {
     PopulateBundleNameMappings(forceRefresh);
-    return BundleIdToBundleKeyDataMap.GetValueOrDefault(bundleIdx)?.Color ?? 0;
+    return _bundleIdToBundleKeyDataMap.GetValueOrDefault(bundleIdx);
   }
 
-  public static Color? GetRealColorFromIndex(int bundleIdx, bool forceRefresh = false)
+  public int GetBundleColorFromIndex(int bundleIdx, bool forceRefresh = false)
   {
     PopulateBundleNameMappings(forceRefresh);
-    BundleKeyData? bundleData = BundleIdToBundleKeyDataMap.GetValueOrDefault(bundleIdx);
+    return _bundleIdToBundleKeyDataMap.GetValueOrDefault(bundleIdx)?.Color ?? 0;
+  }
+
+  public Color? GetRealColorFromIndex(int bundleIdx, bool forceRefresh = false)
+  {
+    PopulateBundleNameMappings(forceRefresh);
+    BundleKeyData? bundleData = _bundleIdToBundleKeyDataMap.GetValueOrDefault(bundleIdx);
     if (bundleData == null)
     {
       return null;
@@ -48,7 +56,7 @@ internal static class BundleHelper
     return 68 + (int)Game1.dialogueFont.MeasureString(bundleName).X;
   }
 
-  public static BundleRequiredItem? GetBundleItemIfNotDonated(Item item)
+  public BundleRequiredItem? GetBundleItemIfNotDonated(Item item)
   {
     if (item is not SObject donatedItem || donatedItem.bigCraftable.Value)
     {
@@ -61,13 +69,13 @@ internal static class BundleHelper
     try
     {
       IReflectedField<BundleIngredientsCache> bundlesIngredientsInfoField =
-        ModEntry.Reflection.GetField<BundleIngredientsCache>(communityCenter, "bundlesIngredientsInfo");
+        _reflectionHelper.GetField<BundleIngredientsCache>(communityCenter, "bundlesIngredientsInfo");
       bundlesIngredientsInfo = bundlesIngredientsInfoField.GetValue();
     }
     catch (Exception e)
     {
-      ModEntry.MonitorObject.Log("Failed to get bundles info", LogLevel.Error);
-      ModEntry.MonitorObject.Log(e.ToString(), LogLevel.Error);
+      _logger.Log("Failed to get bundles info", LogLevel.Error);
+      _logger.Log(e.ToString(), LogLevel.Error);
       return null;
     }
 
@@ -94,7 +102,7 @@ internal static class BundleHelper
     return output ?? null;
   }
 
-  private static BundleRequiredItem? GetBundleItemIfNotDonatedFromList(List<List<int>>? lists, ISalable obj)
+  private BundleRequiredItem? GetBundleItemIfNotDonatedFromList(List<List<int>>? lists, ISalable obj)
   {
     if (lists == null)
     {
@@ -126,14 +134,14 @@ internal static class BundleHelper
     return null;
   }
 
-  public static void PopulateBundleNameMappings(bool force = false)
+  public void PopulateBundleNameMappings(bool force = false)
   {
-    if (BundleIdToBundleKeyDataMap.Count != 0 && !force)
+    if (_bundleIdToBundleKeyDataMap.Count != 0 && !force)
     {
       return;
     }
 
-    BundleIdToBundleKeyDataMap.Clear();
+    _bundleIdToBundleKeyDataMap.Clear();
     foreach (KeyValuePair<string, string> bundleInfo in Game1.netWorldState.Value.BundleData)
     {
       try
@@ -143,13 +151,11 @@ internal static class BundleHelper
         string[] bundleContentsData = bundleInfo.Value.Split('/');
         string localizedName = bundleContentsData[6];
         var color = Convert.ToInt32(bundleContentsData[3]);
-        BundleIdToBundleKeyDataMap[bundleIdx] = new BundleKeyData(localizedName, color);
+        _bundleIdToBundleKeyDataMap[bundleIdx] = new BundleKeyData(localizedName, color);
       }
       catch (Exception)
       {
-        ModEntry.MonitorObject.Log(
-          $"Failed to parse info for bundle {bundleInfo.ToString()}, some information may be unavailable"
-        );
+        _logger.Log($"Failed to parse info for bundle {bundleInfo.ToString()}, some information may be unavailable");
       }
     }
   }

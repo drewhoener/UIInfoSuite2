@@ -11,11 +11,17 @@ public static class ModCompat
   public const string DeluxeJournal = "MolsonCAD.DeluxeJournal";
 }
 
-public static class ApiManager
+public class ApiManager
 {
-  private static readonly Dictionary<string, object> RegisteredApis = new();
+  private readonly IMonitor _logger;
+  private readonly Dictionary<string, object> _registeredApis = new();
 
-  public static T? TryRegisterApi<T>(
+  public ApiManager(IMonitor logger)
+  {
+    _logger = logger;
+  }
+
+  public T? TryRegisterApi<T>(
     IModHelper helper,
     string modId,
     string? minimumVersion = null,
@@ -30,7 +36,7 @@ public static class ApiManager
 
     if (minimumVersion != null && modInfo.Manifest.Version.IsOlderThan(minimumVersion))
     {
-      ModEntry.MonitorObject.Log(
+      _logger.Log(
         $"Requested version {minimumVersion} for mod {modId}, but got {modInfo.Manifest.Version} instead, cannot use API.",
         LogLevel.Warn
       );
@@ -42,21 +48,21 @@ public static class ApiManager
     {
       if (warnIfNotPresent)
       {
-        ModEntry.MonitorObject.Log($"Could not find API for mod {modId}, but one was requested", LogLevel.Warn);
+        _logger.Log($"Could not find API for mod {modId}, but one was requested", LogLevel.Warn);
       }
 
       return null;
     }
 
-    ModEntry.MonitorObject.Log($"Loaded API for mod {modId}", LogLevel.Info);
-    RegisteredApis[modId] = api;
+    _logger.Log($"Loaded API for mod {modId}", LogLevel.Info);
+    _registeredApis[modId] = api;
     return api;
   }
 
-  public static bool GetApi<T>(string modId, [NotNullWhen(true)] out T? apiInstance) where T : class
+  public bool GetApi<T>(string modId, [NotNullWhen(true)] out T? apiInstance) where T : class
   {
     apiInstance = null;
-    if (!RegisteredApis.TryGetValue(modId, out object? api))
+    if (!_registeredApis.TryGetValue(modId, out object? api))
     {
       return false;
     }
@@ -67,10 +73,7 @@ public static class ApiManager
       return true;
     }
 
-    ModEntry.MonitorObject.Log(
-      $"API was registered for mod {modId} but the requested type is not supported",
-      LogLevel.Warn
-    );
+    _logger.Log($"API was registered for mod {modId} but the requested type is not supported", LogLevel.Warn);
     return false;
   }
 }

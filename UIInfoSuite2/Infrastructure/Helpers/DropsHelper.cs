@@ -32,9 +32,17 @@ internal record PossibleDroppedItem(
 
 internal record FruitTreeInfo(string TreeName, List<PossibleDroppedItem> Items);
 
-internal static class DropsHelper
+internal class DropsHelper
 {
-  private static readonly Dictionary<string, string> CropNamesCache = new();
+  private readonly Dictionary<string, string> _cropNamesCache = new();
+  private readonly GameStateHelper _gameStateHelper;
+  private readonly IMonitor _logger;
+
+  public DropsHelper(IMonitor logger, GameStateHelper gameStateHelper)
+  {
+    _logger = logger;
+    _gameStateHelper = gameStateHelper;
+  }
 
   public static int? GetNextDay(string? condition, bool includeToday)
   {
@@ -48,7 +56,7 @@ internal static class DropsHelper
     return Tools.GetLastDayFromCondition(condition);
   }
 
-  public static string GetCropHarvestName(Crop crop)
+  public string GetCropHarvestName(Crop crop)
   {
     if (crop.indexOfHarvest.Value is null)
     {
@@ -62,19 +70,19 @@ internal static class DropsHelper
       itemId = "399";
     }
 
-    if (CropNamesCache.TryGetValue(itemId, out string? harvestName))
+    if (_cropNamesCache.TryGetValue(itemId, out string? harvestName))
     {
       return harvestName;
     }
 
     // Technically has the best compatibility for looking up items vs ItemRegistry.
     harvestName = new Object(itemId, 1).DisplayName;
-    CropNamesCache.Add(itemId, harvestName);
+    _cropNamesCache.Add(itemId, harvestName);
 
     return harvestName;
   }
 
-  public static List<PossibleDroppedItem> GetFruitTreeDropItems(FruitTree tree)
+  public List<PossibleDroppedItem> GetFruitTreeDropItems(FruitTree tree)
   {
     FruitTreeData? treeData = tree.GetData();
     return GetGenericDropItems(treeData.Fruit, null, "Fruit Tree", FruitTreeDropConverter);
@@ -98,7 +106,7 @@ internal static class DropsHelper
     }
   }
 
-  public static FruitTreeInfo GetFruitTreeInfo(FruitTree tree)
+  public FruitTreeInfo GetFruitTreeInfo(FruitTree tree)
   {
     var name = "Fruit Tree";
     List<PossibleDroppedItem> drops = GetFruitTreeDropItems(tree);
@@ -110,7 +118,7 @@ internal static class DropsHelper
     return new FruitTreeInfo(name, drops);
   }
 
-  public static List<PossibleDroppedItem> GetGenericDropItems<T>(
+  public List<PossibleDroppedItem> GetGenericDropItems<T>(
     IEnumerable<T> drops,
     string? customId,
     string displayName,
@@ -123,14 +131,14 @@ internal static class DropsHelper
     foreach (T drop in drops)
     {
       DropInfo dropInfo = extractDropInfo(drop);
-      ConditionFutureResult validDays = GameStateHelper.ResolveQueryFuture(dropInfo.Condition ?? "");
+      ConditionFutureResult validDays = _gameStateHelper.ResolveQueryFuture(dropInfo.Condition ?? "");
       string nextDayStr = validDays.GetNextDate()?.ToString() ?? "No Next Date";
 
       if (!validDays.ErroredConditions.IsEmpty())
       {
         foreach (string erroredCondition in validDays.ErroredConditions)
         {
-          ModEntry.MonitorObject.LogOnce(
+          _logger.LogOnce(
             $"Couldn't parse the next day the {displayName} will drop {dropInfo.ItemId}. Condition: {erroredCondition}. Please report this error.",
             LogLevel.Error
           );
@@ -142,7 +150,7 @@ internal static class DropsHelper
       ParsedItemData? itemData = ItemRegistry.GetData(dropInfo.ItemId);
       if (itemData == null)
       {
-        ModEntry.MonitorObject.Log(
+        _logger.Log(
           $"Couldn't parse the correct item {displayName} will drop. ItemId: {dropInfo.ItemId}. Please report this error.",
           LogLevel.Error
         );

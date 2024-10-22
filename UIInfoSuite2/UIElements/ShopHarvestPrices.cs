@@ -6,7 +6,6 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure;
-using UIInfoSuite2.Infrastructure.Extensions;
 
 namespace UIInfoSuite2.UIElements;
 
@@ -112,27 +111,6 @@ internal class ShopHarvestPrices : IDisposable
         new Vector2(xPosition + 52, yPosition + 4),
         Color.Black * 0.8f
       );
-      /*
-       * I have no Idea why this is here...
-       * As far as I can see it only overrides the existing Tooltip with a price that is 500 coins higher?
-       *
-      string hoverText = _helper.Reflection.GetField<string>(menu, "hoverText").GetValue();
-      string hoverTitle = _helper.Reflection.GetField<string>(menu, "boldTitleText").GetValue();
-      IReflectedMethod getHoveredItemExtraItemIndex = _helper.Reflection.GetMethod(menu, "getHoveredItemExtraItemIndex");
-      IReflectedMethod getHoveredItemExtraItemAmount = _helper.Reflection.GetMethod(menu, "getHoveredItemExtraItemAmount");
-      IClickableMenu.drawToolTip(
-          Game1.spriteBatch,
-          hoverText,
-          hoverTitle,
-          hoverItem,
-          menu.heldItem != null,
-          -1,
-          menu.currency,
-          getHoveredItemExtraItemIndex.Invoke<int>(new object[0]),
-          getHoveredItemExtraItemAmount.Invoke<int>(new object[0]),
-          null,
-          menu.hoverPrice);
-      */
     }
   }
 }

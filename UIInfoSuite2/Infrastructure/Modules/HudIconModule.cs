@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley;
+using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.UIElements;
 
@@ -12,7 +12,11 @@ public abstract class HudIconModule : BaseModule
 {
   private ClickableIcon? _icon;
 
-  public HudIconModule(IModEvents modEvents, IMonitor logger) : base(modEvents, logger) { }
+  public HudIconModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager) : base(
+    modEvents,
+    logger,
+    configManager
+  ) { }
 
   protected ClickableIcon Icon
   {

@@ -23,13 +23,15 @@ internal class ShowBirthdayIcon : IDisposable
   private bool Enabled { get; set; }
   private bool HideBirthdayIfFullFriendShip { get; set; }
   private readonly IModHelper _helper;
+  private readonly IMonitor _logger;
 #endregion
 
 
 #region Life cycle
-  public ShowBirthdayIcon(IModHelper helper)
+  public ShowBirthdayIcon(IModHelper helper, IMonitor logger)
   {
     _helper = helper;
+    _logger = logger;
   }
 
   public void Dispose()
@@ -138,7 +140,7 @@ internal class ShowBirthdayIcon : IDisposable
     }
   }
 
-  private static Friendship? GetFriendshipWithNPC(string name)
+  private Friendship? GetFriendshipWithNPC(string name)
   {
     try
     {
@@ -151,8 +153,8 @@ internal class ShowBirthdayIcon : IDisposable
     }
     catch (Exception ex)
     {
-      ModEntry.MonitorObject.LogOnce("Error while getting information about the birthday of " + name, LogLevel.Error);
-      ModEntry.MonitorObject.Log(ex.ToString());
+      _logger.LogOnce("Error while getting information about the birthday of " + name, LogLevel.Error);
+      _logger.Log(ex.ToString());
     }
 
     return null;
@@ -200,10 +202,7 @@ internal class ShowBirthdayIcon : IDisposable
     List<NPC> npcs = _birthdayNPCs.Value;
     if (icons.Count != npcs.Count)
     {
-      ModEntry.MonitorObject.LogOnce(
-        $"{GetType().Name}: The number of tracked npcs and icons do not match",
-        LogLevel.Error
-      );
+      _logger.LogOnce($"{GetType().Name}: The number of tracked npcs and icons do not match", LogLevel.Error);
       return;
     }
 

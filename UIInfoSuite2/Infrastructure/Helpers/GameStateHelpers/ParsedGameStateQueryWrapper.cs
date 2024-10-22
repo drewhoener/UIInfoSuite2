@@ -6,16 +6,18 @@ namespace UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 
 internal class ParsedGameStateQueryWrapper
 {
-  public ParsedGameStateQueryWrapper(GameStateQuery.ParsedGameStateQuery query)
+  private readonly GameStateResolverCaches _resolverCache;
+
+  public ParsedGameStateQueryWrapper(
+    GameStateResolverCaches resolverCaches,
+    ConditionResolver resolver,
+    GameStateQuery.ParsedGameStateQuery query
+  )
   {
     Query = query;
     QueryStr = string.Join(' ', QueryStrArr);
-
-    Resolver = GameStateResolverCaches.GetFutureResolver(Query);
-    if (!Resolver.CanResolveToDate)
-    {
-      ModEntry.MonitorObject.LogOnce($"Query [{QueryStrArr[0]}] has no resolvers");
-    }
+    _resolverCache = resolverCaches;
+    Resolver = resolver;
   }
 
   public ConditionResolver Resolver { get; }
@@ -38,13 +40,13 @@ internal class ParsedGameStateQueryWrapper
 
   public ConditionFutureResult ResolveFuture(GameStateQueryContext context)
   {
-    if (GameStateResolverCaches.TryGetFutureResult(QueryStr, out ConditionFutureResult? cachedResult))
+    if (_resolverCache.TryGetFutureResult(QueryStr, out ConditionFutureResult? cachedResult))
     {
       return cachedResult;
     }
 
     var futureResult = new ConditionFutureResult(Resolver.ResolveFuture(Query, context, 6));
-    GameStateResolverCaches.CacheFutureResult(QueryStr, futureResult);
+    _resolverCache.CacheFutureResult(QueryStr, futureResult);
     return futureResult;
   }
 
@@ -52,13 +54,13 @@ internal class ParsedGameStateQueryWrapper
   {
     //TODO check if this query matches us
 
-    if (GameStateResolverCaches.TryGetRequirementsStr(QueryStr, out string? cachedRequirements))
+    if (_resolverCache.TryGetRequirementsStr(QueryStr, out string? cachedRequirements))
     {
       return cachedRequirements;
     }
 
     string requirementsStr = Resolver.GenerateRequirementsStr(QueryStr, Query);
-    GameStateResolverCaches.CacheRequirementsStr(QueryStr, requirementsStr);
+    _resolverCache.CacheRequirementsStr(QueryStr, requirementsStr);
 
     return requirementsStr;
   }
