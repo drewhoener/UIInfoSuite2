@@ -84,37 +84,6 @@
   "LuckStatus4": "The spirits feel absolutely neutral today",
   "LuckStatus5": "Luck will not be on your side today",
   "LuckStatus6": "Maybe you should stay home today...",
-  //Settings - General
-  "ShowLevelUpAnimation": "Show level up animation",
-  "ShowExperienceBar": "Show experience bar",
-  "AllowExperienceBarToFadeOut": "Allow experience bar to fade out",
-  "ShowExperienceGain": "Show experience gain",
-  "ShowLocationOfTownsPeople": "Show townspeople on map",
-  "ShowAnimalsNeedPets": "Show when animals need pets",
-  "HideAnimalPetOnMaxFriendship": "Hide on max friendship",
-  "ShowCropAndBarrelTooltip": "Show crop and barrel times",
-  "ShowItemEffectRanges": "Show scarecrow and sprinkler range",
-  "ButtonControlShow": "Press leftctrl to show current item range, while pressing leftalt to show all item range",
-  "ShowBombRange": "Show the bomb destroying Range",
-  "ShowExtraItemInformation": "Show item hover information",
-  "ShowHarvestPricesInShop": "Show shop harvest prices",
-  //Settings - Tabs info
-  "DisplayCalendarAndBillboard": "Show calendar/billboard button",
-  "ShowHeartFills": "Show heart fills",
-  "ShowTodaysGifts": "Show gifts given today",
-  //Settings - Show icons
-  "ShowBirthdayIcon": "Show Birthday icon",
-  "HideBirthdayIfFullFriendShip": "Hide on max friendship",
-  "ShowTravelingMerchant": "Show Traveling Merchant",
-  "HideMerchantWhenVisited": "Hide when visited",
-  "ShowRainyDay": "Show rainy days",
-  "ShowWhenNewRecipesAreAvailable": "Show when new recipes are available",
-  "ShowToolUpgradeStatus": "Show tool upgrade status",
-  "ShowRobinBuildingStatusIcon": "Show Robin building status",
-  "ShowLuckIcon": "Show luck icon",
-  "ShowExactValue": "Show exact value",
-  "ShowSeasonalBerry": "Show seasonal forageables",
-  "ShowSeasonalBerryHazelnut": "Show hazelnuts on trees",
   //Others
   "LevelUp": "Level Up",
   "TrackOnMap": "Track on map",
@@ -126,5 +95,108 @@
   "GSQ.Requirements.GreenRain": "Requires Green Rain",
   "GSQ.Requirements.Season": "Requires season to be {0}",
   "GSQ.Requirements.YearRange": "Requires Year {0} - {1}",
-  "GSQ.Requirements.YearMinimum": "Requires Year {0}+"
+  "GSQ.Requirements.YearMinimum": "Requires Year {0}+",
+  // Config Menu Options
+  // HUD Overlays
+  "gmcm.section.overlays.title": "HUD Overlays",
+  "gmcm.section.overlays.title.tooltip": "Control HUD Overlays and icons displayed on your screen.",
+  // XP
+  "gmcm.modules.xpbar.enable": "Show experience bar",
+  "gmcm.modules.xpbar.enable.tooltip": "Enable or disable the XP Bar visibility in the lower left",
+  "gmcm.modules.xpbar.fadeout": "Allow experience bar to fade out",
+  "gmcm.modules.xpbar.fadeout.tooltip": "Allow experience bar to fade out after a period of time",
+  "gmcm.modules.xpbar.gain": "Show experience gain",
+  "gmcm.modules.xpbar.gain.tooltip": "Show experience gain numbers over your character's head",
+  "gmcm.modules.xpbar.levelup": "Play Level Up Animation",
+  "gmcm.modules.xpbar.levelup.tooltip": "Show an animation and play a sound when levelling up",
+  // Luck
+  "gmcm.modules.icons.luck.enable": "Show luck icon",
+  "gmcm.modules.icons.luck.enable.tooltip": "Toggle whether the daily luck is shown in your icon bar",
+  "gmcm.modules.icons.luck.exact": "Show exact luck value",
+  "gmcm.modules.icons.luck.exact.tooltip": "Whether the luck tooltip will display the TV info, or the exact numerical value",
+  // Weather
+  "gmcm.modules.icons.weather.enable": "Show weather icon",
+  "gmcm.modules.icons.weather.enable.tooltip": "Toggle if the weather for tomorrow is shown in your icon bar",
+  "gmcm.modules.icons.weather.island": "Show island weather",
+  "gmcm.modules.icons.weather.island.tooltip": "If there should be an icon for ginger island weather (when unlocked)",
+  // Travelling Merchant
+  "gmcm.modules.icons.merchant.enable": "Show Travelling Merchant icon",
+  "gmcm.modules.icons.merchant.enable.tooltip": "Toggle whether the merchant icon is shown when they are in town",
+  "gmcm.modules.icons.merchant.hide-on-visit": "Hide merchant icon when visited",
+  "gmcm.modules.icons.merchant.hide-on-visit.tooltip": "If the merchant icon should be hidden after visiting",
+  // Birthday Icons
+  "gmcm.modules.icons.birthday.enable": "Show Townsfolk Birthday icons",
+  "gmcm.modules.icons.birthday.enable.tooltip": "Toggle whether an NPC's icon is shown on their birthday",
+  "gmcm.modules.icons.birthday.hide-on-friends": "Hide birthday icon on full friendship",
+  "gmcm.modules.icons.birthday.hide-on-friends.tooltip": "If an NPC icon should be hidden after max friendship",
+  // Queen of Sauce
+  "gmcm.modules.icons.recipes.enable": "Show Queen of Sauce icon",
+  "gmcm.modules.icons.recipes.enable.tooltip": "Toggle whether the Queen of Sauce icon is shown when you can learn a new recipe",
+  // Tool upgrade
+  "gmcm.modules.icons.tool.enable": "Show Blacksmith upgrade icon",
+  "gmcm.modules.icons.tool.enable.tooltip": "Toggle whether an a tool icon is shown when you're upgrading at the blacksmith",
+  // Robin
+  "gmcm.modules.icons.carpenter.enable": "Show Robin construction icon",
+  "gmcm.modules.icons.carpenter.enable.tooltip": "Toggle whether an icon is shown when Robin is doing work on your farm",
+  // Seasonal Items
+  "gmcm.modules.icons.berry.enable": "Show seasonal berry icon",
+  "gmcm.modules.icons.berry.enable.tooltip": "Toggle whether an icon is shown when berries are available (salmonberry, blackberry)",
+  "gmcm.modules.icons.hazelnut.enable": "Show hazelnut icon",
+  "gmcm.modules.icons.hazelnut.enable.tooltip": "Toggle whether an icon is shown when hazelnuts are available (mid fall)",
+  // HUD Tooltips
+  "gmcm.section.tooltips.title": "HUD Tooltips",
+  "gmcm.section.tooltips.title.tooltip": "Control HUD Tooltips and other Quality-of-Life features in your world",
+  // Animals
+  "gmcm.modules.tooltips.animals.enable": "Show animal interact icon",
+  "gmcm.modules.tooltips.animals.enable.tooltip": "Toggle whether an icon is shown above an animal you haven't pet",
+  "gmcm.modules.tooltips.animals.hide-on-friends": "Hide interact icon on full friendship",
+  "gmcm.modules.tooltips.animals.hide-on-friends.tooltip": "If the animal interact icon should be hidden when they have full friendship",
+  // Crops
+  "gmcm.modules.tooltips.crops.enable": "Show tooltip for crops",
+  "gmcm.modules.tooltips.crops.enable.tooltip": "Toggle whether a tooltip is shown when hovering over crops",
+  // Machines
+  "gmcm.modules.tooltips.machines.enable": "Show tooltip for machines",
+  "gmcm.modules.tooltips.machines.enable.tooltip": "Toggle whether a tooltip is shown when hovering over machines",
+  // Ranges
+  "gmcm.modules.tooltips.ranges.enable": "Show machine range",
+  "gmcm.modules.tooltips.ranges.enable.tooltip": "Toggle if the range for scarecrows and sprinklers should be shown",
+  "gmcm.modules.tooltips.ranges.bombs.enable": "Show Bomb and Mossy Seed range",
+  "gmcm.modules.tooltips.ranges.bombs.tooltip": "Toggle if the range for bombs and mossy seeds",
+  // Menu overlays
+  "gmcm.section.menus.title": "Menu Tweaks",
+  "gmcm.section.menus.title.tooltip": "Control menu tweaks and overlays",
+  // Heart fills
+  "gmcm.modules.menus.hearts.enable": "Show partial hearts",
+  "gmcm.modules.menus.hearts.enable.tooltip": "Toggle whether the social menu will show partial friendship hearts",
+  // Gift Lock
+  "gmcm.modules.menus.gift-lock.enable": "Show when gifts are given",
+  "gmcm.modules.menus.gift-lock.enable.tooltip": "Display a lock on the social menu when a gift has been given today",
+  // Harvest Prices
+  "gmcm.modules.menus.harvest-prices.enable": "Show harvest price in shop",
+  "gmcm.modules.menus.harvest-prices.enable.tooltip": "Toggle an additional panel that shows crop harvest prices in shops",
+  // Bundle Info
+  "gmcm.modules.menus.bundles.enable": "Show bundle information",
+  "gmcm.modules.menus.bundles.enable.tooltip": "Show the name of a bundle when hovering over an item that can be donated",
+  // Menu shortcuts
+  "gmcm.modules.menus.shortcuts.enable": "Show menu shortcuts",
+  "gmcm.modules.menus.shortcuts.enable.tooltip": "Show a panel of available menus for quick access",
+  "gmcm.modules.menus.shortcuts.calendar": "Show calendar/billboard shortcut",
+  "gmcm.modules.menus.shortcuts.calendar.tooltip": "Allow quick access to the Calendar and Billboard",
+  "gmcm.modules.menus.shortcuts.slayer": "Show monster slayer shortcut",
+  "gmcm.modules.menus.shortcuts.slayer.tooltip": "Allow quick access to the Monster Slayer list (if unlocked)",
+  // Keybinds
+  "gmcm.section.keybinds.title": "Keybinds",
+  "gmcm.section.keybinds.title.tooltip": "Adjust UIInfoSuite keybinds",
+  "gmcm.section.keybinds.calendar": "Open Calendar",
+  "gmcm.section.keybinds.calendar.tooltip": "Opens the Calendar menu",
+  "gmcm.section.keybinds.billboard": "Open Billboard",
+  "gmcm.section.keybinds.billboard.tooltip": "Opens the Billboard menu",
+  "gmcm.section.keybinds.slayer": "Open Slayer Tasks",
+  "gmcm.section.keybinds.slayer.tooltip": "Opens the Slayer Menu",
+  "gmcm.section.keybinds.item-range": "Toggle item range display",
+  "gmcm.section.keybinds.item-range.tooltip": "Quickly toggle the range display for scarecrows and sprinklers",
+  "gmcm.section.keybindsd.item-range.show-hover": "Show item range on hover",
+  "gmcm.section.keybindsd.item-range.show-hover.tooltip": "Hold down this button to show the range of the machine/scarecrow your mouse is on",
+  "gmcm.section.keybindsd.item-range.show-all": "Show all nearby item ranges",
+  "gmcm.section.keybindsd.item-range.show-all.tooltip": "Hold this to show all nearby machine/scarecrow ranges",
 }

@@ -6,8 +6,7 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Tools;
-using UIInfoSuite2.Compatibility;
-using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.UIElements.ExperienceElements;
 
 namespace UIInfoSuite2.UIElements;
@@ -67,18 +66,14 @@ public partial class ExperienceBar
   private bool ExperienceBarEnabled { get; set; } = true;
 
   private readonly IModHelper _helper;
-  private readonly ILevelExtender _levelExtenderApi;
+  private readonly SoundHelper _soundHelper;
 #endregion Properties
 
 #region Lifecycle
-  public ExperienceBar(IModHelper helper)
+  public ExperienceBar(IModHelper helper, SoundHelper soundHelper)
   {
     _helper = helper;
-
-    if (_helper.ModRegistry.IsLoaded("DevinLematty.LevelExtender"))
-    {
-      _levelExtenderApi = _helper.ModRegistry.GetApi<ILevelExtender>("DevinLematty.LevelExtender");
-    }
+    _soundHelper = soundHelper;
   }
 
   public void ToggleOption(
@@ -160,7 +155,7 @@ public partial class ExperienceBar
 
       _experienceBarVisibleTimer.Value = ExperienceBarVisibleTicks;
 
-      SoundHelper.Play(Sounds.LevelUp);
+      _soundHelper.Play(Sounds.LevelUp);
     }
   }
 
@@ -259,14 +254,6 @@ public partial class ExperienceBar
     {
       _currentExperience.Value[i] = Game1.player.experiencePoints[i];
     }
-
-    if (_levelExtenderApi != null)
-    {
-      for (var i = 0; i < _currentLevelExtenderExperience.Value.Length; ++i)
-      {
-        _currentLevelExtenderExperience.Value[i] = _levelExtenderApi.CurrentXP()[i];
-      }
-    }
   }
 
   private bool TryGetCurrentLevelIndexFromSkillChange(out int currentLevelIndex)
@@ -275,12 +262,13 @@ public partial class ExperienceBar
 
     for (var i = 0; i < _currentExperience.Value.Length; ++i)
     {
-      if (_currentExperience.Value[i] != Game1.player.experiencePoints[i] ||
-          (_levelExtenderApi != null && _currentLevelExtenderExperience.Value[i] != _levelExtenderApi.CurrentXP()[i]))
+      if (_currentExperience.Value[i] == Game1.player.experiencePoints[i])
       {
-        currentLevelIndex = i;
-        break;
+        continue;
       }
+
+      currentLevelIndex = i;
+      break;
     }
 
     return currentLevelIndex != -1;
@@ -311,26 +299,12 @@ public partial class ExperienceBar
     _experienceEarnedThisLevel.Value =
       Game1.player.experiencePoints[currentLevelIndex] - _experienceFromPreviousLevels.Value;
 
-    if (_experienceRequiredToLevel.Value <= 0 && _levelExtenderApi != null)
-    {
-      _experienceEarnedThisLevel.Value = _levelExtenderApi.CurrentXP()[currentLevelIndex];
-      _experienceFromPreviousLevels.Value =
-        _currentExperience.Value[currentLevelIndex] - _experienceEarnedThisLevel.Value;
-      _experienceRequiredToLevel.Value = _levelExtenderApi.RequiredXP()[currentLevelIndex] +
-                                         _experienceFromPreviousLevels.Value;
-    }
-
     if (displayExperience)
     {
       if (ExperienceGainTextEnabled && _experienceRequiredToLevel.Value > 0)
       {
         int currentExperienceToUse = Game1.player.experiencePoints[currentLevelIndex];
         int previousExperienceToUse = _currentExperience.Value[currentLevelIndex];
-        if (_levelExtenderApi != null && _currentSkillLevel.Value > 9)
-        {
-          currentExperienceToUse = _levelExtenderApi.CurrentXP()[currentLevelIndex];
-          previousExperienceToUse = _currentLevelExtenderExperience.Value[currentLevelIndex];
-        }
 
         int experienceGain = currentExperienceToUse - previousExperienceToUse;
 
@@ -343,11 +317,6 @@ public partial class ExperienceBar
       }
 
       _currentExperience.Value[currentLevelIndex] = Game1.player.experiencePoints[currentLevelIndex];
-
-      if (_levelExtenderApi != null)
-      {
-        _currentLevelExtenderExperience.Value[currentLevelIndex] = _levelExtenderApi.CurrentXP()[currentLevelIndex];
-      }
     }
   }
 

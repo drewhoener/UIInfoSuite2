@@ -7,7 +7,14 @@ namespace UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 
 internal class GameStateHelper
 {
-  public static ConditionFutureResult ResolveQueryFuture(
+  private readonly GameStateResolverCaches _resolverCaches;
+
+  public GameStateHelper(GameStateResolverCaches resolverCaches)
+  {
+    _resolverCaches = resolverCaches;
+  }
+
+  public ConditionFutureResult ResolveQueryFuture(
     string queryString,
     GameLocation? location = null,
     Farmer? player = null,
@@ -31,7 +38,7 @@ internal class GameStateHelper
     }
   }
 
-  public static ConditionFutureResult ResolveQueryFutureImpl(string? queryString, GameStateQueryContext context)
+  public ConditionFutureResult ResolveQueryFutureImpl(string? queryString, GameStateQueryContext context)
   {
     ConditionFutureResult defaultDaysResult = ConditionFutureResult.TodayAndTomorrow();
 
@@ -40,7 +47,7 @@ internal class GameStateHelper
       return defaultDaysResult;
     }
 
-    List<ParsedGameStateQueryWrapper> queries = GameStateResolverCaches.GetParsedQueryWrappers(queryString);
+    List<ParsedGameStateQueryWrapper> queries = _resolverCaches.GetParsedQueryWrappers(queryString);
 
     if (queries.Count == 0)
     {

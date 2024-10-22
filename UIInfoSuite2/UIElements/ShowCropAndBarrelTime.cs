@@ -276,7 +276,7 @@ internal class ShowCropAndBarrelTime : IDisposable
     {
       (ConditionFutureResult futureHarvestDates, ParsedItemData? parsedItemData, float chance, string? _) = item;
 
-      WorldDate? nextDayToProduce = futureHarvestDates.GetNextDate(shouldIncludeToday: isReadyToday);
+      WorldDate? nextDayToProduce = futureHarvestDates.GetNextDate(isReadyToday);
       if (nextDayToProduce == null)
       {
         return $"Unknown {I18n.Days()}";
@@ -447,7 +447,7 @@ internal class ShowCropAndBarrelTime : IDisposable
         }
 
 
-        string cropName = DropsHelper.GetCropHarvestName(crop);
+        string cropName = ModEntry.GetSingleton<DropsHelper>().GetCropHarvestName(crop);
         string daysLeftStr = daysLeft <= 0 ? I18n.ReadyToHarvest() : $"{daysLeft} {I18n.Days()}";
         entries.Add($"{cropName}: {daysLeftStr}");
 
@@ -501,7 +501,7 @@ internal class ShowCropAndBarrelTime : IDisposable
         return false;
       }
 
-      FruitTreeInfo treeInfo = DropsHelper.GetFruitTreeInfo(fruitTree);
+      FruitTreeInfo treeInfo = ModEntry.GetSingleton<DropsHelper>().GetFruitTreeInfo(fruitTree);
       entries.Add(treeInfo.TreeName);
       if (fruitTree.daysUntilMature.Value > 0)
       {
@@ -526,7 +526,7 @@ internal class ShowCropAndBarrelTime : IDisposable
       }
 
       var ageToMature = 20;
-      bool isReadyToday = false;
+      var isReadyToday = false;
       bool willProduceThisSeason = Game1.season != Season.Winter;
       string bushName = ItemRegistry.GetData("(O)251").DisplayName;
       bool inProductionPeriod = Game1.dayOfMonth >= 22;
@@ -540,10 +540,12 @@ internal class ShowCropAndBarrelTime : IDisposable
       }
       else if (Game1.dayOfMonth >= 21 && Game1.dayOfMonth < 28)
       {
-        droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Tomorrow(), ItemRegistry.GetData("(O)815"), 1.0f));
+        droppedItems.Add(
+          new PossibleDroppedItem(ConditionFutureResult.Tomorrow(), ItemRegistry.GetData("(O)815"), 1.0f)
+        );
       }
 
-      if (ApiManager.GetApi(ModCompat.CustomBush, out ICustomBushApi? customBushApi))
+      if (ModEntry.GetSingleton<ApiManager>().GetApi(ModCompat.CustomBush, out ICustomBushApi? customBushApi))
       {
         if (customBushApi.TryGetCustomBush(bush, out ICustomBush? customBushData, out string? id))
         {

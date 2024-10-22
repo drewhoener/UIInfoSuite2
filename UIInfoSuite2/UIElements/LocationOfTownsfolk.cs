@@ -11,8 +11,8 @@ using StardewValley.Menus;
 using StardewValley.Quests;
 using StardewValley.WorldMaps;
 using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Extensions;
-using UIInfoSuite2.Options;
 
 namespace UIInfoSuite2.UIElements;
 
@@ -24,18 +24,20 @@ internal class LocationOfTownsfolk : IDisposable
   private readonly List<NPC> _townsfolk = new();
   private readonly List<OptionsCheckbox> _checkboxes = new();
 
-  private readonly ModOptions _options;
   private readonly IModHelper _helper;
+  private readonly IMonitor _logger;
+  private readonly ModConfig _config;
 
   private const int SocialPanelWidth = 190;
   private const int SocialPanelXOffset = 160;
 #endregion
 
 #region Lifecycle
-  public LocationOfTownsfolk(IModHelper helper, ModOptions options)
+  public LocationOfTownsfolk(IModHelper helper, IMonitor logger, ModConfig config)
   {
     _helper = helper;
-    _options = options;
+    _logger = logger;
+    _config = config;
   }
 
   public void ToggleShowNPCLocationsOnMap(bool showLocations)
@@ -109,7 +111,7 @@ internal class LocationOfTownsfolk : IDisposable
 
     if (isRsvWorldMap)
     {
-      ModEntry.MonitorObject.Log("Not Rendering Villagers, in RSV Map");
+      _logger.Log("Not Rendering Villagers, in RSV Map");
       return;
     }
 
@@ -155,7 +157,7 @@ internal class LocationOfTownsfolk : IDisposable
         {
           // npc
           checkbox.greyedOut = false;
-          checkbox.isChecked = _options.ShowLocationOfFriends.GetOrDefault(friendName, true);
+          // checkbox.isChecked = _config.ShowLocationOfFriends.GetOrDefault(friendName, true);
         }
         else
         {
@@ -187,7 +189,7 @@ internal class LocationOfTownsfolk : IDisposable
           !checkbox.greyedOut)
       {
         checkbox.isChecked = !checkbox.isChecked;
-        _options.ShowLocationOfFriends[_friendNames[checkbox.whichOption]] = checkbox.isChecked;
+        // _options.ShowLocationOfFriends[_friendNames[checkbox.whichOption]] = checkbox.isChecked;
         Game1.playSound("drumkit6");
       }
     }
@@ -273,18 +275,18 @@ internal class LocationOfTownsfolk : IDisposable
     {
       try
       {
-        bool shouldDrawCharacter = Game1.player.friendshipData.ContainsKey(character.Name) &&
-                                   _options.ShowLocationOfFriends.GetOrDefault(character.Name, true) &&
-                                   character.id != -1 &&
-                                   character.IsInvisible != true;
-        if (shouldDrawCharacter)
+        // bool shouldDrawCharacter = Game1.player.friendshipData.ContainsKey(character.Name) &&
+        //                            _options.ShowLocationOfFriends.GetOrDefault(character.Name, true) &&
+        //                            character.id != -1 &&
+        //                            character.IsInvisible != true;
+        if (true)
         {
           DrawNPC(character, namesToShow);
         }
       }
       catch (Exception ex)
       {
-        ModEntry.MonitorObject.Log(ex.Message + Environment.NewLine + ex.StackTrace, LogLevel.Error);
+        _logger.Log(ex.Message + Environment.NewLine + ex.StackTrace, LogLevel.Error);
       }
     }
 

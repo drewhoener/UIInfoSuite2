@@ -1,25 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley.Menus;
+using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Modules;
 
 namespace UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 
-internal partial class MenuShortcutDisplay : IPatchable
+internal partial class MenuShortcutDisplay : BaseModule, IPatchable
 {
-  private static readonly Lazy<MenuShortcutDisplay> LazyInstance = new(() => new MenuShortcutDisplay());
-
   private readonly List<BaseMenuShortcut> _menuShortcuts = new();
   private int _maxElementHeight = 100;
+
+  public MenuShortcutDisplay(IModEvents modEvents, IMonitor logger, ConfigManager configManager) : base(
+    modEvents,
+    logger,
+    configManager
+  ) { }
+
   public int PaddingAroundElements => 30;
   public int SpaceAfterMenuBottom => 10;
 
-  public static MenuShortcutDisplay Instance => LazyInstance.Value;
+  public override bool ShouldEnable()
+  {
+    return true;
+  }
+
+  public override void OnEnable() { }
+
+  public override void OnDisable() { }
 
   public void Register(IModHelper helper)
   {
@@ -29,7 +42,7 @@ internal partial class MenuShortcutDisplay : IPatchable
 
   private static void InstanceDraw(GameMenu menu, SpriteBatch b)
   {
-    Instance.Draw(menu, b);
+    ModEntry.GetSingleton<MenuShortcutDisplay>().Draw(menu, b);
   }
 
   public void AddMenuShortcut(IModHelper helper, BaseMenuShortcut shortcut)

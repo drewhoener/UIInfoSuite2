@@ -34,11 +34,7 @@ internal static class CustomBushExtensions
     return true;
   }
 
-  public static List<PossibleDroppedItem> GetCustomBushDropItems(
-    this ICustomBushApi api,
-    ICustomBush bush,
-    string? id
-  )
+  public static List<PossibleDroppedItem> GetCustomBushDropItems(this ICustomBushApi api, ICustomBush bush, string? id)
   {
     if (id == null || string.IsNullOrEmpty(id))
     {
@@ -48,7 +44,7 @@ internal static class CustomBushExtensions
     api.TryGetDrops(id, out IList<ICustomBushDrop>? drops);
     return drops == null
       ? new List<PossibleDroppedItem>()
-      : DropsHelper.GetGenericDropItems(drops, id, bush.DisplayName, BushDropConverter);
+      : ModEntry.GetSingleton<DropsHelper>().GetGenericDropItems(drops, id, bush.DisplayName, BushDropConverter);
 
     DropInfo BushDropConverter(ICustomBushDrop input)
     {

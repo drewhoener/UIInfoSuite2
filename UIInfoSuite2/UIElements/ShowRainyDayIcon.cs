@@ -30,12 +30,14 @@ internal class ShowRainyDayIcon : IDisposable
   private const int WeatherSheetHeight = 18;
 
   private readonly IModHelper _helper;
+  private readonly IMonitor _logger;
 #endregion
 
 #region Lifecycle
-  public ShowRainyDayIcon(IModHelper helper)
+  public ShowRainyDayIcon(IModHelper helper, IMonitor logger)
   {
     _helper = helper;
+    _logger = logger;
     CreateTileSheet();
   }
 
@@ -144,7 +146,7 @@ internal class ShowRainyDayIcon : IDisposable
   /// </summary>
   private void CreateTileSheet()
   {
-    ModEntry.MonitorObject.Log("Setting up icon sheet", LogLevel.Info);
+    _logger.LogOnce("Setting up icon sheet");
     // Setup Texture sheet as a copy, so as not to disturb existing sprites
     _iconSheet = new Texture2D(Game1.graphics.GraphicsDevice, WeatherSheetWidth, WeatherSheetHeight);
     _weatherIconColors = new Color[WeatherSheetWidth * WeatherSheetHeight];

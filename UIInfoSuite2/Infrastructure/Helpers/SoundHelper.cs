@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Audio;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace UIInfoSuite2.Infrastructure;
+namespace UIInfoSuite2.Infrastructure.Helpers;
 
 public enum Sounds
 {
@@ -13,14 +13,14 @@ public enum Sounds
 
 public class SoundHelper
 {
-  private static readonly Lazy<SoundHelper> LazyInstance = new(() => new SoundHelper());
+  private readonly IMonitor _logger;
   private bool _initialized;
-
   private string _modId = "InfoSuite";
 
-  protected SoundHelper() { }
-
-  public static SoundHelper Instance => LazyInstance.Value;
+  public SoundHelper(IMonitor logger)
+  {
+    _logger = logger;
+  }
 
   public void Initialize(IModHelper helper)
   {
@@ -41,7 +41,7 @@ public class SoundHelper
     return $"{_modId}.sounds.{sound.ToString()}";
   }
 
-  private static void RegisterSound(
+  private void RegisterSound(
     IModHelper helper,
     Sounds sound,
     string fileName,
@@ -50,7 +50,7 @@ public class SoundHelper
     CueDefinition.LimitBehavior? limitBehavior = null
   )
   {
-    CueDefinition newCueDefinition = new() { name = Instance.GetQualifiedSoundName(sound) };
+    CueDefinition newCueDefinition = new() { name = GetQualifiedSoundName(sound) };
 
     if (instanceLimit > 0)
     {
@@ -71,11 +71,11 @@ public class SoundHelper
 
     newCueDefinition.SetSound(audio, Game1.audioEngine.GetCategoryIndex(category));
     Game1.soundBank.AddCue(newCueDefinition);
-    ModEntry.MonitorObject.Log($"Registered Sound: {newCueDefinition.name}");
+    _logger.Log($"Registered Sound: {newCueDefinition.name}");
   }
 
-  public static void Play(Sounds sound)
+  public void Play(Sounds sound)
   {
-    Game1.playSound(Instance.GetQualifiedSoundName(sound));
+    Game1.playSound(GetQualifiedSoundName(sound));
   }
 }

@@ -21,12 +21,14 @@ internal class ShowRobinBuildingStatusIcon : IDisposable
   private Texture2D _robinIconSheet;
 
   private readonly IModHelper _helper;
+  private readonly IMonitor _logger;
 #endregion
 
 #region Lifecycle
-  public ShowRobinBuildingStatusIcon(IModHelper helper)
+  public ShowRobinBuildingStatusIcon(IModHelper helper, IMonitor logger)
   {
     _helper = helper;
+    _logger = logger;
   }
 
   public void Dispose()
@@ -149,12 +151,7 @@ internal class ShowRobinBuildingStatusIcon : IDisposable
     }
     else
     {
-      ModEntry.MonitorObject.Log($"{GetType().Name}: Could not find Robin spritesheet.", LogLevel.Warn);
-    }
-
-    if (_robinIconSheet == null)
-    {
-      ModEntry.MonitorObject.Log($"{GetType().Name}: Could not find Robin spritesheet.", LogLevel.Warn);
+      _logger.LogOnce($"{GetType().Name}: Could not find Robin spritesheet.", LogLevel.Warn);
     }
 
     _buildingIconSpriteLocation =

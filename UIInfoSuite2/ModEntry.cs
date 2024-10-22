@@ -1,39 +1,41 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using HarmonyLib;
 using SimpleInjector;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Menus;
 using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Events;
+using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 using UIInfoSuite2.Infrastructure.Modules;
-using UIInfoSuite2.Options;
+using UIInfoSuite2.UIElements;
 using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 
 namespace UIInfoSuite2;
 
-public class ModEntry : Mod
+internal class ModEntry : Mod
 {
   private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
-  public static ModConfig _modConfig;
 
-  private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
+  // private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
   private readonly Container _container = new();
 
-  private ModOptions _modOptions;
-  private ModOptionsPageHandler _modOptionsPageHandler;
+  public static ModEntry Instance { get; private set; } = null!;
 
-  public static IReflectionHelper Reflection { get; private set; } = null!;
-
-  public static IMonitor MonitorObject { get; private set; } = null!;
+  public static T GetSingleton<T>() where T : class
+  {
+    return Instance._container.GetInstance<T>();
+  }
 
 #region Entry
   public override void Entry(IModHelper helper)
   {
+    Instance = this;
     I18n.Init(helper.Translation);
 
     _container.RegisterInstance(Helper);
@@ -48,102 +50,67 @@ public class ModEntry : Mod
     _container.RegisterInstance(Helper.ModRegistry);
     _container.RegisterInstance(Helper.Reflection);
     _container.RegisterInstance(Helper.Translation);
-    _container.RegisterInstance(SoundHelper.Instance);
     _container.RegisterInstance(new Harmony(Helper.ModContent.ModID));
 
-    _container.RegisterInstance(new ModuleManager(_container));
+    _container.RegisterSingleton<GameStateResolverCaches>();
+    _container.RegisterSingleton<GameStateHelper>();
+    _container.RegisterSingleton<BundleHelper>();
+    _container.RegisterSingleton<DropsHelper>();
+    _container.RegisterSingleton<SoundHelper>();
+
+    _container.RegisterSingleton<ApiManager>();
+    _container.RegisterSingleton<EventsManager>();
+    _container.RegisterSingleton<ConfigManager>();
+
+    _container.Collection.Register<BaseModule>(
+      new[] { typeof(LuckOfDay), typeof(MenuShortcutDisplay) },
+      Lifestyle.Singleton
+    );
+
+    _container.Register<MenuShortcutDisplay>(Lifestyle.Singleton);
 
     _container.Verify();
 
-    Reflection = helper.Reflection;
-    MonitorObject = Monitor;
-
     _skipIntro = new SkipIntro(helper.Events);
-    _modConfig = Helper.ReadConfig<ModConfig>();
 
-    helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
-    helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-    helper.Events.GameLoop.Saved += OnSaved;
     helper.Events.GameLoop.GameLaunched += OnGameLaunched;
     helper.Events.Display.Rendering += IconHandler.Handler.Reset;
-
-    MenuShortcutDisplay.Instance.Register(helper);
+    helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
+    helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+    _container.GetInstance<EventsManager>().OnConfigChange += (_, _) => OnConfigSave();
+    _container.GetInstance<MenuShortcutDisplay>().Register(helper);
 
     IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded(ModCompat.DeluxeJournal);
   }
 #endregion
 
-#region Generic mod config menu
-  private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+  public IEnumerable<BaseModule> GetAllModules()
   {
-    SoundHelper.Instance.Initialize(Helper);
+    return _container.GetAllInstances<BaseModule>();
+  }
 
-    // get Generic Mod Config Menu's API (if it's installed)
-    var configMenu = ApiManager.TryRegisterApi<IGenericModConfigMenuApi>(Helper, ModCompat.Gmcm, "1.6.0");
-    ApiManager.TryRegisterApi<ICustomBushApi>(Helper, ModCompat.CustomBush, "1.2.1", true);
-
-    if (configMenu is null)
+  private void OnConfigSave()
+  {
+    if (Game1.gameMode == Game1.titleScreenGameMode)
     {
       return;
     }
 
-    // register mod
-    configMenu.Register(ModManifest, () => _modConfig = new ModConfig(), () => Helper.WriteConfig(_modConfig));
+    foreach (BaseModule module in GetAllModules())
+    {
+      if (!module.Enabled && module.ShouldEnable())
+      {
+        module.Enable();
+      }
 
-    // add some config options
-    configMenu.AddBoolOption(
-      ModManifest,
-      name: () => I18n.Bool_ShowOptionsTabInMenu_DisplayedName(),
-      tooltip: () => I18n.Bool_ShowOptionsTabInMenu_Tooltip(),
-      getValue: () => _modConfig.ShowOptionsTabInMenu,
-      setValue: value => _modConfig.ShowOptionsTabInMenu = value
-    );
-    configMenu.AddTextOption(
-      ModManifest,
-      name: () => I18n.Text_ApplyDefaultSettingsFromThisSave_DisplayedName(),
-      tooltip: () => I18n.Text_ApplyDefaultSettingsFromThisSave_Tooltip(),
-      getValue: () => _modConfig.ApplyDefaultSettingsFromThisSave,
-      setValue: value => _modConfig.ApplyDefaultSettingsFromThisSave = value
-    );
-    configMenu.AddKeybindList(
-      ModManifest,
-      name: () => I18n.Keybinds_OpenCalendarKeybind_DisplayedName(),
-      tooltip: () => I18n.Keybinds_OpenCalendarKeybind_Tooltip(),
-      getValue: () => _modConfig.OpenCalendarKeybind,
-      setValue: value => _modConfig.OpenCalendarKeybind = value
-    );
-    configMenu.AddKeybindList(
-      ModManifest,
-      name: () => I18n.Keybinds_OpenQuestBoardKeybind_DisplayedName(),
-      tooltip: () => I18n.Keybinds_OpenQuestBoardKeybind_Tooltip(),
-      getValue: () => _modConfig.OpenQuestBoardKeybind,
-      setValue: value => _modConfig.OpenQuestBoardKeybind = value
-    );
-    // Show item effect ranges
-    configMenu.AddSectionTitle(
-      ModManifest,
-      text: () => I18n.Keybinds_Subtitle_ShowRange_DisplayedName(),
-      tooltip: () => I18n.Keybinds_Subtitle_ShowRange_Tooltip()
-      );
-    configMenu.AddKeybindList(
-      ModManifest,
-      name: () => I18n.Keybinds_ShowOneRange_DisplayedName(),
-      tooltip: () => I18n.Keybinds_ShowOneRange_Tooltip(),
-      getValue: () => _modConfig.ShowOneRange,
-      setValue: value => _modConfig.ShowOneRange = value
-    );
-    configMenu.AddKeybindList(
-      ModManifest,
-      name: () => I18n.Keybinds_ShowAllRange_DisplayedName(),
-      tooltip: () => I18n.Keybinds_ShowAllRange_Tooltip(),
-      getValue: () => _modConfig.ShowAllRange,
-      setValue: value => _modConfig.ShowAllRange = value
-      );
+      if (module.Enabled && !module.ShouldEnable())
+      {
+        module.Disable();
+      }
+    }
   }
-#endregion
 
-#region Event subscriptions
-  private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
+  private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs eventArgs)
   {
     // Unload if the main player quits.
     if (Context.ScreenId != 0)
@@ -151,12 +118,15 @@ public class ModEntry : Mod
       return;
     }
 
-    _modOptionsPageHandler?.Dispose();
-    _modOptionsPageHandler = null;
-    GameStateResolverCaches.Clear();
+    foreach (BaseModule module in GetAllModules())
+    {
+      module.Disable();
+    }
+
+    _container.GetInstance<GameStateResolverCaches>().Clear();
   }
 
-  private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+  private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
   {
     // Only load once for split screen.
     if (Context.ScreenId != 0)
@@ -164,56 +134,55 @@ public class ModEntry : Mod
       return;
     }
 
-    _modOptions = Helper.Data.ReadJsonFile<ModOptions>($"data/{Constants.SaveFolderName}.json") ??
-                  Helper.Data.ReadJsonFile<ModOptions>($"data/{_modConfig.ApplyDefaultSettingsFromThisSave}.json") ??
-                  new ModOptions();
-
-    _modOptionsPageHandler?.Dispose();
-    _modOptionsPageHandler = new ModOptionsPageHandler(Helper, _modOptions, _modConfig.ShowOptionsTabInMenu);
-  }
-
-  private void OnSaved(object sender, EventArgs e)
-  {
-    // Only save for the main player.
-    if (Context.ScreenId != 0)
+    foreach (BaseModule module in GetAllModules())
     {
-      return;
-    }
-
-    Helper.Data.WriteJsonFile($"data/{Constants.SaveFolderName}.json", _modOptions);
-  }
-
-  public static void RegisterCalendarAndQuestKeyBindings(IModHelper helper, bool subscribe)
-  {
-    if (_calendarAndQuestKeyBindingsHandler == null)
-    {
-      _calendarAndQuestKeyBindingsHandler = (sender, e) => HandleCalendarAndQuestKeyBindings(helper);
-    }
-
-    helper.Events.Input.ButtonsChanged -= _calendarAndQuestKeyBindingsHandler;
-
-    if (subscribe)
-    {
-      helper.Events.Input.ButtonsChanged += _calendarAndQuestKeyBindingsHandler;
-    }
-  }
-
-  private static void HandleCalendarAndQuestKeyBindings(IModHelper helper)
-  {
-    if (_modConfig != null)
-    {
-      if (Context.IsPlayerFree && _modConfig.OpenCalendarKeybind.JustPressed())
+      if (module.ShouldEnable())
       {
-        helper.Input.SuppressActiveKeybinds(_modConfig.OpenCalendarKeybind);
-        Game1.activeClickableMenu = new Billboard();
-      }
-      else if (Context.IsPlayerFree && _modConfig.OpenQuestBoardKeybind.JustPressed())
-      {
-        helper.Input.SuppressActiveKeybinds(_modConfig.OpenQuestBoardKeybind);
-        Game1.RefreshQuestOfTheDay();
-        Game1.activeClickableMenu = new Billboard(true);
+        module.Enable();
       }
     }
   }
+
+#region Generic mod config menu
+  private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+  {
+    _container.GetInstance<SoundHelper>().Initialize(Helper);
+    _container.GetInstance<ApiManager>().TryRegisterApi<ICustomBushApi>(Helper, ModCompat.CustomBush, "1.2.1", true);
+  }
+#endregion
+
+#region Event subscriptions
+  // public static void RegisterCalendarAndQuestKeyBindings(IModHelper helper, bool subscribe)
+  // {
+  //   if (_calendarAndQuestKeyBindingsHandler == null)
+  //   {
+  //     _calendarAndQuestKeyBindingsHandler = (sender, e) => HandleCalendarAndQuestKeyBindings(helper);
+  //   }
+  //
+  //   helper.Events.Input.ButtonsChanged -= _calendarAndQuestKeyBindingsHandler;
+  //
+  //   if (subscribe)
+  //   {
+  //     helper.Events.Input.ButtonsChanged += _calendarAndQuestKeyBindingsHandler;
+  //   }
+  // }
+
+  // private static void HandleCalendarAndQuestKeyBindings(IModHelper helper)
+  // {
+  //   if (_modConfig != null)
+  //   {
+  //     if (Context.IsPlayerFree && _modConfig.OpenCalendarKeybind.JustPressed())
+  //     {
+  //       helper.Input.SuppressActiveKeybinds(_modConfig.OpenCalendarKeybind);
+  //       Game1.activeClickableMenu = new Billboard();
+  //     }
+  //     else if (Context.IsPlayerFree && _modConfig.OpenQuestBoardKeybind.JustPressed())
+  //     {
+  //       helper.Input.SuppressActiveKeybinds(_modConfig.OpenQuestBoardKeybind);
+  //       Game1.RefreshQuestOfTheDay();
+  //       Game1.activeClickableMenu = new Billboard(true);
+  //     }
+  //   }
+  // }
 #endregion
 }

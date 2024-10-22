@@ -10,11 +10,13 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Network;
+using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Modules;
 using Object = StardewValley.Object;
 
 namespace UIInfoSuite2.UIElements;
 
-internal class ShowItemEffectRanges : IDisposable
+internal class ShowItemEffectRanges : BaseModule
 {
 #region Properties
   private readonly PerScreen<List<Point>> _effectiveAreaCurrent = new(() => new List<Point>());
@@ -22,8 +24,6 @@ internal class ShowItemEffectRanges : IDisposable
   private readonly PerScreen<HashSet<Point>> _effectiveAreaIntersection = new(() => new HashSet<Point>());
 
   private readonly Mutex _mutex = new();
-
-  private readonly IModHelper _helper;
 
   private bool ButtonControlShow { get; set; }
   private bool ShowBombRange { get; set; }
@@ -34,28 +34,27 @@ internal class ShowItemEffectRanges : IDisposable
 
 
 #region Lifecycle
-  public ShowItemEffectRanges(IModHelper helper)
+  public ShowItemEffectRanges(IModEvents modEvents, IMonitor logger, ConfigManager configManager) : base(
+    modEvents,
+    logger,
+    configManager
+  ) { }
+
+  public override bool ShouldEnable()
   {
-    _helper = helper;
+    return Config.ShowItemEffectRanges;
   }
 
-  public void Dispose()
+  public override void OnEnable()
   {
-    ToggleOption(false);
+    ModEvents.Display.RenderingHud += OnRenderingHud;
+    ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
   }
 
-  public void ToggleOption(bool showItemEffectRanges)
+  public override void OnDisable()
   {
-    ToggleButtonControlShowOption(showItemEffectRanges);
-
-    _helper.Events.Display.RenderingHud -= OnRenderingHud;
-    _helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
-
-    if (showItemEffectRanges)
-    {
-      _helper.Events.Display.RenderingHud += OnRenderingHud;
-      _helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
-    }
+    ModEvents.Display.RenderingHud -= OnRenderingHud;
+    ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
   }
 
   public void ToggleButtonControlShowOption(bool buttonControlShow)
