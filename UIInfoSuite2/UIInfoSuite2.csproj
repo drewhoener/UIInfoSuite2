@@ -6,6 +6,7 @@
     <ModZipPath>$(SolutionDir)\Releases</ModZipPath>
     <BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
     <EnableHarmony>true</EnableHarmony>
+    <LangVersion>preview</LangVersion>
 
     <TranslationClassBuilder_AddGetByKey>true</TranslationClassBuilder_AddGetByKey>
   </PropertyGroup>

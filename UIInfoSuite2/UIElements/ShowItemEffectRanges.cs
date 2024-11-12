@@ -25,9 +25,6 @@ internal class ShowItemEffectRanges : BaseModule
 
   private readonly Mutex _mutex = new();
 
-  private bool ButtonControlShow { get; set; }
-  private bool ShowBombRange { get; set; }
-
   private bool ButtonShowOneRange { get; set; }
   private bool ButtonShowAllRanges { get; set; }
 #endregion
@@ -49,28 +46,14 @@ internal class ShowItemEffectRanges : BaseModule
   {
     ModEvents.Display.RenderingHud += OnRenderingHud;
     ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
+    ModEvents.Input.ButtonsChanged += OnButtonChanged;
   }
 
   public override void OnDisable()
   {
     ModEvents.Display.RenderingHud -= OnRenderingHud;
     ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
-  }
-
-  public void ToggleButtonControlShowOption(bool buttonControlShow)
-  {
-    ButtonControlShow = buttonControlShow;
-
-    _helper.Events.Input.ButtonsChanged -= OnButtonChanged;
-    if (buttonControlShow)
-    {
-      _helper.Events.Input.ButtonsChanged += OnButtonChanged;
-    }
-  }
-
-  public void ToggleShowBombRangeOption(bool showBombRange)
-  {
-    ShowBombRange = showBombRange;
+    ModEvents.Input.ButtonsChanged -= OnButtonChanged;
   }
 #endregion
 
@@ -107,15 +90,8 @@ internal class ShowItemEffectRanges : BaseModule
     {
       UpdateEffectiveArea();
       GetOverlapValue();
-      if (ButtonShowOneRange)
-      {
-        ButtonShowOneRange = false;
-      }
-
-      if (ButtonShowAllRanges)
-      {
-        ButtonShowAllRanges = false;
-      }
+      ButtonShowAllRanges = false;
+      ButtonShowOneRange = false;
     }
   }
 
@@ -172,20 +148,19 @@ internal class ShowItemEffectRanges : BaseModule
 
   private void OnButtonChanged(object? sender, ButtonsChangedEventArgs e)
   {
-    if (ModEntry._modConfig != null)
+    if (!Context.IsPlayerFree)
     {
-      if (Context.IsPlayerFree)
-      {
-        if (ModEntry._modConfig.ShowOneRange.IsDown())
-        {
-          ButtonShowOneRange = true;
-        }
+      return;
+    }
 
-        if (ModEntry._modConfig.ShowAllRange.IsDown())
-        {
-          ButtonShowAllRanges = true;
-        }
-      }
+    if (Config.ShowItemRangeHoverKeybind.IsDown())
+    {
+      ButtonShowOneRange = true;
+    }
+
+    if (Config.ShowItemRangeHoverKeybind.IsDown())
+    {
+      ButtonShowAllRanges = true;
     }
   }
 #endregion
@@ -213,7 +188,7 @@ internal class ShowItemEffectRanges : BaseModule
     }
 
     // Every other item is here
-    if (ButtonControlShow && (ButtonShowOneRange || ButtonShowAllRanges))
+    if (Config.ShowRangeOnKeyDownWhileHovered && (ButtonShowOneRange || ButtonShowAllRanges))
     {
       Vector2 gamepadTile = Game1.player.CurrentTool != null
         ? Utility.snapToInt(Game1.player.GetToolLocation() / Game1.tileSize)
@@ -384,7 +359,7 @@ internal class ShowItemEffectRanges : BaseModule
         arrayToUse = GetDistanceArray(ObjectsWithDistance.MossySeed);
         AddTilesToHighlightedArea(arrayToUse, false, (int)validTile.X, (int)validTile.Y);
       }
-      else if (ShowBombRange && itemName.IndexOf("Bomb", StringComparison.OrdinalIgnoreCase) >= 0)
+      else if (Config.ShowBombRanges && itemName.IndexOf("Bomb", StringComparison.OrdinalIgnoreCase) >= 0)
       {
         if (itemName.Contains("ega"))
         {
@@ -591,7 +566,7 @@ internal class ShowItemEffectRanges : BaseModule
 
   private static bool IsDistanceDirectionOK(int i, int j, int radius, bool? onlyClearExceptions)
   {
-    return onlyClearExceptions.HasValue && onlyClearExceptions.Value ? radius - j == 0 || radius - i == 0 : true;
+    return !onlyClearExceptions.HasValue || !onlyClearExceptions.Value || radius - j == 0 || radius - i == 0;
   }
 
   private static bool IsExceptionalDistanceOK(double? exceptionalDistance, double distance)

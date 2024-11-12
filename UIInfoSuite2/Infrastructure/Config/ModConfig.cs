@@ -1,4 +1,5 @@
-﻿using StardewModdingAPI.Utilities;
+﻿using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
 
 namespace UIInfoSuite2.Infrastructure.Config;
 
@@ -71,6 +72,8 @@ public sealed class ModConfig
 
   // Item Range
   public bool ShowItemEffectRanges { get; set; } = true;
+  public bool ShowRangeOnKeyDownWhileHovered { get; set; } = true;
+  public bool ShowBombRanges { get; set; } = true;
 #endregion
 
 #region Keybinds Config
@@ -78,5 +81,7 @@ public sealed class ModConfig
   public KeybindList OpenQuestBoardKeybind { get; set; } = KeybindList.ForSingle();
   public KeybindList OpenSlayerQuestKeybind { get; set; } = KeybindList.ForSingle();
   public KeybindList ToggleItemRangesKeybind { get; set; } = KeybindList.ForSingle();
+  public KeybindList ShowItemRangeHoverKeybind { get; set; } = KeybindList.ForSingle(SButton.LeftControl);
+  public KeybindList ShowAllItemRangesHoverKeybind { get; set; } = KeybindList.Parse("LeftControl + LeftAlt");
 #endregion
 }
