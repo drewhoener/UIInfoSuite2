@@ -282,23 +282,6 @@ public class ConfigManager
       setValue: value => Config.HideMerchantIconWhenVisited = value
     );
 
-    // Birthday
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Birthday); // "Birthday Reminder"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Birthday_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Birthday_Enable_Tooltip,
-      getValue: () => Config.ShowBirthdayIcon,
-      setValue: value => Config.ShowBirthdayIcon = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Birthday_HideOnFriends,
-      tooltip: I18n.Gmcm_Modules_Icons_Birthday_HideOnFriends_Tooltip,
-      getValue: () => Config.HideBirthdayIfFullFriendShip,
-      setValue: value => Config.HideBirthdayIfFullFriendShip = value
-    );
-
     // Other Icons
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_OtherIcons); // "Other Icons"
     modConfigMenuApi.AddBoolOption(

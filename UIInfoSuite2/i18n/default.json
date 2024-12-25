@@ -173,7 +173,7 @@
   // Birthday Icons
   "gmcm.modules.icons.birthday.enable": "Show Townsfolk Birthday icons",
   "gmcm.modules.icons.birthday.enable.tooltip": "Toggle whether an NPC's icon is shown on their birthday",
-  "gmcm.modules.icons.birthday.hide-on-friends": "Hide birthday icon on full friendship",
+  "gmcm.modules.icons.birthday.hide-on-friends": "Hide on full friendship",
   "gmcm.modules.icons.birthday.hide-on-friends.tooltip": "If an NPC icon should be hidden after max friendship",
   // Queen of Sauce
   "gmcm.modules.icons.recipes.enable": "Show Queen of Sauce icon",
