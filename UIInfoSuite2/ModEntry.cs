@@ -26,7 +26,6 @@ internal class ModEntry : Mod
 {
   private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
 
-  // private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
   private readonly Container _container = new();
 
   public static ModEntry Instance { get; private set; } = null!;
@@ -88,7 +87,7 @@ internal class ModEntry : Mod
     helper.Events.Display.Rendering += IconHandler.Handler.Reset;
     helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
     helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
-    _container.GetInstance<EventsManager>().OnConfigChange += (_, _) => OnConfigSave();
+    _container.GetInstance<EventsManager>().OnConfigChange += (_, _) => ReloadModules();
     _container.GetInstance<MenuShortcutDisplay>().Register(helper);
 
     IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded(ModCompat.DeluxeJournal);
@@ -100,7 +99,7 @@ internal class ModEntry : Mod
     return _container.GetAllInstances<BaseModule>();
   }
 
-  private void OnConfigSave()
+  private void ReloadModules()
   {
     if (Game1.gameMode == Game1.titleScreenGameMode)
     {
