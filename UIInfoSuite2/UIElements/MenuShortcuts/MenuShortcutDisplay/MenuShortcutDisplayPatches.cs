@@ -14,7 +14,7 @@ internal partial class MenuShortcutDisplay
     MethodInfo? patchingMethod = AccessTools.DeclaredMethod(
       typeof(GameMenu),
       nameof(GameMenu.draw),
-      new[] { typeof(SpriteBatch) }
+      [typeof(SpriteBatch)]
     );
     var transpilerMethod = new HarmonyMethod(
       AccessTools.DeclaredMethod(typeof(MenuShortcutDisplay), nameof(TranspileGameMenuDraw))

@@ -65,7 +65,7 @@ internal partial class MenuShortcutDisplay : BaseModule, IPatchable
       return;
     }
 
-    _maxElementHeight = _menuShortcuts.Select(e => e.RenderedHeight).Max();
+    _maxElementHeight = drawableElements.Max(e => e.RenderedHeight);
 
     int xStart = menu.xPositionOnScreen;
     int width = menu.pages[menu.currentTab].width;

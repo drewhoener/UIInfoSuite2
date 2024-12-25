@@ -37,6 +37,6 @@ public class CalendarQuestMenuShortcut : BaseMenuShortcut
     }
 
     bool showDailyQuest = mouseCoords.X >= MenuButton.bounds.X + MenuButton.bounds.Width / 2f;
-    Game1.activeClickableMenu = new Billboard(showDailyQuest);
+    Game1.activeClickableMenu.SetChildMenu(new Billboard(showDailyQuest));
   }
 }
