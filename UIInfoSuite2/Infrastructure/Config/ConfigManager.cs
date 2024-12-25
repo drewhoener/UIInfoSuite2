@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Events;
+using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Infrastructure.Interfaces;
 
 namespace UIInfoSuite2.Infrastructure.Config;
 
@@ -39,11 +42,6 @@ public class ConfigManager
     _eventsManager.TriggerOnConfigChange();
   }
 
-  private void AddGroupHeader(IGenericModConfigMenuApi api, Func<string> text)
-  {
-    api.AddSubHeader(_manifest, text);
-  }
-
   private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
   {
     var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
@@ -54,18 +52,107 @@ public class ConfigManager
 
     modConfigMenuApi.Register(_manifest, () => { Config = new ModConfig(); }, SaveConfig);
 
-    modConfigMenuApi.AddSectionTitle(
-      _manifest,
-      I18n.Gmcm_Section_Overlays_Title,
-      I18n.Gmcm_Section_Overlays_Title_Tooltip
-    );
+    // Bucket configurable items into their correct pages
+    List<IConfigurable> topLevelConfigs = [];
+    Dictionary<string, List<IConfigurable>> configurations = new();
+    var currentSection = "";
+
+    foreach (IConfigurable configurable in ModEntry.Instance.GetContainerCollection<IConfigurable>())
+    {
+      string? pageKey = configurable.GetConfigPage();
+      if (pageKey is null)
+      {
+        topLevelConfigs.Add(configurable);
+      }
+      else
+      {
+        configurations.GetOrCreate(pageKey).Result.Add(configurable);
+      }
+    }
+
+    // Add main section and add configs
+    modConfigMenuApi.AddSectionTitle(_manifest, I18n.Gmcm_MainMenu_Title, I18n.Gmcm_MainMenu_Tooltip);
+
+    foreach (IConfigurable element in topLevelConfigs)
+    {
+      currentSection = UpdateSection(currentSection, element);
+      string? subHeader = element.GetSubHeader();
+      if (subHeader != null)
+      {
+        modConfigMenuApi.AddSubHeader(_manifest, () => subHeader);
+      }
+
+      element.AddConfigOptions(modConfigMenuApi, _manifest);
+    }
+
+
+    // Reset section tracker
+    currentSection = "";
+    // Add all sub-page links
+    foreach (string pageKey in ConfigPageNames.Items)
+    {
+      (Func<string> title, Func<string> tooltip) = ConfigPageNames.GetPageLinkStrings(pageKey);
+      modConfigMenuApi.AddPageLink(_manifest, pageKey, title, tooltip);
+    }
+
+    // Populate pages
+    foreach ((string? pageKey, List<IConfigurable>? configElements) in configurations)
+    {
+      // Set up page
+      (Func<string> pageTitle, _) = ConfigPageNames.GetPageLinkStrings(pageKey);
+      modConfigMenuApi.AddPage(_manifest, pageKey, pageTitle);
+
+      // Sort elements into their sections and subsections
+      configElements.Sort();
+      foreach (IConfigurable? element in configElements)
+      {
+        // Add elements
+        currentSection = UpdateSection(currentSection, element);
+        string? subHeader = element.GetSubHeader();
+        if (subHeader != null)
+        {
+          modConfigMenuApi.AddSubHeader(_manifest, () => subHeader);
+        }
+
+        element.AddConfigOptions(modConfigMenuApi, _manifest);
+      }
+    }
+
+    return;
+
+    string UpdateSection(string prevSection, IConfigurable element)
+    {
+      if (prevSection == element.GetConfigSection())
+      {
+        return prevSection;
+      }
+
+      string newSection = element.GetConfigSection();
+      (Func<string>? sectionTitle, Func<string>? sectionTooltip) =
+        ConfigSectionNames.GetSectionTitleStrings(newSection);
+      modConfigMenuApi.AddSectionTitle(_manifest, sectionTitle, sectionTooltip);
+
+      return newSection;
+    }
+  }
+
+  private void AddGroupHeader(IGenericModConfigMenuApi api, Func<string> text)
+  {
+    api.AddSubHeader(_manifest, text);
+  }
+
+  private void OnGameLaunchedOld(object? sender, GameLaunchedEventArgs e)
+  {
+    var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
+    if (modConfigMenuApi == null)
+    {
+      return;
+    }
+
+    modConfigMenuApi.Register(_manifest, () => { Config = new ModConfig(); }, SaveConfig);
 
 // Main menu options
-    modConfigMenuApi.AddSectionTitle(
-      _manifest,
-      I18n.Gmcm_MainMenu_Title,  // "Main Settings"
-      I18n.Gmcm_MainMenu_Tooltip // "Main configuration options"
-    );
+
 
     // Add links to subpages
     modConfigMenuApi.AddPageLink(
@@ -98,63 +185,6 @@ public class ConfigManager
 
     // HUD Icons Page
     modConfigMenuApi.AddPage(_manifest, "hud-icons", I18n.Gmcm_Page_HudIcons_Title);
-
-    // Global HUD settings
-    modConfigMenuApi.AddSectionTitle(
-      _manifest,
-      I18n.Gmcm_Section_HudGlobal_Title,  // "Global HUD Settings"
-      I18n.Gmcm_Section_HudGlobal_Tooltip // "Settings that affect all HUD icons"
-    );
-
-    modConfigMenuApi.AddNumberOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_IconContainer_IconPerRow,
-      tooltip: I18n.Gmcm_Modules_IconContainer_IconPerRow_Tooltip,
-      getValue: () => Config.HudIconsPerRow,
-      setValue: value => Config.HudIconsPerRow = value,
-      min: 0,
-      max: 10
-    );
-
-    modConfigMenuApi.AddNumberOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_IconContainer_YOffset,
-      tooltip: I18n.Gmcm_Modules_IconContainer_YOffset_Tooltip,
-      getValue: () => Config.HudIconsVerticalOffset,
-      setValue: value => Config.HudIconsVerticalOffset = value,
-      min: 0,
-      max: 100
-    );
-
-    modConfigMenuApi.AddNumberOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_IconContainer_XOffset,
-      tooltip: I18n.Gmcm_Modules_IconContainer_XOffset_Tooltip,
-      getValue: () => Config.HudIconsHorizontalOffset,
-      setValue: value => Config.HudIconsHorizontalOffset = value,
-      min: 0,
-      max: 100
-    );
-
-    modConfigMenuApi.AddNumberOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_IconContainer_YSpacing,
-      tooltip: I18n.Gmcm_Modules_IconContainer_YSpacing_Tooltip,
-      getValue: () => Config.HudIconVerticalSpacing,
-      setValue: value => Config.HudIconVerticalSpacing = value,
-      min: 0,
-      max: 100
-    );
-
-    modConfigMenuApi.AddNumberOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_IconContainer_XSpacing,
-      tooltip: I18n.Gmcm_Modules_IconContainer_XSpacing_Tooltip,
-      getValue: () => Config.HudIconHorizontalSpacing,
-      setValue: value => Config.HudIconHorizontalSpacing = value,
-      min: 0,
-      max: 100
-    );
 
     // Status Icons
     modConfigMenuApi.AddSectionTitle(

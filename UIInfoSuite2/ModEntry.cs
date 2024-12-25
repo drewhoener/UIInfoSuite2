@@ -11,6 +11,7 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Config.Configurable;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
@@ -76,6 +77,7 @@ internal class ModEntry : Mod
     _container.Collection.Register<IConfigurable>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
 
     // Register Modules
+    RegisterConfigurable<ConfigurableHudIconPositioning>();
     RegisterBaseModuleSingleton<MenuShortcutDisplay>();
     RegisterHudModuleSingleton<LuckOfDay>();
 
@@ -96,7 +98,12 @@ internal class ModEntry : Mod
 
   public IEnumerable<BaseModule> GetAllModules()
   {
-    return _container.GetAllInstances<BaseModule>();
+    return GetContainerCollection<BaseModule>();
+  }
+
+  public IEnumerable<T> GetContainerCollection<T>() where T : class
+  {
+    return _container.GetAllInstances<T>();
   }
 
   private void ReloadModules()
@@ -168,7 +175,13 @@ internal class ModEntry : Mod
     _container.Collection.Append<IPatchable, T>();
   }
 
-  private void RegisterBaseModuleSingleton<T>(bool registerConfigurable = false, bool registerPatchable = false) where T : BaseModule
+  private void RegisterConfigurable<T>() where T : class, IConfigurable
+  {
+    _container.Collection.Append<IConfigurable, T>();
+  }
+
+  private void RegisterBaseModuleSingleton<T>(bool registerConfigurable = false, bool registerPatchable = false)
+    where T : BaseModule
   {
     _container.RegisterSingleton<T>();
     _container.Collection.Append<BaseModule, T>();

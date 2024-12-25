@@ -3,7 +3,9 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Modules;
 
@@ -11,7 +13,7 @@ namespace UIInfoSuite2.UIElements;
 
 // ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
 internal class LuckOfDay(IModEvents modEvents, IMonitor logger, ConfigManager configManager, HudIconStorage iconStorage)
-  : HudIconModule(modEvents, logger, configManager, iconStorage)
+  : HudIconModule(modEvents, logger, configManager, iconStorage), IConfigurable
 {
   private const string IconKey = "Luck";
 
@@ -37,7 +39,6 @@ internal class LuckOfDay(IModEvents modEvents, IMonitor logger, ConfigManager co
       return _luckIcon!;
     }
   }
-
 
   private void CalculateLuck(UpdateTickedEventArgs e)
   {
@@ -125,4 +126,40 @@ internal class LuckOfDay(IModEvents modEvents, IMonitor logger, ConfigManager co
     ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
     base.OnDisable();
   }
+
+#region Configuration Setup
+  public string GetConfigPage()
+  {
+    return ConfigPageNames.HudIcons;
+  }
+
+  public string GetConfigSection()
+  {
+    return ConfigSectionNames.StatusIcons;
+  }
+
+  public string GetSubHeader()
+  {
+    return I18n.Gmcm_Group_Luck();
+  }
+
+  public void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
+  {
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Luck_Enable,
+      tooltip: I18n.Gmcm_Modules_Icons_Luck_Enable_Tooltip,
+      getValue: () => Config.ShowLuckIcon,
+      setValue: value => Config.ShowLuckIcon = value
+    );
+
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Luck_Exact,
+      tooltip: I18n.Gmcm_Modules_Icons_Luck_Exact_Tooltip,
+      getValue: () => Config.ShowExactLuckValue,
+      setValue: value => Config.ShowExactLuckValue = value
+    );
+  }
+#endregion
 }
