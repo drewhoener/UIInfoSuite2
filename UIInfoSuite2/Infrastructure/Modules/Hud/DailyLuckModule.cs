@@ -7,12 +7,13 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
-using UIInfoSuite2.Infrastructure.Modules;
+using UIInfoSuite2.Infrastructure.Models.Icons;
+using UIInfoSuite2.Infrastructure.Modules.Base;
 
-namespace UIInfoSuite2.UIElements;
+namespace UIInfoSuite2.Infrastructure.Modules.Hud;
 
 // ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
-internal class LuckOfDay(IModEvents modEvents, IMonitor logger, ConfigManager configManager, HudIconStorage iconStorage)
+internal class DailyLuckModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager, HudIconStorage iconStorage)
   : HudIconModule(modEvents, logger, configManager, iconStorage), IConfigurable
 {
   private const string IconKey = "Luck";

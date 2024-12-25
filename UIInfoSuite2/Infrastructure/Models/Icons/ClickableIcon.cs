@@ -9,7 +9,7 @@ using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.UIElements;
 
-namespace UIInfoSuite2.Infrastructure.Models;
+namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
 public class ClickableIcon
 {
@@ -47,6 +47,8 @@ public class ClickableIcon
 
     ClickHandlerAction = clickHandlerAction;
     HoverFont = hoverFont ?? Game1.dialogueFont;
+
+    AutoDrawDelegate = Draw;
   }
 
   public string HoverText
@@ -59,7 +61,7 @@ public class ClickableIcon
 
   public SpriteFont HoverFont { get; }
 
-  public Action<SpriteBatch>? AutoDrawDelegate { get; set; }
+  public Action<SpriteBatch> AutoDrawDelegate { get; set; }
 
   public Action<object?, ButtonPressedEventArgs, Vector2>? ClickHandlerAction { private get; set; }
 

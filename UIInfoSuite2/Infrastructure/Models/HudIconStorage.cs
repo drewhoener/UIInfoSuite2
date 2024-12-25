@@ -7,6 +7,7 @@ using StardewValley;
 using StardewValley.Extensions;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Models.Icons;
 
 namespace UIInfoSuite2.Infrastructure.Models;
 
@@ -100,7 +101,7 @@ public class HudIconStorage(IModEvents modEvents, IMonitor monitor, ConfigManage
         int baselineHeight = heightOffset + (largestHeight - clickableIcon.Dimensions.HeightInt);
 
         clickableIcon.MoveTo(xPosition, baselineHeight);
-        clickableIcon.AutoDrawDelegate?.Invoke(e.SpriteBatch);
+        clickableIcon.AutoDrawDelegate.Invoke(e.SpriteBatch);
         idx++;
       }
 

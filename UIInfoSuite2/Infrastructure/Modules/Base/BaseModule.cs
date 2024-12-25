@@ -3,7 +3,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using UIInfoSuite2.Infrastructure.Config;
 
-namespace UIInfoSuite2.Infrastructure.Modules;
+namespace UIInfoSuite2.Infrastructure.Modules.Base;
 
 public abstract class BaseModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager) : IDisposable
 {

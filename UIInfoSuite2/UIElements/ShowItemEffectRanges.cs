@@ -11,7 +11,7 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Network;
 using UIInfoSuite2.Infrastructure.Config;
-using UIInfoSuite2.Infrastructure.Modules;
+using UIInfoSuite2.Infrastructure.Modules.Base;
 using Object = StardewValley.Object;
 
 namespace UIInfoSuite2.UIElements;

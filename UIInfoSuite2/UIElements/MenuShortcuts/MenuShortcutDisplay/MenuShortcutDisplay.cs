@@ -7,7 +7,7 @@ using StardewModdingAPI.Events;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Interfaces;
-using UIInfoSuite2.Infrastructure.Modules;
+using UIInfoSuite2.Infrastructure.Modules.Base;
 
 namespace UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 

@@ -3,7 +3,7 @@ using StardewModdingAPI.Events;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Models;
 
-namespace UIInfoSuite2.Infrastructure.Modules;
+namespace UIInfoSuite2.Infrastructure.Modules.Base;
 
 public abstract class HudIconModule(
   IModEvents modEvents,

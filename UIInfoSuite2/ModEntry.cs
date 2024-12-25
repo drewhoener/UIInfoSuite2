@@ -17,8 +17,8 @@ using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
-using UIInfoSuite2.Infrastructure.Modules;
-using UIInfoSuite2.UIElements;
+using UIInfoSuite2.Infrastructure.Modules.Base;
+using UIInfoSuite2.Infrastructure.Modules.Hud;
 using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 
 namespace UIInfoSuite2;
@@ -79,7 +79,7 @@ internal class ModEntry : Mod
     // Register Modules
     RegisterConfigurable<ConfigurableHudIconPositioning>();
     RegisterBaseModuleSingleton<MenuShortcutDisplay>();
-    RegisterHudModuleSingleton<LuckOfDay>();
+    RegisterHudModuleSingleton<DailyLuckModule>();
 
     _container.Verify();
 
