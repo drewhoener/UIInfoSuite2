@@ -7,7 +7,6 @@ using StardewValley;
 using StardewValley.Extensions;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
-using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Models.Icons;
 using UIInfoSuite2.Infrastructure.Modules.Base;
@@ -20,7 +19,7 @@ internal class BirthdayReminderModule(
   IMonitor logger,
   ConfigManager configManager,
   HudIconStorage iconStorage
-) : HudIconModule(modEvents, logger, configManager, iconStorage), IConfigurable
+) : HudIconModule(modEvents, logger, configManager, iconStorage)
 {
   private const string BirthdayIconPrefix = "BirthdayIcon-";
   private readonly PerScreen<List<NpcBirthdayIcon>> _birthdayCharacters = new(() => []);
@@ -121,22 +120,22 @@ internal class BirthdayReminderModule(
   }
 
 #region Configuration Setup
-  public string GetConfigPage()
+  public override string GetConfigPage()
   {
     return ConfigPageNames.HudIcons;
   }
 
-  public string GetConfigSection()
+  public override string GetConfigSection()
   {
     return ConfigSectionNames.NotificationIcons;
   }
 
-  public string GetSubHeader()
+  public override string GetSubHeader()
   {
     return I18n.Gmcm_Group_Birthday();
   }
 
-  public void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
+  public override void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
   {
     modConfigMenuApi.AddBoolOption(
       manifest,

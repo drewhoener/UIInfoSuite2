@@ -5,7 +5,6 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
-using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Models.Icons;
 using UIInfoSuite2.Infrastructure.Modules.Base;
@@ -14,7 +13,7 @@ namespace UIInfoSuite2.Infrastructure.Modules.Hud;
 
 // ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
 internal class DailyLuckModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager, HudIconStorage iconStorage)
-  : HudIconModule(modEvents, logger, configManager, iconStorage), IConfigurable
+  : HudIconModule(modEvents, logger, configManager, iconStorage)
 {
   private const string IconKey = "Luck";
 
@@ -129,22 +128,22 @@ internal class DailyLuckModule(IModEvents modEvents, IMonitor logger, ConfigMana
   }
 
 #region Configuration Setup
-  public string GetConfigPage()
+  public override string GetConfigPage()
   {
     return ConfigPageNames.HudIcons;
   }
 
-  public string GetConfigSection()
+  public override string GetConfigSection()
   {
     return ConfigSectionNames.StatusIcons;
   }
 
-  public string GetSubHeader()
+  public override string GetSubHeader()
   {
     return I18n.Gmcm_Group_Luck();
   }
 
-  public void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
+  public override void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
   {
     modConfigMenuApi.AddBoolOption(
       manifest,
