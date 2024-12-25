@@ -8,15 +8,15 @@ namespace UIInfoSuite2.Infrastructure.Events;
 public class EventsManager
 {
   public event EventHandler<EventArgs>? OnConfigChange;
-  public event EventHandler<RenderingActiveMenuPostBackgroundArgs>? OnRenderingActiveMenuPostBackground;
+  public event EventHandler<RenderingMenuContentStepArgs>? OnRenderingMenuContentStep;
 
   public void TriggerOnConfigChange()
   {
     OnConfigChange?.Invoke(this, EventArgs.Empty);
   }
 
-  public void TriggerOnRenderingActiveMenuPostBackground(GameMenu menu, SpriteBatch spriteBatch)
+  public void TriggerOnRenderingMenuContentStep(IClickableMenu menu, SpriteBatch spriteBatch)
   {
-    OnRenderingActiveMenuPostBackground?.Invoke(this, new RenderingActiveMenuPostBackgroundArgs(menu, spriteBatch));
+    OnRenderingMenuContentStep?.Invoke(this, new RenderingMenuContentStepArgs(menu, spriteBatch));
   }
 }

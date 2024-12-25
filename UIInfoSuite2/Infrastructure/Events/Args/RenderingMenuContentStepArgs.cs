@@ -4,8 +4,8 @@ using StardewValley.Menus;
 
 namespace UIInfoSuite2.Infrastructure.Events.Args;
 
-public class RenderingActiveMenuPostBackgroundArgs(GameMenu menu, SpriteBatch spriteBatch) : EventArgs
+public class RenderingMenuContentStepArgs(IClickableMenu menu, SpriteBatch spriteBatch) : EventArgs
 {
-  public GameMenu Menu = menu;
+  public IClickableMenu Menu = menu;
   public SpriteBatch SpriteBatch = spriteBatch;
 }

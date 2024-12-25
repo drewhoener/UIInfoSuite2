@@ -79,7 +79,7 @@ internal class ModEntry : Mod
 
     // Register Modules
     RegisterConfigurable<ConfigurableHudIconPositioning>();
-    RegisterPatchable<PatchRenderingActiveMenuPostBackground>();
+    RegisterPatchable<PatchRenderingMenuContentStep>();
     RegisterBaseModuleSingleton<MenuShortcutDisplay>();
     RegisterHudModuleSingleton<DailyLuckModule>();
     RegisterHudModuleSingleton<BirthdayReminderModule>();

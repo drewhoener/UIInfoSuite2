@@ -32,12 +32,12 @@ internal class MenuShortcutDisplay(
 
   public override void OnEnable()
   {
-    eventsManager.OnRenderingActiveMenuPostBackground += Draw;
+    eventsManager.OnRenderingMenuContentStep += Draw;
   }
 
   public override void OnDisable()
   {
-    eventsManager.OnRenderingActiveMenuPostBackground -= Draw;
+    eventsManager.OnRenderingMenuContentStep -= Draw;
   }
 
   public void Register(IModHelper helper)
@@ -57,13 +57,12 @@ internal class MenuShortcutDisplay(
     helper.Events.Input.ButtonPressed += shortcut.OnClick;
   }
 
-  public void Draw(object? sender, RenderingActiveMenuPostBackgroundArgs args)
+  public void Draw(object? sender, RenderingMenuContentStepArgs stepArgs)
   {
-    GameMenu menu = args.Menu;
-    SpriteBatch batch = args.SpriteBatch;
+    SpriteBatch batch = stepArgs.SpriteBatch;
 
     BaseMenuShortcut[] drawableElements = _menuShortcuts.Where(e => e.ShouldDraw).ToArray();
-    if (menu.invisible || !drawableElements.Any())
+    if (stepArgs.Menu is not GameMenu menu || menu.invisible || !drawableElements.Any())
     {
       return;
     }
