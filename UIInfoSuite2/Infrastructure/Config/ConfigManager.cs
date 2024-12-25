@@ -402,14 +402,7 @@ public class ConfigManager
     );
 
     // Shop Features
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_ShopFeatures); // "Shop Features"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Menus_HarvestPrices_Enable,
-      tooltip: I18n.Gmcm_Modules_Menus_HarvestPrices_Enable_Tooltip,
-      getValue: () => Config.ShowHarvestPricesInShop,
-      setValue: value => Config.ShowHarvestPricesInShop = value
-    );
+
 
     // Bundle Features
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_BundleFeatures); // "Bundle Features"

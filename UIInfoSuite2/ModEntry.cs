@@ -19,6 +19,7 @@ using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Modules.Base;
 using UIInfoSuite2.Infrastructure.Modules.Hud;
+using UIInfoSuite2.Infrastructure.Modules.MenuAdditions;
 using UIInfoSuite2.Infrastructure.Patches;
 using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 
@@ -83,6 +84,7 @@ internal class ModEntry : Mod
     RegisterBaseModuleSingleton<MenuShortcutDisplay>();
     RegisterHudModuleSingleton<DailyLuckModule>();
     RegisterHudModuleSingleton<BirthdayReminderModule>();
+    RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
 
     _container.Verify();
 

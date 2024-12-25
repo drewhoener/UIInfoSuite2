@@ -37,6 +37,7 @@ internal static class ConfigSectionNames
   public const string HudGlobal = "hud-global";
   public const string StatusIcons = "status-icons";
   public const string NotificationIcons = "notification-icons";
+  public const string EmptySection = "empty-section";
 
   public static GMCMPageTuple GetSectionTitleStrings(string sectionName)
   {
@@ -48,6 +49,7 @@ internal static class ConfigSectionNames
         I18n.Gmcm_Section_NotificationIcons_Title,
         I18n.Gmcm_Section_NotificationIcons_Tooltip
       ),
+      EmptySection => new GMCMPageTuple(() => "", () => ""),
       _ => throw new NotSupportedException($"Section {sectionName} is not supported")
     };
   }
