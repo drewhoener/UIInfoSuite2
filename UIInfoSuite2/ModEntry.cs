@@ -12,6 +12,7 @@ using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
+using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Modules;
 using UIInfoSuite2.UIElements;
 using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
@@ -38,6 +39,7 @@ internal class ModEntry : Mod
     Instance = this;
     I18n.Init(helper.Translation);
 
+    // Add Mod singletons to container
     _container.RegisterInstance(Helper);
     _container.RegisterInstance(ModManifest);
     _container.RegisterInstance(Monitor);
@@ -52,15 +54,18 @@ internal class ModEntry : Mod
     _container.RegisterInstance(Helper.Translation);
     _container.RegisterInstance(new Harmony(Helper.ModContent.ModID));
 
+    // Set up UI Info Suite Helpers
     _container.RegisterSingleton<GameStateResolverCaches>();
     _container.RegisterSingleton<GameStateHelper>();
     _container.RegisterSingleton<BundleHelper>();
     _container.RegisterSingleton<DropsHelper>();
     _container.RegisterSingleton<SoundHelper>();
 
+    // Set up Managers
     _container.RegisterSingleton<ApiManager>();
     _container.RegisterSingleton<EventsManager>();
     _container.RegisterSingleton<ConfigManager>();
+    _container.RegisterSingleton<HudIconStorage>();
 
     _container.Collection.Register<BaseModule>(
       new[] { typeof(LuckOfDay), typeof(MenuShortcutDisplay) },
@@ -124,6 +129,7 @@ internal class ModEntry : Mod
     }
 
     _container.GetInstance<GameStateResolverCaches>().Clear();
+    _container.GetInstance<HudIconStorage>().UnregisterEvents();
   }
 
   private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -133,6 +139,8 @@ internal class ModEntry : Mod
     {
       return;
     }
+
+    _container.GetInstance<HudIconStorage>().RegisterEvents();
 
     foreach (BaseModule module in GetAllModules())
     {
