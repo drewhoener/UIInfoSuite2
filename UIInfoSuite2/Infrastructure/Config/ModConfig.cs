@@ -6,6 +6,14 @@ namespace UIInfoSuite2.Infrastructure.Config;
 public sealed class ModConfig
 {
 #region HUD Items Config
+  // Icons
+  public int HudIconsPerRow { get; set; } = 5;
+
+  public int HudIconsVerticalOffset { get; set; } = 0;
+  public int HudIconsHorizontalOffset { get; set; } = 0;
+  public int HudIconVerticalSpacing { get; set; } = 8;
+  public int HudIconHorizontalSpacing { get; set; } = 8;
+
   // XP Bar
   public bool AllowExperienceBarToFadeOut { get; set; } = true;
   public bool ShowExperienceBar { get; set; } = true;
@@ -72,8 +80,12 @@ public sealed class ModConfig
 
   // Item Range
   public bool ShowItemEffectRanges { get; set; } = true;
-  public bool ShowRangeOnKeyDownWhileHovered { get; set; } = true;
   public bool ShowBombRanges { get; set; } = true;
+
+  public bool ShowRangeOnKeyDownWhileHovered =>
+    ShowItemRangeHoverKeybind.Keybinds.Length > 0 || ShowAllItemRangesHoverKeybind.Keybinds.Length > 0;
+
+  public bool OnlyShowRangeOnKeyPress { get; set; } = false;
 #endregion
 
 #region Keybinds Config

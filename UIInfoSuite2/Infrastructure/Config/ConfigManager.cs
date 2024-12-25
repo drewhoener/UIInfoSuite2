@@ -1,4 +1,5 @@
-﻿using StardewModdingAPI;
+﻿using System;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Events;
@@ -38,6 +39,11 @@ public class ConfigManager
     _eventsManager.TriggerOnConfigChange();
   }
 
+  private void AddGroupHeader(IGenericModConfigMenuApi api, Func<string> text)
+  {
+    api.AddSubHeader(_manifest, text);
+  }
+
   private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
   {
     var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
@@ -53,40 +59,112 @@ public class ConfigManager
       I18n.Gmcm_Section_Overlays_Title,
       I18n.Gmcm_Section_Overlays_Title_Tooltip
     );
-    // XP
-    modConfigMenuApi.AddBoolOption(
+
+// Main menu options
+    modConfigMenuApi.AddSectionTitle(
       _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Enable,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Enable_Tooltip,
-      getValue: () => Config.ShowExperienceBar,
-      setValue: value => Config.ShowExperienceBar = value
+      I18n.Gmcm_MainMenu_Title,  // "Main Settings"
+      I18n.Gmcm_MainMenu_Tooltip // "Main configuration options"
     );
 
-    modConfigMenuApi.AddBoolOption(
+    // Add links to subpages
+    modConfigMenuApi.AddPageLink(
       _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Fadeout,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Fadeout_Tooltip,
-      getValue: () => Config.AllowExperienceBarToFadeOut,
-      setValue: value => Config.AllowExperienceBarToFadeOut = value
+      "hud-icons",
+      I18n.Gmcm_Page_HudIcons_Title,  // "HUD Icons"
+      I18n.Gmcm_Page_HudIcons_Tooltip // "Configure status icons and indicators"
     );
 
-    modConfigMenuApi.AddBoolOption(
+    modConfigMenuApi.AddPageLink(
       _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Gain,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Gain_Tooltip,
-      getValue: () => Config.ShowExperienceGain,
-      setValue: value => Config.ShowExperienceGain = value
+      "tooltips",
+      I18n.Gmcm_Page_Tooltips_Title,  // "Tooltips"
+      I18n.Gmcm_Page_Tooltips_Tooltip // "Configure item and object tooltips"
     );
 
-    modConfigMenuApi.AddBoolOption(
+    modConfigMenuApi.AddPageLink(
       _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Levelup,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Levelup_Tooltip,
-      getValue: () => Config.ShowLevelUpAnimation,
-      setValue: value => Config.ShowLevelUpAnimation = value
+      "menu-features",
+      I18n.Gmcm_Page_MenuFeatures_Title,  // "Menu Features"
+      I18n.Gmcm_Page_MenuFeatures_Tooltip // "Configure additional menu features"
+    );
+
+    modConfigMenuApi.AddPageLink(
+      _manifest,
+      "keybinds",
+      I18n.Gmcm_Page_Keybinds_Title,  // "Keybinds"
+      I18n.Gmcm_Page_Keybinds_Tooltip // "Configure keyboard shortcuts"
+    );
+
+    // HUD Icons Page
+    modConfigMenuApi.AddPage(_manifest, "hud-icons", I18n.Gmcm_Page_HudIcons_Title);
+
+    // Global HUD settings
+    modConfigMenuApi.AddSectionTitle(
+      _manifest,
+      I18n.Gmcm_Section_HudGlobal_Title,  // "Global HUD Settings"
+      I18n.Gmcm_Section_HudGlobal_Tooltip // "Settings that affect all HUD icons"
+    );
+
+    modConfigMenuApi.AddNumberOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_IconContainer_IconPerRow,
+      tooltip: I18n.Gmcm_Modules_IconContainer_IconPerRow_Tooltip,
+      getValue: () => Config.HudIconsPerRow,
+      setValue: value => Config.HudIconsPerRow = value,
+      min: 0,
+      max: 10
+    );
+
+    modConfigMenuApi.AddNumberOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_IconContainer_YOffset,
+      tooltip: I18n.Gmcm_Modules_IconContainer_YOffset_Tooltip,
+      getValue: () => Config.HudIconsVerticalOffset,
+      setValue: value => Config.HudIconsVerticalOffset = value,
+      min: 0,
+      max: 100
+    );
+
+    modConfigMenuApi.AddNumberOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_IconContainer_XOffset,
+      tooltip: I18n.Gmcm_Modules_IconContainer_XOffset_Tooltip,
+      getValue: () => Config.HudIconsHorizontalOffset,
+      setValue: value => Config.HudIconsHorizontalOffset = value,
+      min: 0,
+      max: 100
+    );
+
+    modConfigMenuApi.AddNumberOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_IconContainer_YSpacing,
+      tooltip: I18n.Gmcm_Modules_IconContainer_YSpacing_Tooltip,
+      getValue: () => Config.HudIconVerticalSpacing,
+      setValue: value => Config.HudIconVerticalSpacing = value,
+      min: 0,
+      max: 100
+    );
+
+    modConfigMenuApi.AddNumberOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_IconContainer_XSpacing,
+      tooltip: I18n.Gmcm_Modules_IconContainer_XSpacing_Tooltip,
+      getValue: () => Config.HudIconHorizontalSpacing,
+      setValue: value => Config.HudIconHorizontalSpacing = value,
+      min: 0,
+      max: 100
+    );
+
+    // Status Icons
+    modConfigMenuApi.AddSectionTitle(
+      _manifest,
+      I18n.Gmcm_Section_StatusIcons_Title,  // "Status Icons"
+      I18n.Gmcm_Section_StatusIcons_Tooltip // "Configure status indicator icons"
     );
 
     // Luck
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Luck); // "Luck Icon"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Luck_Enable,
@@ -94,7 +172,6 @@ public class ConfigManager
       getValue: () => Config.ShowLuckIcon,
       setValue: value => Config.ShowLuckIcon = value
     );
-
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Luck_Exact,
@@ -104,6 +181,7 @@ public class ConfigManager
     );
 
     // Weather
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Weather); // "Weather Icons"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Weather_Enable,
@@ -111,7 +189,6 @@ public class ConfigManager
       getValue: () => Config.ShowWeatherIcon,
       setValue: value => Config.ShowWeatherIcon = value
     );
-
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Weather_Island,
@@ -120,7 +197,46 @@ public class ConfigManager
       setValue: value => Config.ShowIslandWeather = value
     );
 
+    // Experience Bar
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_XpBar); // "Experience Bar"
+    modConfigMenuApi.AddBoolOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_Xpbar_Enable,
+      tooltip: I18n.Gmcm_Modules_Xpbar_Enable_Tooltip,
+      getValue: () => Config.ShowExperienceBar,
+      setValue: value => Config.ShowExperienceBar = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_Xpbar_Fadeout,
+      tooltip: I18n.Gmcm_Modules_Xpbar_Fadeout_Tooltip,
+      getValue: () => Config.AllowExperienceBarToFadeOut,
+      setValue: value => Config.AllowExperienceBarToFadeOut = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_Xpbar_Gain,
+      tooltip: I18n.Gmcm_Modules_Xpbar_Gain_Tooltip,
+      getValue: () => Config.ShowExperienceGain,
+      setValue: value => Config.ShowExperienceGain = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_Xpbar_Levelup,
+      tooltip: I18n.Gmcm_Modules_Xpbar_Levelup_Tooltip,
+      getValue: () => Config.ShowLevelUpAnimation,
+      setValue: value => Config.ShowLevelUpAnimation = value
+    );
+
+    // Notification Icons
+    modConfigMenuApi.AddSectionTitle(
+      _manifest,
+      I18n.Gmcm_Section_NotificationIcons_Title,  // "Notification Icons"
+      I18n.Gmcm_Section_NotificationIcons_Tooltip // "Configure notification icons"
+    );
+
     // Merchant
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Merchant); // "Traveling Merchant"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Merchant_Enable,
@@ -128,7 +244,6 @@ public class ConfigManager
       getValue: () => Config.ShowTravelingMerchantIcon,
       setValue: value => Config.ShowTravelingMerchantIcon = value
     );
-
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Merchant_HideOnVisit,
@@ -138,6 +253,7 @@ public class ConfigManager
     );
 
     // Birthday
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Birthday); // "Birthday Reminder"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Birthday_Enable,
@@ -145,7 +261,6 @@ public class ConfigManager
       getValue: () => Config.ShowBirthdayIcon,
       setValue: value => Config.ShowBirthdayIcon = value
     );
-
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Birthday_HideOnFriends,
@@ -154,7 +269,8 @@ public class ConfigManager
       setValue: value => Config.HideBirthdayIfFullFriendShip = value
     );
 
-    // Queen of Sauce
+    // Other Icons
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_OtherIcons); // "Other Icons"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Recipes_Enable,
@@ -162,8 +278,6 @@ public class ConfigManager
       getValue: () => Config.ShowQueenOfSauceIcon,
       setValue: value => Config.ShowQueenOfSauceIcon = value
     );
-
-    // Tool Upgrade
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Tool_Enable,
@@ -171,8 +285,6 @@ public class ConfigManager
       getValue: () => Config.ShowToolUpgradeIcon,
       setValue: value => Config.ShowToolUpgradeIcon = value
     );
-
-    // Robin
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Carpenter_Enable,
@@ -180,8 +292,6 @@ public class ConfigManager
       getValue: () => Config.ShowRobinBuildingStatusIcon,
       setValue: value => Config.ShowRobinBuildingStatusIcon = value
     );
-
-    // Seasonal Berries
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Berry_Enable,
@@ -189,7 +299,6 @@ public class ConfigManager
       getValue: () => Config.ShowSeasonalBerryIcon,
       setValue: value => Config.ShowSeasonalBerryIcon = value
     );
-
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Hazelnut_Enable,
@@ -198,13 +307,11 @@ public class ConfigManager
       setValue: value => Config.ShowSeasonalBerryHazelnutIcon = value
     );
 
-    modConfigMenuApi.AddSectionTitle(
-      _manifest,
-      I18n.Gmcm_Section_Tooltips_Title,
-      I18n.Gmcm_Section_Tooltips_Title_Tooltip
-    );
+    // Tooltips Page
+    modConfigMenuApi.AddPage(_manifest, "tooltips", I18n.Gmcm_Page_Tooltips_Title);
 
-    // Animal tooltip
+    // Animals
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_AnimalTooltips); // "Animal Tooltips"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Tooltips_Animals_Enable,
@@ -212,7 +319,6 @@ public class ConfigManager
       getValue: () => Config.ShowAnimalsNeedPets,
       setValue: value => Config.ShowAnimalsNeedPets = value
     );
-
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Tooltips_Animals_HideOnFriends,
@@ -221,7 +327,8 @@ public class ConfigManager
       setValue: value => Config.HideAnimalPetOnMaxFriendship = value
     );
 
-    // Crop tooltip
+    // Objects
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_ObjectTooltips); // "Object Tooltips"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Tooltips_Crops_Enable,
@@ -229,8 +336,6 @@ public class ConfigManager
       getValue: () => Config.ShowCropTooltip,
       setValue: value => Config.ShowCropTooltip = value
     );
-
-    // Machine tooltip
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Tooltips_Machines_Enable,
@@ -239,7 +344,8 @@ public class ConfigManager
       setValue: value => Config.ShowMachineTooltip = value
     );
 
-    // Ranges tooltip
+    // Range Indicators
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_RangeTooltips); // "Range Indicators"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Tooltips_Ranges_Enable,
@@ -247,10 +353,26 @@ public class ConfigManager
       getValue: () => Config.ShowItemEffectRanges,
       setValue: value => Config.ShowItemEffectRanges = value
     );
+    modConfigMenuApi.AddBoolOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_Tooltips_Ranges_Bombs_Enable,
+      tooltip: I18n.Gmcm_Modules_Tooltips_Ranges_Bombs_Enable_Tooltip,
+      getValue: () => Config.ShowBombRanges,
+      setValue: value => Config.ShowBombRanges = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      _manifest,
+      name: I18n.Gmcm_Modules_Tooltips_Ranges_KeybindOnly_Enable,
+      tooltip: I18n.Gmcm_Modules_Tooltips_Ranges_KeybindOnly_Enable_Tooltip,
+      getValue: () => Config.OnlyShowRangeOnKeyPress,
+      setValue: value => Config.OnlyShowRangeOnKeyPress = value
+    );
 
-    modConfigMenuApi.AddSectionTitle(_manifest, I18n.Gmcm_Section_Menus_Title, I18n.Gmcm_Section_Menus_Title_Tooltip);
+    // Menu Features Page
+    modConfigMenuApi.AddPage(_manifest, "menu-features", I18n.Gmcm_Page_MenuFeatures_Title);
 
-    // Heart fill
+    // Social Menu Features
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_SocialFeatures); // "Social Menu Features"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_Hearts_Enable,
@@ -258,8 +380,6 @@ public class ConfigManager
       getValue: () => Config.ShowHeartFills,
       setValue: value => Config.ShowHeartFills = value
     );
-
-    // Gift lock
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_GiftLock_Enable,
@@ -268,7 +388,8 @@ public class ConfigManager
       setValue: value => Config.ShowLockAfterNpcGift = value
     );
 
-    // Harvest Prices
+    // Shop Features
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_ShopFeatures); // "Shop Features"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_HarvestPrices_Enable,
@@ -277,7 +398,8 @@ public class ConfigManager
       setValue: value => Config.ShowHarvestPricesInShop = value
     );
 
-    // Bundle info
+    // Bundle Features
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_BundleFeatures); // "Bundle Features"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_Bundles_Enable,
@@ -287,6 +409,7 @@ public class ConfigManager
     );
 
     // Menu Shortcuts
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_MenuShortcuts); // "Menu Shortcuts"
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_Shortcuts_Enable,
@@ -294,8 +417,6 @@ public class ConfigManager
       getValue: () => Config.DisplayMenuShortcuts,
       setValue: value => Config.DisplayMenuShortcuts = value
     );
-
-    // Calendar Shortcut
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_Shortcuts_Calendar,
@@ -303,8 +424,6 @@ public class ConfigManager
       getValue: () => Config.DisplayCalendarAndBillboardShortcut,
       setValue: value => Config.DisplayCalendarAndBillboardShortcut = value
     );
-
-    // Slayer Shortcut
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Menus_Shortcuts_Slayer,
@@ -313,14 +432,11 @@ public class ConfigManager
       setValue: value => Config.DisplaySlayerQuestsShortcut = value
     );
 
-    // Keybinds
-    modConfigMenuApi.AddSectionTitle(
-      _manifest,
-      I18n.Gmcm_Section_Keybinds_Title,
-      I18n.Gmcm_Section_Keybinds_Title_Tooltip
-    );
+    // Keybinds Page
+    modConfigMenuApi.AddPage(_manifest, "keybinds", I18n.Gmcm_Page_Keybinds_Title);
 
-    // Calendar keybind
+    // Menu Keybinds
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_MenuKeybinds); // "Menu Shortcuts"
     modConfigMenuApi.AddKeybindList(
       _manifest,
       name: I18n.Gmcm_Section_Keybinds_Calendar,
@@ -328,8 +444,6 @@ public class ConfigManager
       getValue: () => Config.OpenCalendarKeybind,
       setValue: value => Config.OpenCalendarKeybind = value
     );
-
-    // Billboard keybind
     modConfigMenuApi.AddKeybindList(
       _manifest,
       name: I18n.Gmcm_Section_Keybinds_Billboard,
@@ -337,8 +451,6 @@ public class ConfigManager
       getValue: () => Config.OpenQuestBoardKeybind,
       setValue: value => Config.OpenQuestBoardKeybind = value
     );
-
-    // Slayer Quests keybind
     modConfigMenuApi.AddKeybindList(
       _manifest,
       name: I18n.Gmcm_Section_Keybinds_Slayer,
@@ -347,13 +459,28 @@ public class ConfigManager
       setValue: value => Config.OpenSlayerQuestKeybind = value
     );
 
-    // Ranges keybind
+    // Range Display Keybinds
+    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_RangeKeybinds); // "Range Display Shortcuts"
     modConfigMenuApi.AddKeybindList(
       _manifest,
       name: I18n.Gmcm_Section_Keybinds_ItemRange,
       tooltip: I18n.Gmcm_Section_Keybinds_ItemRange_Tooltip,
       getValue: () => Config.ToggleItemRangesKeybind,
       setValue: value => Config.ToggleItemRangesKeybind = value
+    );
+    modConfigMenuApi.AddKeybindList(
+      _manifest,
+      name: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowHover,
+      tooltip: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowHover_Tooltip,
+      getValue: () => Config.ShowItemRangeHoverKeybind,
+      setValue: value => Config.ShowItemRangeHoverKeybind = value
+    );
+    modConfigMenuApi.AddKeybindList(
+      _manifest,
+      name: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowAll,
+      tooltip: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowAll_Tooltip,
+      getValue: () => Config.ShowAllItemRangesHoverKeybind,
+      setValue: value => Config.ShowAllItemRangesHoverKeybind = value
     );
   }
 }

@@ -97,9 +97,55 @@
   "GSQ.Requirements.YearRange": "Requires Year {0} - {1}",
   "GSQ.Requirements.YearMinimum": "Requires Year {0}+",
   // Config Menu Options
+  // Titles
+  // Main Menu
+  "gmcm.mainMenu.title": "Main Settings",
+  "gmcm.mainMenu.tooltip": "Main configuration options",
+  // Pages
+  "gmcm.page.hudIcons.title": "HUD Icons",
+  "gmcm.page.hudIcons.tooltip": "Configure status icons and indicators",
+  "gmcm.page.tooltips.title": "Tooltips",
+  "gmcm.page.tooltips.tooltip": "Configure item and object tooltips",
+  "gmcm.page.menuFeatures.title": "Menu Features",
+  "gmcm.page.menuFeatures.tooltip": "Configure additional menu features",
+  "gmcm.page.keybinds.title": "Keybinds",
+  "gmcm.page.keybinds.tooltip": "Configure keyboard shortcuts",
+  // Sections
+  "gmcm.section.hudGlobal.title": "Global HUD Settings",
+  "gmcm.section.hudGlobal.tooltip": "Settings that affect all HUD icons",
+  "gmcm.section.statusIcons.title": "Status Icons",
+  "gmcm.section.statusIcons.tooltip": "Configure status indicator icons",
+  "gmcm.section.notificationIcons.title": "Notification Icons",
+  "gmcm.section.notificationIcons.tooltip": "Configure notification icons",
+  // Groups
+  "gmcm.group.luck": "Luck Icon",
+  "gmcm.group.weather": "Weather Icons",
+  "gmcm.group.xpBar": "Experience Bar",
+  "gmcm.group.merchant": "Traveling Merchant",
+  "gmcm.group.birthday": "Birthday Reminder",
+  "gmcm.group.otherIcons": "Other Icons",
+  "gmcm.group.animalTooltips": "Animal Tooltips",
+  "gmcm.group.objectTooltips": "Object Tooltips",
+  "gmcm.group.rangeTooltips": "Range Indicators",
+  "gmcm.group.socialFeatures": "Social Menu Features",
+  "gmcm.group.shopFeatures": "Shop Features",
+  "gmcm.group.bundleFeatures": "Bundle Features",
+  "gmcm.group.menuShortcuts": "Menu Shortcuts",
+  "gmcm.group.menuKeybinds": "Menu Shortcuts",
+  "gmcm.group.rangeKeybinds": "Range Display Shortcuts",
   // HUD Overlays
   "gmcm.section.overlays.title": "HUD Overlays",
   "gmcm.section.overlays.title.tooltip": "Control HUD Overlays and icons displayed on your screen.",
+  "gmcm.modules.icon_container.icon_per_row": "HUD Icons per row",
+  "gmcm.modules.icon_container.icon_per_row.tooltip": "Control how many icons are in a horizontal row",
+  "gmcm.modules.icon_container.y_spacing": "HUD Icons Y Spacing",
+  "gmcm.modules.icon_container.y_spacing.tooltip": "Vertical spacing for HUD icon rows",
+  "gmcm.modules.icon_container.x_spacing": "HUD Icons X Spacing",
+  "gmcm.modules.icon_container.x_spacing.tooltip": "Horizontal spacing between HUD icons",
+  "gmcm.modules.icon_container.y_offset": "HUD Icons Y Offset",
+  "gmcm.modules.icon_container.y_offset.tooltip": "Vertical offset for HUD icons",
+  "gmcm.modules.icon_container.x_offset": "HUD Icons X Offset",
+  "gmcm.modules.icon_container.x_offset.tooltip": "Horizontal offset for HUD icons",
   // XP
   "gmcm.modules.xpbar.enable": "Show experience bar",
   "gmcm.modules.xpbar.enable.tooltip": "Enable or disable the XP Bar visibility in the lower left",
@@ -161,7 +207,9 @@
   "gmcm.modules.tooltips.ranges.enable": "Show machine range",
   "gmcm.modules.tooltips.ranges.enable.tooltip": "Toggle if the range for scarecrows and sprinklers should be shown",
   "gmcm.modules.tooltips.ranges.bombs.enable": "Show Bomb and Mossy Seed range",
-  "gmcm.modules.tooltips.ranges.bombs.tooltip": "Toggle if the range for bombs and mossy seeds",
+  "gmcm.modules.tooltips.ranges.bombs.enable.tooltip": "Toggle the range for bombs and mossy seeds",
+  "gmcm.modules.tooltips.ranges.keybind_only.enable": "Only show on key press",
+  "gmcm.modules.tooltips.ranges.keybind_only.enable.tooltip": "Only show item ranges when holding down a keybind",
   // Menu overlays
   "gmcm.section.menus.title": "Menu Tweaks",
   "gmcm.section.menus.title.tooltip": "Control menu tweaks and overlays",
@@ -198,5 +246,5 @@
   "gmcm.section.keybindsd.item-range.show-hover": "Show item range on hover",
   "gmcm.section.keybindsd.item-range.show-hover.tooltip": "Hold down this button to show the range of the machine/scarecrow your mouse is on",
   "gmcm.section.keybindsd.item-range.show-all": "Show all nearby item ranges",
-  "gmcm.section.keybindsd.item-range.show-all.tooltip": "Hold this to show all nearby machine/scarecrow ranges",
+  "gmcm.section.keybindsd.item-range.show-all.tooltip": "Hold this to show all nearby machine/scarecrow ranges"
 }
