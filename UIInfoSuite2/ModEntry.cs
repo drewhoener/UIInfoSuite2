@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using SimpleInjector;
 using StardewModdingAPI;
@@ -12,6 +14,7 @@ using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
+using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Modules;
 using UIInfoSuite2.UIElements;
@@ -67,12 +70,15 @@ internal class ModEntry : Mod
     _container.RegisterSingleton<ConfigManager>();
     _container.RegisterSingleton<HudIconStorage>();
 
-    _container.Collection.Register<BaseModule>(
-      new[] { typeof(LuckOfDay), typeof(MenuShortcutDisplay) },
-      Lifestyle.Singleton
-    );
+    // Set up empty registry sets
+    _container.Collection.Register<BaseModule>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
+    _container.Collection.Register<HudIconModule>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
+    _container.Collection.Register<IPatchable>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
+    _container.Collection.Register<IConfigurable>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
 
-    _container.Register<MenuShortcutDisplay>(Lifestyle.Singleton);
+    // Register Modules
+    RegisterBaseModuleSingleton<MenuShortcutDisplay>();
+    RegisterHudModuleSingleton<LuckOfDay>();
 
     _container.Verify();
 
@@ -151,46 +157,40 @@ internal class ModEntry : Mod
     }
   }
 
-#region Generic mod config menu
   private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
   {
     _container.GetInstance<SoundHelper>().Initialize(Helper);
     _container.GetInstance<ApiManager>().TryRegisterApi<ICustomBushApi>(Helper, ModCompat.CustomBush, "1.2.1", true);
   }
-#endregion
 
-#region Event subscriptions
-  // public static void RegisterCalendarAndQuestKeyBindings(IModHelper helper, bool subscribe)
-  // {
-  //   if (_calendarAndQuestKeyBindingsHandler == null)
-  //   {
-  //     _calendarAndQuestKeyBindingsHandler = (sender, e) => HandleCalendarAndQuestKeyBindings(helper);
-  //   }
-  //
-  //   helper.Events.Input.ButtonsChanged -= _calendarAndQuestKeyBindingsHandler;
-  //
-  //   if (subscribe)
-  //   {
-  //     helper.Events.Input.ButtonsChanged += _calendarAndQuestKeyBindingsHandler;
-  //   }
-  // }
+#region Module Setup
+  private void RegisterPatchable<T>() where T : class, IPatchable
+  {
+    _container.Collection.Append<IPatchable, T>();
+  }
 
-  // private static void HandleCalendarAndQuestKeyBindings(IModHelper helper)
-  // {
-  //   if (_modConfig != null)
-  //   {
-  //     if (Context.IsPlayerFree && _modConfig.OpenCalendarKeybind.JustPressed())
-  //     {
-  //       helper.Input.SuppressActiveKeybinds(_modConfig.OpenCalendarKeybind);
-  //       Game1.activeClickableMenu = new Billboard();
-  //     }
-  //     else if (Context.IsPlayerFree && _modConfig.OpenQuestBoardKeybind.JustPressed())
-  //     {
-  //       helper.Input.SuppressActiveKeybinds(_modConfig.OpenQuestBoardKeybind);
-  //       Game1.RefreshQuestOfTheDay();
-  //       Game1.activeClickableMenu = new Billboard(true);
-  //     }
-  //   }
-  // }
+  private void RegisterBaseModuleSingleton<T>(bool registerConfigurable = false, bool registerPatchable = false) where T : BaseModule
+  {
+    _container.RegisterSingleton<T>();
+    _container.Collection.Append<BaseModule, T>();
+
+    // Check if T implements IPatchable using interface check
+    if (registerPatchable && typeof(IPatchable).IsAssignableFrom(typeof(T)))
+    {
+      _container.Collection.Append(typeof(IPatchable), typeof(T));
+    }
+
+    // Check if T implements IConfigurable using interface check
+    if (registerConfigurable && typeof(IConfigurable).IsAssignableFrom(typeof(T)))
+    {
+      _container.Collection.Append(typeof(IConfigurable), typeof(T));
+    }
+  }
+
+  private void RegisterHudModuleSingleton<T>() where T : HudIconModule
+  {
+    RegisterBaseModuleSingleton<T>(true, true);
+    _container.Collection.Append<HudIconModule, T>();
+  }
 #endregion
 }
