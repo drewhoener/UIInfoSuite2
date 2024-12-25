@@ -3,12 +3,16 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewValley.Menus;
+using UIInfoSuite2.Infrastructure.Events;
+using UIInfoSuite2.Infrastructure.Interfaces;
 
-namespace UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
+namespace UIInfoSuite2.Infrastructure.Patches;
 
-internal partial class MenuShortcutDisplay
+public class PatchRenderingActiveMenuPostBackground(IMonitor logger) : IPatchable
 {
+  // Patcher
   public void Patch(Harmony harmony)
   {
     MethodInfo? patchingMethod = AccessTools.DeclaredMethod(
@@ -17,12 +21,14 @@ internal partial class MenuShortcutDisplay
       [typeof(SpriteBatch)]
     );
     var transpilerMethod = new HarmonyMethod(
-      AccessTools.DeclaredMethod(typeof(MenuShortcutDisplay), nameof(TranspileGameMenuDraw))
+      AccessTools.DeclaredMethod(typeof(PatchRenderingActiveMenuPostBackground), nameof(TranspileGameMenuDraw))
     );
 
+    logger.Log("Patching Active Menu Post-Background");
     harmony.Patch(patchingMethod, transpiler: transpilerMethod);
   }
 
+  // Transpiler
   private static IEnumerable<CodeInstruction> TranspileGameMenuDraw(
     IEnumerable<CodeInstruction> instructions,
     ILGenerator generator
@@ -40,9 +46,22 @@ internal partial class MenuShortcutDisplay
     matcher.InsertAndAdvance(
       new CodeInstruction(OpCodes.Ldarg_0).MoveLabelsFrom(matcher.Instruction),
       new CodeInstruction(OpCodes.Ldarg_1),
-      new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(MenuShortcutDisplay), nameof(InstanceDraw)))
+      new CodeInstruction(
+        OpCodes.Call,
+        AccessTools.DeclaredMethod(
+          typeof(PatchRenderingActiveMenuPostBackground),
+          nameof(CallRenderingPostBackgroundEvent)
+        )
+      )
     );
 
     return matcher.InstructionEnumeration();
+  }
+
+  // Injected Method
+  private static void CallRenderingPostBackgroundEvent(GameMenu menu, SpriteBatch spriteBatch)
+  {
+    var eventsManager = ModEntry.GetSingleton<EventsManager>();
+    eventsManager.TriggerOnRenderingActiveMenuPostBackground(menu, spriteBatch);
   }
 }
