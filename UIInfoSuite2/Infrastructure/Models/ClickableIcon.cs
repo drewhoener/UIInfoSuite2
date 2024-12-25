@@ -7,16 +7,20 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.UIElements;
 
 namespace UIInfoSuite2.Infrastructure.Models;
 
 public class ClickableIcon
 {
-  private readonly Texture2D _baseTexture;
-  private readonly PerScreen<string> _perScreenHoverText = new(() => "");
-  private readonly PerScreen<ClickableTextureComponent?> _perScreenIcon = new(() => null);
-  private readonly ScalingDimensions _scalingDimensions;
-  private readonly Rectangle _sourceBounds;
+  // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+  private readonly PerScreen<Texture2D> _baseTexture;
+  private readonly PerScreen<string> _hoverText = new(() => string.Empty);
+  private readonly PerScreen<ClickableTextureComponent> _icon;
+  private readonly PerScreen<ScalingDimensions> _scalingDimensions;
+
+  // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+  private readonly PerScreen<Rectangle> _sourceBounds;
 
   public ClickableIcon(
     Texture2D baseTexture,
@@ -27,52 +31,63 @@ public class ClickableIcon
     SpriteFont? hoverFont = null
   )
   {
-    _baseTexture = baseTexture;
-    _sourceBounds = sourceBounds;
-    _scalingDimensions = new ScalingDimensions(_sourceBounds, finalSize, primaryDimension);
+    _baseTexture = new PerScreen<Texture2D>(() => baseTexture);
+    _sourceBounds = new PerScreen<Rectangle>(() => sourceBounds);
+    _scalingDimensions =
+      new PerScreen<ScalingDimensions>(() => new ScalingDimensions(_sourceBounds.Value, finalSize, primaryDimension));
+
+    _icon = new PerScreen<ClickableTextureComponent>(
+      () => new ClickableTextureComponent(
+        new Rectangle(0, 0, Dimensions.WidthInt, Dimensions.HeightInt),
+        _baseTexture.Value,
+        _sourceBounds.Value,
+        Dimensions.ScaleFactor
+      )
+    );
+
     ClickHandlerAction = clickHandlerAction;
     HoverFont = hoverFont ?? Game1.dialogueFont;
   }
 
   public string HoverText
   {
-    get => _perScreenHoverText.Value;
-    set => _perScreenHoverText.Value = value;
+    get => _hoverText.Value;
+    set => _hoverText.Value = value;
   }
+
+  public ScalingDimensions Dimensions => _scalingDimensions.Value;
 
   public SpriteFont HoverFont { get; }
 
+  public Action<SpriteBatch>? AutoDrawDelegate { get; set; }
+
   public Action<object?, ButtonPressedEventArgs, Vector2>? ClickHandlerAction { private get; set; }
 
-  protected ClickableTextureComponent Icon
-  {
-    get
-    {
-      _perScreenIcon.Value ??= new ClickableTextureComponent(
-        new Rectangle(0, 0, _scalingDimensions.WidthInt, _scalingDimensions.HeightInt),
-        _baseTexture,
-        _sourceBounds,
-        _scalingDimensions.ScaleFactor
-      );
+  public Func<bool> ShouldDraw { get; set; } = UIElementUtils.IsRenderingNormally;
 
-      return _perScreenIcon.Value;
-    }
-  }
+  protected ClickableTextureComponent Icon => _icon.Value;
+
+  public Vector2 Position => new(Icon.bounds.X, Icon.bounds.Y);
 
   public void MoveTo(int x, int y)
   {
     Icon.setPosition(x, y);
-    Icon.baseScale = _scalingDimensions.ScaleFactor;
+    Icon.baseScale = Dimensions.ScaleFactor;
   }
 
   public void MoveTo(Point point)
   {
     Icon.setPosition(point.X, point.Y);
-    Icon.baseScale = _scalingDimensions.ScaleFactor;
+    Icon.baseScale = Dimensions.ScaleFactor;
   }
 
   public virtual void Draw(SpriteBatch batch)
   {
+    if (!ShouldDraw())
+    {
+      return;
+    }
+
     Icon.draw(batch);
   }
 
@@ -85,12 +100,17 @@ public class ClickableIcon
     int yOffset = 0
   )
   {
+    if (!ShouldDraw())
+    {
+      return;
+    }
+
     Icon.draw(b, c, layerDepth, frameOffset, xOffset, yOffset);
   }
 
   public virtual void DrawHoverText(SpriteBatch batch)
   {
-    if (!Icon.IsHoveredOver())
+    if (!Icon.IsHoveredOver() || !ShouldDraw())
     {
       return;
     }
