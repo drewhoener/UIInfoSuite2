@@ -42,6 +42,12 @@ public interface IGenericModConfigMenuApi
   /// </param>
   void AddSectionTitle(IManifest mod, Func<string> text, Func<string> tooltip = null);
 
+  /// <summary>Add a subheader at the current position in the form.</summary>
+  /// <remarks>Larger than paragraph, smaller than title.</remarks>
+  /// <param name="mod">The mod's manifest.</param>
+  /// <param name="text">The title text shown in the form.</param>
+  void AddSubHeader(IManifest mod, Func<string> text);
+
   /// <summary>Add a paragraph of text at the current position in the form.</summary>
   /// <param name="mod">The mod's manifest.</param>
   /// <param name="text">The paragraph text to display.</param>
