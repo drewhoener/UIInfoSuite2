@@ -5,18 +5,11 @@ using UIInfoSuite2.Infrastructure.Config;
 
 namespace UIInfoSuite2.Infrastructure.Modules;
 
-public abstract class BaseModule : IDisposable
+public abstract class BaseModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager) : IDisposable
 {
-  protected readonly ConfigManager ConfigManager;
-  protected readonly IMonitor Logger;
-  protected readonly IModEvents ModEvents;
-
-  public BaseModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager)
-  {
-    ModEvents = modEvents;
-    Logger = logger;
-    ConfigManager = configManager;
-  }
+  protected readonly ConfigManager ConfigManager = configManager;
+  protected readonly IMonitor Logger = logger;
+  protected readonly IModEvents ModEvents = modEvents;
 
   protected ModConfig Config => ConfigManager.Config;
 
