@@ -9,8 +9,8 @@ public sealed class ModConfig
   // Icons
   public int HudIconsPerRow { get; set; } = 5;
 
-  public int HudIconsVerticalOffset { get; set; } = 0;
-  public int HudIconsHorizontalOffset { get; set; } = 0;
+  public int HudIconsVerticalOffset { get; set; }
+  public int HudIconsHorizontalOffset { get; set; }
   public int HudIconVerticalSpacing { get; set; } = 8;
   public int HudIconHorizontalSpacing { get; set; } = 8;
 
@@ -22,7 +22,7 @@ public sealed class ModConfig
 
   // Luck
   public bool ShowLuckIcon { get; set; } = true;
-  public bool ShowExactLuckValue { get; set; } = false;
+  public bool ShowExactLuckValue { get; set; }
 
   // Weather
   public bool ShowWeatherIcon { get; set; } = true;
@@ -30,7 +30,7 @@ public sealed class ModConfig
 
   // Merchant
   public bool ShowTravelingMerchantIcon { get; set; } = true;
-  public bool HideMerchantIconWhenVisited { get; set; } = false;
+  public bool HideMerchantIconWhenVisited { get; set; }
 
   // Birthdays
   public bool ShowBirthdayIcon { get; set; } = true;
@@ -47,7 +47,7 @@ public sealed class ModConfig
 
   // Seasonal berry Icon
   public bool ShowSeasonalBerryIcon { get; set; } = true;
-  public bool ShowSeasonalBerryHazelnutIcon { get; set; } = false;
+  public bool ShowSeasonalBerryHazelnutIcon { get; set; }
 
   // Animal Hands
   public bool ShowAnimalsNeedPets { get; set; } = true;
@@ -85,7 +85,7 @@ public sealed class ModConfig
   public bool ShowRangeOnKeyDownWhileHovered =>
     ShowItemRangeHoverKeybind.Keybinds.Length > 0 || ShowAllItemRangesHoverKeybind.Keybinds.Length > 0;
 
-  public bool OnlyShowRangeOnKeyPress { get; set; } = false;
+  public bool OnlyShowRangeOnKeyPress { get; set; }
 #endregion
 
 #region Keybinds Config
