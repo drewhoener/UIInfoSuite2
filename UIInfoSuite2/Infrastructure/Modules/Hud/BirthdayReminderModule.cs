@@ -43,7 +43,7 @@ internal class BirthdayReminderModule(
       }
 
       // Skip characters with full friendship if the config is set to
-      if (Config.HideBirthdayIfFullFriendShip &&
+      if (Config.HideBirthdayIfFullFriendship &&
           friendship.Points >= Utility.GetMaximumHeartsForCharacter(character) * NPC.friendshipPointsPerHeartLevel)
       {
         continue;
@@ -148,8 +148,8 @@ internal class BirthdayReminderModule(
       manifest,
       name: I18n.Gmcm_Modules_Icons_Birthday_HideOnFriends,
       tooltip: I18n.Gmcm_Modules_Icons_Birthday_HideOnFriends_Tooltip,
-      getValue: () => Config.HideBirthdayIfFullFriendShip,
-      setValue: value => Config.HideBirthdayIfFullFriendShip = value
+      getValue: () => Config.HideBirthdayIfFullFriendship,
+      setValue: value => Config.HideBirthdayIfFullFriendship = value
     );
   }
 #endregion
