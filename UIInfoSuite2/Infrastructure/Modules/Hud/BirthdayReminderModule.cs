@@ -138,6 +138,13 @@ internal class BirthdayReminderModule(
       getValue: () => Config.HideBirthdayIfFullFriendship,
       setValue: value => Config.HideBirthdayIfFullFriendship = value
     );
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Birthday_HideAfterGifted,
+      tooltip: I18n.Gmcm_Modules_Icons_Birthday_HideAfterGifted_Tooltip,
+      getValue: () => Config.HideAfterGiftGiven,
+      setValue: value => Config.HideAfterGiftGiven = value
+    );
   }
 #endregion
 }
