@@ -65,11 +65,14 @@ public class ClickableIcon
 
   public Action<object?, ButtonPressedEventArgs, Vector2>? ClickHandlerAction { private get; set; }
 
-  public Func<bool> ShouldDraw { get; set; } = UIElementUtils.IsRenderingNormally;
-
   protected ClickableTextureComponent Icon => _icon.Value;
 
   public Vector2 Position => new(Icon.bounds.X, Icon.bounds.Y);
+
+  public virtual bool ShouldDraw()
+  {
+    return UIElementUtils.IsRenderingNormally();
+  }
 
   public void MoveTo(int x, int y)
   {
