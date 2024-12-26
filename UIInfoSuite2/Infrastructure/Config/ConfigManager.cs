@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewValley;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Extensions;
@@ -9,9 +10,10 @@ using UIInfoSuite2.Infrastructure.Interfaces;
 
 namespace UIInfoSuite2.Infrastructure.Config;
 
-public class ConfigManager
+public class ConfigManager : IDisposable
 {
   private readonly ApiManager _apiManager;
+  private readonly IModEvents _events;
   private readonly EventsManager _eventsManager;
   private readonly IModHelper _helper;
   private readonly IManifest _manifest;
@@ -26,15 +28,24 @@ public class ConfigManager
   )
   {
     _helper = helper;
+    _events = events;
     _manifest = manifest;
     _apiManager = apiManager;
     _eventsManager = eventsManager;
     Config = _helper.ReadConfig<ModConfig>();
 
     events.GameLoop.GameLaunched += OnGameLaunched;
+    LocalizedContentManager.OnLanguageChange += OnLanguageChange;
   }
 
   public ModConfig Config { get; private set; }
+
+  public void Dispose()
+  {
+    GC.SuppressFinalize(this);
+    _events.GameLoop.GameLaunched -= OnGameLaunched;
+    LocalizedContentManager.OnLanguageChange -= OnLanguageChange;
+  }
 
   public void SaveConfig()
   {
@@ -43,6 +54,23 @@ public class ConfigManager
   }
 
   private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+  {
+    RegisterModConfig();
+  }
+
+  private void OnLanguageChange(LocalizedContentManager.LanguageCode code)
+  {
+    var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
+    if (modConfigMenuApi is null)
+    {
+      return;
+    }
+
+    modConfigMenuApi.Unregister(_manifest);
+    RegisterModConfig();
+  }
+
+  private void RegisterModConfig()
   {
     var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
     if (modConfigMenuApi == null)
