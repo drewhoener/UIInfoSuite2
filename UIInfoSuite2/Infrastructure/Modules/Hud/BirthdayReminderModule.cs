@@ -4,7 +4,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.Extensions;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Models;
@@ -90,7 +89,10 @@ internal class BirthdayReminderModule(
 
   private void OnUpdateTicked(object? sender, OneSecondUpdateTickedEventArgs e)
   {
-    CheckForGiftGiven();
+    foreach (NpcBirthdayIcon npcBirthdayIcon in _birthdayCharacters.Value.Where(icon => icon.ShouldDraw()))
+    {
+      npcBirthdayIcon.UpdateGiftCheck();
+    }
   }
 
   private void OnDayEnd(object? sender, DayEndingEventArgs e)
@@ -102,28 +104,6 @@ internal class BirthdayReminderModule(
   {
     RemoveIcons();
     SetupIcons();
-  }
-
-
-  private void CheckForGiftGiven()
-  {
-    _birthdayCharacters.Value.RemoveWhere(
-      npcIcon =>
-      {
-        if (!Game1.player.friendshipData.TryGetValue(npcIcon.Character.Name, out Friendship? friendship))
-        {
-          return false;
-        }
-
-        if (friendship.GiftsToday <= 0)
-        {
-          return false;
-        }
-
-        IconStorage.RemoveIcon($"{BirthdayIconPrefix}{npcIcon.Character.Name}");
-        return true;
-      }
-    );
   }
 
 #region Configuration Setup
