@@ -76,6 +76,7 @@ internal class BirthdayReminderModule(
     base.OnEnable();
     ModEvents.GameLoop.OneSecondUpdateTicked += OnUpdateTicked;
     ModEvents.GameLoop.DayStarted += OnDayStarted;
+    ModEvents.GameLoop.DayEnding += OnDayEnd;
   }
 
   public override void OnDisable()
@@ -83,12 +84,18 @@ internal class BirthdayReminderModule(
     base.OnDisable();
     ModEvents.GameLoop.OneSecondUpdateTicked -= OnUpdateTicked;
     ModEvents.GameLoop.DayStarted -= OnDayStarted;
+    ModEvents.GameLoop.DayEnding -= OnDayEnd;
   }
 
 
   private void OnUpdateTicked(object? sender, OneSecondUpdateTickedEventArgs e)
   {
     CheckForGiftGiven();
+  }
+
+  private void OnDayEnd(object? sender, DayEndingEventArgs e)
+  {
+    RemoveIcons();
   }
 
   private void OnDayStarted(object? sender, DayStartedEventArgs e)
