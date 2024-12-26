@@ -84,7 +84,7 @@ public static class CollectionExtensions
       return;
     }
 
-    if (!allowEmptyStrings && value is string str && string.IsNullOrEmpty(str))
+    if (value is string str && string.IsNullOrEmpty(str) && !allowEmptyStrings)
     {
       return;
     }
