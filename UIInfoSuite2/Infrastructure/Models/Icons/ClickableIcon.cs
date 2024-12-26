@@ -7,7 +7,6 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
-using UIInfoSuite2.UIElements;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
@@ -15,8 +14,16 @@ public class ClickableIcon
 {
   // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
   private readonly PerScreen<Texture2D> _baseTexture;
+
+  /// <summary>
+  ///   If the icon has decided it shouldn't be rendered, or some other event that might
+  ///   invalidate caching
+  /// </summary>
+  private readonly PerScreen<bool> _hasRenderingChanged = new(() => false);
+
   private readonly PerScreen<string> _hoverText = new(() => string.Empty);
   private readonly PerScreen<ClickableTextureComponent> _icon;
+  private readonly PerScreen<bool> _lastShouldDraw = new(() => false);
   private readonly PerScreen<ScalingDimensions> _scalingDimensions;
 
   // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
@@ -69,9 +76,33 @@ public class ClickableIcon
 
   public Vector2 Position => new(Icon.bounds.X, Icon.bounds.Y);
 
-  public virtual bool ShouldDraw()
+  public bool HasRenderingChanged(bool markClean = true)
   {
-    return UIElementUtils.IsRenderingNormally();
+    bool dirty = _hasRenderingChanged.Value;
+    if (markClean)
+    {
+      _hasRenderingChanged.Value = false;
+    }
+
+    return dirty;
+  }
+
+  protected virtual bool _ShouldDraw()
+  {
+    return true;
+  }
+
+  public bool ShouldDraw()
+  {
+    bool res = _ShouldDraw();
+    if (res == _lastShouldDraw.Value)
+    {
+      return res;
+    }
+
+    _hasRenderingChanged.Value = true;
+    _lastShouldDraw.Value = res;
+    return res;
   }
 
   public void MoveTo(int x, int y)

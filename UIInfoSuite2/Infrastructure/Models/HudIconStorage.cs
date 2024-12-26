@@ -8,14 +8,18 @@ using StardewValley.Extensions;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Models.Icons;
+using UIInfoSuite2.UIElements;
 
 namespace UIInfoSuite2.Infrastructure.Models;
 
-public class HudIconStorage(IModEvents modEvents, IMonitor monitor, ConfigManager configManager, ApiManager apiManager)
+internal record HudIconRow(ClickableIcon[] Icons, int MaxRowHeight);
+
+public class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManager configManager, ApiManager apiManager)
 {
   private readonly Dictionary<string, ClickableIcon> _icons = new();
 
-  private readonly IMonitor _logger = monitor;
+  private List<HudIconRow> _iconRows = [];
+  private bool _iconRowsDirty = true;
   private ModConfig Config => configManager.Config;
 
   public void RegisterEvents()
@@ -35,6 +39,7 @@ public class HudIconStorage(IModEvents modEvents, IMonitor monitor, ConfigManage
   public void AddIcon(string key, ClickableIcon icon)
   {
     _icons.Add(key, icon);
+    _iconRowsDirty = true;
   }
 
   public bool HasIcon(string key)
@@ -61,51 +66,95 @@ public class HudIconStorage(IModEvents modEvents, IMonitor monitor, ConfigManage
     }
 
     _icons.Remove(key);
+    _iconRowsDirty = true;
     return icon;
   }
 
   public int RemoveIconWhere(Func<KeyValuePair<string, ClickableIcon>, bool> match)
   {
-    return _icons.RemoveWhere(match);
+    int removed = _icons.RemoveWhere(match);
+    _iconRowsDirty = true;
+    return removed;
+  }
+
+  public void MarkRowsDirty()
+  {
+    _iconRowsDirty = true;
+  }
+
+  private void UpdateIconRows()
+  {
+    foreach ((string key, ClickableIcon icon) in _icons)
+    {
+      if (!icon.HasRenderingChanged())
+      {
+        continue;
+      }
+
+      _iconRowsDirty = true;
+      logger.Log($"Icon {key} has been marked dirty and will change rendered rows.");
+    }
+
+    if (!_iconRowsDirty)
+    {
+      return;
+    }
+
+    logger.Log("Icon rows are no longer valid, recalculating...");
+    _iconRows = _icons.Values.Where(icon => icon.ShouldDraw())
+      .Chunk(Config.HudIconsPerRow)
+      .Select(row => new HudIconRow(row, row.Max(icon => icon.Dimensions.HeightInt)))
+      .ToList();
+    _iconRowsDirty = false;
   }
 
 #region Events
   private void RenderIcons(object? sender, RenderingHudEventArgs e)
   {
+    if (!UIElementUtils.IsRenderingNormally())
+    {
+      if (!_iconRowsDirty)
+      {
+        logger.Log("Not rendering normally, recalculation needed on next free update.");
+      }
+
+      _iconRowsDirty = true;
+      return;
+    }
+
+    UpdateIconRows();
     int heightOffset = (Game1.options.zoomButtons ? 290 : 260) + Config.HudIconsVerticalOffset;
+    bool shouldOffsetForQuestLog = IconHandler.Handler.IsQuestLogPermanent ||
+                                   Game1.player.questLog.Any() ||
+                                   Game1.player.team.specialOrders.Any();
 
     // e.SpriteBatch.Draw(Game1.staminaRect, new Rectangle(xPosition, yPosition, 40, 40), Color.Red);
-    IEnumerable<ClickableIcon[]> rows = _icons.Values.Where(icon => icon.ShouldDraw()).Chunk(Config.HudIconsPerRow);
 
-    foreach (ClickableIcon[] row in rows)
+    foreach (HudIconRow row in _iconRows)
     {
-      int largestHeight = row.Max(icon => icon.Dimensions.HeightInt);
       int xPosition = Tools.GetWidthInPlayArea() - (70 + Config.HudIconsHorizontalOffset);
       var idx = 0;
 
-      if (IconHandler.Handler.IsQuestLogPermanent ||
-          Game1.player.questLog.Any() ||
-          Game1.player.team.specialOrders.Any())
+      if (shouldOffsetForQuestLog)
       {
         xPosition -= 65;
       }
 
-      foreach (ClickableIcon clickableIcon in row)
+      foreach (ClickableIcon clickableIcon in row.Icons)
       {
         if (idx > 0)
         {
           xPosition -= clickableIcon.Dimensions.WidthInt + Config.HudIconHorizontalSpacing;
         }
 
-        largestHeight = Math.Max(clickableIcon.Dimensions.HeightInt, largestHeight);
-        int baselineHeight = heightOffset + (largestHeight - clickableIcon.Dimensions.HeightInt);
+        int baselineHeight = heightOffset + (row.MaxRowHeight - clickableIcon.Dimensions.HeightInt);
 
         clickableIcon.MoveTo(xPosition, baselineHeight);
         clickableIcon.AutoDrawDelegate.Invoke(e.SpriteBatch);
         idx++;
       }
 
-      heightOffset += largestHeight + Config.HudIconVerticalSpacing;
+      heightOffset += row.MaxRowHeight + Config.HudIconVerticalSpacing;
     }
   }
 

@@ -125,6 +125,9 @@ internal class ModEntry : Mod
       return;
     }
 
+    // Recalculate the icon rows if necessary
+    GetSingleton<HudIconStorage>().MarkRowsDirty();
+
     foreach (BaseModule module in GetAllModules())
     {
       if (!module.Enabled && module.ShouldEnable())

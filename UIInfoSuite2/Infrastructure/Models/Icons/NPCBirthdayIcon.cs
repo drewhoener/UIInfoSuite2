@@ -16,7 +16,9 @@ internal class NpcBirthdayIcon(NPC character) : ClickableIcon(Game1.mouseCursors
   private readonly Rectangle _headshotRect = character.GetHeadShot();
 
   private ModConfig Config => _configManager.Config;
-  private Friendship? Friendship {
+
+  private Friendship? Friendship
+  {
     get
     {
       Game1.player.friendshipData.TryGetValue(character.Name, out Friendship? friendship);
@@ -50,15 +52,20 @@ internal class NpcBirthdayIcon(NPC character) : ClickableIcon(Game1.mouseCursors
 
   public void UpdateGiftCheck()
   {
-    bool hasReceivedGifts = Friendship?.GiftsToday > 0;
-    if (CanBeGiftedToday && (hasReceivedGifts || Friendship is null))
+    if (!CanBeGiftedToday)
+    {
+      return;
+    }
+
+    // Mark as not giftable if we've given gifts or have no friendship
+    if (Friendship?.GiftsToday > 0 || Friendship is null)
     {
       CanBeGiftedToday = false;
     }
   }
 
-  public override bool ShouldDraw()
+  protected override bool _ShouldDraw()
   {
-    return base.ShouldDraw() && (!Config.HideAfterGiftGiven || CanBeGiftedToday);
+    return base._ShouldDraw() && (!Config.HideAfterGiftGiven || CanBeGiftedToday);
   }
 }
