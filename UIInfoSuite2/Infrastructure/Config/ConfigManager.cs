@@ -221,23 +221,6 @@ public class ConfigManager : IDisposable
       I18n.Gmcm_Section_StatusIcons_Tooltip // "Configure status indicator icons"
     );
 
-    // Luck
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Luck); // "Luck Icon"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Luck_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Luck_Enable_Tooltip,
-      getValue: () => Config.ShowLuckIcon,
-      setValue: value => Config.ShowLuckIcon = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Luck_Exact,
-      tooltip: I18n.Gmcm_Modules_Icons_Luck_Exact_Tooltip,
-      getValue: () => Config.ShowExactLuckValue,
-      setValue: value => Config.ShowExactLuckValue = value
-    );
-
     // Weather
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Weather); // "Weather Icons"
     modConfigMenuApi.AddBoolOption(
