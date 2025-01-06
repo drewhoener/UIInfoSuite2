@@ -12,9 +12,6 @@ namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
 public class ClickableIcon
 {
-  // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-  private readonly PerScreen<Texture2D> _baseTexture;
-
   /// <summary>
   ///   If the icon has decided it shouldn't be rendered, or some other event that might
   ///   invalidate caching
@@ -24,10 +21,10 @@ public class ClickableIcon
   private readonly PerScreen<string> _hoverText = new(() => string.Empty);
   private readonly PerScreen<ClickableTextureComponent> _icon;
   private readonly PerScreen<bool> _lastShouldDraw = new(() => false);
-  private readonly PerScreen<ScalingDimensions> _scalingDimensions;
+  protected readonly PerScreen<ScalingDimensions> ScalingDimensions;
 
-  // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-  private readonly PerScreen<Rectangle> _sourceBounds;
+  protected readonly PerScreen<Rectangle> SourceBounds;
+  protected readonly PerScreen<Texture2D> BaseTexture;
 
   public ClickableIcon(
     Texture2D baseTexture,
@@ -38,25 +35,19 @@ public class ClickableIcon
     SpriteFont? hoverFont = null
   )
   {
-    _baseTexture = new PerScreen<Texture2D>(() => baseTexture);
-    _sourceBounds = new PerScreen<Rectangle>(() => sourceBounds);
-    _scalingDimensions =
-      new PerScreen<ScalingDimensions>(() => new ScalingDimensions(_sourceBounds.Value, finalSize, primaryDimension));
+    BaseTexture = new PerScreen<Texture2D>(() => baseTexture);
+    SourceBounds = new PerScreen<Rectangle>(() => sourceBounds);
+    ScalingDimensions =
+      new PerScreen<ScalingDimensions>(() => new ScalingDimensions(SourceBounds.Value, finalSize, primaryDimension));
 
-    _icon = new PerScreen<ClickableTextureComponent>(
-      () => new ClickableTextureComponent(
-        new Rectangle(0, 0, Dimensions.WidthInt, Dimensions.HeightInt),
-        _baseTexture.Value,
-        _sourceBounds.Value,
-        Dimensions.ScaleFactor
-      )
-    );
+    _icon = new PerScreen<ClickableTextureComponent>(GenerateTextureComponent);
 
+    ResetTextureComponent();
     ClickHandlerAction = clickHandlerAction;
     HoverFont = hoverFont ?? Game1.dialogueFont;
-
     AutoDrawDelegate = Draw;
   }
+
 
   public string HoverText
   {
@@ -64,7 +55,7 @@ public class ClickableIcon
     set => _hoverText.Value = value;
   }
 
-  public ScalingDimensions Dimensions => _scalingDimensions.Value;
+  public ScalingDimensions Dimensions => ScalingDimensions.Value;
 
   public SpriteFont HoverFont { get; }
 
@@ -75,6 +66,21 @@ public class ClickableIcon
   protected ClickableTextureComponent Icon => _icon.Value;
 
   public Vector2 Position => new(Icon.bounds.X, Icon.bounds.Y);
+
+  private ClickableTextureComponent GenerateTextureComponent()
+  {
+    return new ClickableTextureComponent(
+      new Rectangle(0, 0, Dimensions.WidthInt, Dimensions.HeightInt),
+      BaseTexture.Value,
+      SourceBounds.Value,
+      Dimensions.ScaleFactor
+    );
+  }
+
+  protected void ResetTextureComponent()
+  {
+    _icon.Value = GenerateTextureComponent();
+  }
 
   public bool HasRenderingChanged(bool markClean = true)
   {
