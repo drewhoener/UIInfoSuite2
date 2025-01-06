@@ -50,11 +50,9 @@ internal class WeeklyRecipeModule(
     base.OnDisable();
   }
 
-  protected override void SetupIcons()
+  protected override QueenOfSauceIcon GenerateNewIcon()
   {
-    var queenOfSauceIcon = new QueenOfSauceIcon();
-    Icon = queenOfSauceIcon;
-    IconStorage.AddIcon(IconKey, queenOfSauceIcon);
+    return new QueenOfSauceIcon();
   }
 
   private void DoRecipeCheck(object? sender, EventArgs e)

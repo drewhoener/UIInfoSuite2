@@ -85,13 +85,12 @@ internal class DailyLuckModule(
     CalculateLuck(e);
   }
 
-  protected override void SetupIcons()
+  protected override ClickableIcon GenerateNewIcon()
   {
     var luckIcon = new ClickableIcon(Game1.mouseCursors, new Rectangle(50, 428, 10, 10), 40);
     luckIcon.AutoDrawDelegate = spriteBatch => { luckIcon.Draw(spriteBatch, _color.Value, 1f); };
 
-    Icon = luckIcon;
-    IconStorage.AddIcon(IconKey, luckIcon);
+    return luckIcon;
   }
 
   public override bool ShouldEnable()
