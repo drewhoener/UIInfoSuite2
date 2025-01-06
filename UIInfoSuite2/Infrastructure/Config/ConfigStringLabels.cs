@@ -2,7 +2,7 @@
 
 namespace UIInfoSuite2.Infrastructure.Config;
 
-using GMCMPageTuple = Tuple<Func<string>, Func<string>>;
+using GMCMPageTuple = (Func<string>, Func<string>);
 
 internal static class ConfigPageNames
 {
