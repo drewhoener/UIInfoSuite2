@@ -302,13 +302,7 @@ public class ConfigManager : IDisposable
       getValue: () => Config.ShowQueenOfSauceIcon,
       setValue: value => Config.ShowQueenOfSauceIcon = value
     );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Tool_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Tool_Enable_Tooltip,
-      getValue: () => Config.ShowToolUpgradeIcon,
-      setValue: value => Config.ShowToolUpgradeIcon = value
-    );
+
     modConfigMenuApi.AddBoolOption(
       _manifest,
       name: I18n.Gmcm_Modules_Icons_Carpenter_Enable,

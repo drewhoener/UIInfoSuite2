@@ -84,8 +84,9 @@ internal class ModEntry : Mod
     RegisterBaseModuleSingleton<MenuShortcutDisplay>();
     RegisterHudModuleSingleton<DailyLuckModule>();
     RegisterHudModuleSingleton<BirthdayReminderModule>();
-    RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
     RegisterHudModuleSingleton<WeeklyRecipeModule>();
+    RegisterHudModuleSingleton<ToolUpgradeReminderModule>();
+    RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
 
     _container.Verify();
 
