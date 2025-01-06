@@ -38,6 +38,15 @@ public abstract class SingleHudIconModule<T>(
 
   protected abstract string IconKey { get; }
 
+  protected abstract T GenerateNewIcon();
+
+  protected override void SetupIcons()
+  {
+    RemoveIcons();
+    _icon = GenerateNewIcon();
+    IconStorage.AddIcon(IconKey, _icon);
+  }
+
   protected override void RemoveIcons()
   {
     IconStorage.RemoveIcon(IconKey);
