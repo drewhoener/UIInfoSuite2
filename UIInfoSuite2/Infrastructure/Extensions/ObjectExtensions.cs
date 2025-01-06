@@ -72,4 +72,19 @@ public static class ObjectExtensions
 
     return result;
   }
+
+  public static int OrZero(this int? nullable)
+  {
+    return nullable ?? 0;
+  }
+
+  public static float OrZero(this float? nullable)
+  {
+    return nullable ?? 0.0f;
+  }
+
+  public static double OrZero(this double? nullable)
+  {
+    return nullable ?? 0.0;
+  }
 }
