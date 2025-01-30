@@ -85,7 +85,7 @@ public class ConfigManager : IDisposable
     Dictionary<string, List<IConfigurable>> configurations = new();
     var currentSection = "";
 
-    foreach (IConfigurable configurable in ModEntry.Instance.GetContainerCollection<IConfigurable>())
+    foreach (IConfigurable configurable in ModEntry.GetContainerCollection<IConfigurable>())
     {
       string? pageKey = configurable.GetConfigPage();
       if (pageKey is null)
