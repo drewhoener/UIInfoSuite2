@@ -393,13 +393,6 @@ public class ConfigManager : IDisposable
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_SocialFeatures); // "Social Menu Features"
     modConfigMenuApi.AddBoolOption(
       _manifest,
-      name: I18n.Gmcm_Modules_Menus_Hearts_Enable,
-      tooltip: I18n.Gmcm_Modules_Menus_Hearts_Enable_Tooltip,
-      getValue: () => Config.ShowHeartFills,
-      setValue: value => Config.ShowHeartFills = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
       name: I18n.Gmcm_Modules_Menus_GiftLock_Enable,
       tooltip: I18n.Gmcm_Modules_Menus_GiftLock_Enable_Tooltip,
       getValue: () => Config.ShowLockAfterNpcGift,
