@@ -4,7 +4,7 @@ using StardewValley;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
-public class QueenOfSauceIcon() : ClickableIcon(Game1.mouseCursors, new Rectangle(609, 361, 28, 28), 40)
+internal class QueenOfSauceIcon() : ClickableIcon(Game1.mouseCursors, new Rectangle(609, 361, 28, 28), 40)
 {
   private readonly PerScreen<bool> _knowsRecipe = new(() => true);
   private CraftingRecipe? _recipe;
@@ -40,7 +40,7 @@ public class QueenOfSauceIcon() : ClickableIcon(Game1.mouseCursors, new Rectangl
     }
 
     KnowsRecipe = knowsSinceLastCheck;
-    ModEntry.Instance.Monitor.Log(
+    ModEntry.DebugLog(
       $"Player {Game1.player.Name} recipe knowledge has changed. Knows Recipe: {knowsSinceLastCheck}"
     );
   }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using SimpleInjector;
 using StardewModdingAPI;
@@ -184,6 +185,16 @@ internal class ModEntry : Mod
     _container.GetInstance<SoundHelper>().Initialize(Helper);
     _container.GetInstance<ApiManager>().TryRegisterApi<ICustomBushApi>(Helper, ModCompat.CustomBush, "1.2.1", true);
   }
+
+#region Debug
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public static void DebugLog(string message, LogLevel level = LogLevel.Trace)
+  {
+#if DEBUG
+    Instance.Monitor.Log(message, level);
+#endif
+  }
+#endregion
 
 #region Module Setup
   private void RegisterPatchable<T>() where T : class, IPatchable
