@@ -6,14 +6,14 @@ using UIInfoSuite2.Infrastructure.Models.Icons;
 
 namespace UIInfoSuite2.Infrastructure.Modules.Base;
 
-public abstract class SingleHudIconModule(
+internal abstract class SingleHudIconModule(
   IModEvents modEvents,
   IMonitor logger,
   ConfigManager configManager,
   HudIconStorage iconStorage
 ) : SingleHudIconModule<ClickableIcon>(modEvents, logger, configManager, iconStorage);
 
-public abstract class SingleHudIconModule<T>(
+internal abstract class SingleHudIconModule<T>(
   IModEvents modEvents,
   IMonitor logger,
   ConfigManager configManager,

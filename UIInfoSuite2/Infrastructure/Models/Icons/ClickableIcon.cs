@@ -11,7 +11,7 @@ using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
-public class ClickableIcon
+internal class ClickableIcon
 {
   /// <summary>
   ///   If the icon has decided it shouldn't be rendered, or some other event that might

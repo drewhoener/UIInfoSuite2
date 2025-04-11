@@ -7,7 +7,7 @@ using UIInfoSuite2.Infrastructure.Models;
 
 namespace UIInfoSuite2.Infrastructure.Modules.Base;
 
-public abstract class HudIconModule(
+internal abstract class HudIconModule(
   IModEvents modEvents,
   IMonitor logger,
   ConfigManager configManager,

@@ -14,7 +14,7 @@ namespace UIInfoSuite2.Infrastructure.Models;
 
 internal record HudIconRow(ClickableIcon[] Icons, int MaxRowHeight);
 
-public class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManager configManager, ApiManager apiManager)
+internal class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManager configManager, ApiManager apiManager)
 {
   private readonly Dictionary<string, ClickableIcon> _icons = new();
 
