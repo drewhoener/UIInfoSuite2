@@ -103,7 +103,7 @@ public class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManager
     logger.Log("Icon rows are no longer valid, recalculating...");
     _iconRows = _icons.Values.Where(icon => icon.ShouldDraw())
       .Chunk(Config.HudIconsPerRow)
-      .Select(row => new HudIconRow(row, row.Max(icon => icon.Dimensions.HeightInt)))
+      .Select(row => new HudIconRow(row, row.Max(icon => icon.Dimensions.Height)))
       .ToList();
     _iconRowsDirty = false;
   }
@@ -144,10 +144,10 @@ public class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManager
       {
         if (idx > 0)
         {
-          xPosition -= clickableIcon.Dimensions.WidthInt + Config.HudIconHorizontalSpacing;
+          xPosition -= clickableIcon.Dimensions.Width + Config.HudIconHorizontalSpacing;
         }
 
-        int baselineHeight = heightOffset + (row.MaxRowHeight - clickableIcon.Dimensions.HeightInt);
+        int baselineHeight = heightOffset + (row.MaxRowHeight - clickableIcon.Dimensions.Height);
 
         clickableIcon.MoveTo(xPosition, baselineHeight);
         clickableIcon.AutoDrawDelegate.Invoke(e.SpriteBatch);

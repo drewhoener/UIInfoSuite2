@@ -44,9 +44,7 @@ internal class ToolIcon : ClickableIcon
       {
         ParsedItemData itemData = ItemRegistry.GetDataOrErrorItem(Tool.QualifiedItemId);
         BaseTexture.Value = itemData.GetTexture();
-        SourceBounds.Value = itemData.GetSourceRect();
-        ScalingDimensions.Value.SourceDimensions = itemData.GetSourceRect();
-        ResetTextureComponent();
+        SetSourceBounds(itemData.GetSourceRect());
         break;
       }
     }

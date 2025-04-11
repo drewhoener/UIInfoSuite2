@@ -7,6 +7,7 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
@@ -21,10 +22,8 @@ public class ClickableIcon
   private readonly PerScreen<string> _hoverText = new(() => string.Empty);
   private readonly PerScreen<ClickableTextureComponent> _icon;
   private readonly PerScreen<bool> _lastShouldDraw = new(() => false);
-  protected readonly PerScreen<ScalingDimensions> ScalingDimensions;
-
-  protected readonly PerScreen<Rectangle> SourceBounds;
   protected readonly PerScreen<Texture2D> BaseTexture;
+  protected readonly PerScreen<AspectLockedDimensions> ScalingDimensions;
 
   public ClickableIcon(
     Texture2D baseTexture,
@@ -36,9 +35,9 @@ public class ClickableIcon
   )
   {
     BaseTexture = new PerScreen<Texture2D>(() => baseTexture);
-    SourceBounds = new PerScreen<Rectangle>(() => sourceBounds);
-    ScalingDimensions =
-      new PerScreen<ScalingDimensions>(() => new ScalingDimensions(SourceBounds.Value, finalSize, primaryDimension));
+    ScalingDimensions = new PerScreen<AspectLockedDimensions>(
+      () => new AspectLockedDimensions(sourceBounds, finalSize, primaryDimension)
+    );
 
     _icon = new PerScreen<ClickableTextureComponent>(GenerateTextureComponent);
 
@@ -48,16 +47,25 @@ public class ClickableIcon
     AutoDrawDelegate = Draw;
   }
 
-
   public string HoverText
   {
     get => _hoverText.Value;
     set => _hoverText.Value = value;
   }
 
-  public ScalingDimensions Dimensions => ScalingDimensions.Value;
+  public AspectLockedDimensions Dimensions => ScalingDimensions.Value;
 
   public SpriteFont HoverFont { get; }
+
+  public Rectangle SourceBounds
+  {
+    get => ScalingDimensions.Value.SourceDimensions;
+    set
+    {
+      _hasRenderingChanged.Value = true;
+      ScalingDimensions.Value.SourceDimensions = value;
+    }
+  }
 
   public Action<SpriteBatch> AutoDrawDelegate { get; set; }
 
@@ -65,14 +73,23 @@ public class ClickableIcon
 
   protected ClickableTextureComponent Icon => _icon.Value;
 
-  public Vector2 Position => new(Icon.bounds.X, Icon.bounds.Y);
+  public Vector2 IconPosition => new(Icon.bounds.X, Icon.bounds.Y);
+
+  public void SetSourceBounds(Rectangle rectangle, bool generateComponent = true)
+  {
+    SourceBounds = rectangle;
+    if (generateComponent)
+    {
+      ResetTextureComponent();
+    }
+  }
 
   private ClickableTextureComponent GenerateTextureComponent()
   {
     return new ClickableTextureComponent(
-      new Rectangle(0, 0, Dimensions.WidthInt, Dimensions.HeightInt),
+      new Rectangle(0, 0, Dimensions.Width, Dimensions.Height),
       BaseTexture.Value,
-      SourceBounds.Value,
+      SourceBounds,
       Dimensions.ScaleFactor
     );
   }

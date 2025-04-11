@@ -39,7 +39,7 @@ internal class NpcBirthdayIcon(NPC character) : ClickableIcon(Game1.mouseCursors
     // Draw headshot offset to lower left
     batch.Draw(
       character.Sprite.Texture,
-      Position + _headshotOffsetPosition,
+      IconPosition + _headshotOffsetPosition,
       _headshotRect,
       Color.White,
       0.0f,

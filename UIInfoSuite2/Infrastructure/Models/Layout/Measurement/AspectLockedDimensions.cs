@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace UIInfoSuite2.Infrastructure.Models;
+namespace UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 public enum PrimaryDimension
 {
@@ -8,13 +8,13 @@ public enum PrimaryDimension
   Width
 }
 
-public class ScalingDimensions
+public class AspectLockedDimensions
 {
   private readonly float _finalSize;
   private PrimaryDimension _primaryDimension;
   private Rectangle _sourceDimensions;
 
-  public ScalingDimensions(Rectangle sourceBounds, float finalSize, PrimaryDimension primaryDimension)
+  public AspectLockedDimensions(Rectangle sourceBounds, float finalSize, PrimaryDimension primaryDimension)
   {
     _sourceDimensions = sourceBounds;
     _primaryDimension = primaryDimension;
@@ -43,30 +43,33 @@ public class ScalingDimensions
     }
   }
 
-  public (float, float) Bounds => (Width, Height);
+  public Dimensions Bounds { get; private set; } = new();
 
-  public float Width { get; private set; }
+  public int Width => Bounds.Width;
 
-  public float Height { get; private set; }
+  public int Height => Bounds.Height;
 
-  public int WidthInt => (int)Width;
-
-  public int HeightInt => (int)Height;
   public float ScaleFactor { get; private set; }
 
   private void RecalculateScaling()
   {
+
+    float width;
+    float height;
+
     if (_primaryDimension == PrimaryDimension.Height)
     {
-      Height = _finalSize;
-      ScaleFactor = Height / _sourceDimensions.Height;
-      Width = _sourceDimensions.Width * ScaleFactor;
+      height = _finalSize;
+      ScaleFactor = height / _sourceDimensions.Height;
+      width = _sourceDimensions.Width * ScaleFactor;
     }
     else
     {
-      Width = _finalSize;
-      ScaleFactor = Width / _sourceDimensions.Width;
-      Height = _sourceDimensions.Height * ScaleFactor;
+      width = _finalSize;
+      ScaleFactor = width / _sourceDimensions.Width;
+      height = _sourceDimensions.Height * ScaleFactor;
     }
+
+    Bounds = new Dimensions(width, height);
   }
 }
