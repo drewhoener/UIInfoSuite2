@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Utilities;
 using StardewValley;
-using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Extensions;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
@@ -11,11 +10,8 @@ internal class NpcBirthdayIcon(NPC character) : ClickableIcon(Game1.mouseCursors
 {
   private const float HeadshotScale = 2.3f;
   private readonly PerScreen<bool> _canBeGiftedToday = new(() => true);
-  private readonly ConfigManager _configManager = ModEntry.GetSingleton<ConfigManager>();
   private readonly Vector2 _headshotOffsetPosition = new(-10, -5);
   private readonly Rectangle _headshotRect = character.GetHeadShot();
-
-  private ModConfig Config => _configManager.Config;
 
   private Friendship? Friendship
   {

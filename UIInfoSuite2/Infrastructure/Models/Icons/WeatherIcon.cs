@@ -6,7 +6,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Extensions;
-using UIInfoSuite2.Infrastructure.Config;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
@@ -16,9 +15,8 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
   private const int WeatherSheetHeight = 18;
 
   private static readonly Lazy<Texture2D> IconSheet = new(() => GenerateWeatherTexture(ModEntry.Instance.Helper));
-  private readonly ConfigManager _configManager = ModEntry.GetSingleton<ConfigManager>();
   private bool _isRainyTomorrow;
-  private PerScreen<string> _lastWeatherValue = new(() => "");
+  private readonly PerScreen<string> _lastWeatherValue = new(() => "");
 
   public void DoWeatherCheck()
   {
@@ -28,6 +26,7 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
       {
         UpdateIconForWeather(GetIslandWeatherForTomorrow());
       }
+
       return;
     }
 
@@ -36,7 +35,6 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
 
   private void UpdateIconForWeather(string weatherStr)
   {
-
     if (weatherStr.EqualsIgnoreCase(_lastWeatherValue.Value))
     {
       return;
@@ -111,7 +109,7 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
       return false;
     }
 
-    if (isIslandWeather && !_configManager.Config.ShowIslandWeather)
+    if (isIslandWeather && !Config.ShowIslandWeather)
     {
       return false;
     }

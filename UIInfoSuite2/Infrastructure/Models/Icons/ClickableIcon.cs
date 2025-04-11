@@ -6,6 +6,7 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
+using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
@@ -23,6 +24,8 @@ internal class ClickableIcon
   private readonly PerScreen<ClickableTextureComponent> _icon;
   private readonly PerScreen<bool> _lastShouldDraw = new(() => false);
   protected readonly PerScreen<Texture2D> BaseTexture;
+
+  protected readonly ConfigManager ConfigManager = ModEntry.GetSingleton<ConfigManager>();
   protected readonly PerScreen<AspectLockedDimensions> ScalingDimensions;
 
   public ClickableIcon(
@@ -46,6 +49,8 @@ internal class ClickableIcon
     HoverFont = hoverFont ?? Game1.dialogueFont;
     AutoDrawDelegate = Draw;
   }
+
+  protected ModConfig Config => ConfigManager.Config;
 
   public string HoverText
   {
