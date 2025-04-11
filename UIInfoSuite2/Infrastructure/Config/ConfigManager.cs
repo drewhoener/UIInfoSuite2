@@ -221,23 +221,6 @@ public class ConfigManager : IDisposable
       I18n.Gmcm_Section_StatusIcons_Tooltip // "Configure status indicator icons"
     );
 
-    // Weather
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Weather); // "Weather Icons"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Weather_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Weather_Enable_Tooltip,
-      getValue: () => Config.ShowWeatherIcon,
-      setValue: value => Config.ShowWeatherIcon = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Weather_Island,
-      tooltip: I18n.Gmcm_Modules_Icons_Weather_Island_Tooltip,
-      getValue: () => Config.ShowIslandWeather,
-      setValue: value => Config.ShowIslandWeather = value
-    );
-
     // Experience Bar
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_XpBar); // "Experience Bar"
     modConfigMenuApi.AddBoolOption(
