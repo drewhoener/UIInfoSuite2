@@ -10,6 +10,7 @@ using StardewValley.GameData.FruitTrees;
 using StardewValley.Menus;
 using StardewValley.TerrainFeatures;
 using StardewValley.WorldMaps;
+using UIInfoSuite2.Compatibility;
 using SObject = StardewValley.Object;
 
 namespace UIInfoSuite2.Infrastructure;
@@ -87,23 +88,57 @@ public static class Tools
     }
   }
 
+  public static IClickableMenu? GetCurrentMenuPage()
+  {
+    if (Game1.activeClickableMenu is GameMenu gameMenu)
+    {
+      return gameMenu.GetCurrentPage();
+    }
+
+    var apiManager = ModEntry.GetSingleton<ApiManager>();
+    return apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgm)
+      ? bgm.ActiveMenu?.CurrentPage
+      : null;
+  }
+
+  public static bool IsGameMenuOpen()
+  {
+    if (Game1.activeClickableMenu is GameMenu)
+    {
+      return true;
+    }
+
+    var apiManager = ModEntry.GetSingleton<ApiManager>();
+    return apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgm) && bgm.ActiveMenu != null;
+  }
+
   public static Item? GetHoveredItem()
   {
     Item? hoverItem = null;
+    IClickableMenu? page = GetCurrentMenuPage();
 
     if (Game1.activeClickableMenu == null && Game1.onScreenMenus != null)
     {
       hoverItem = Game1.onScreenMenus.OfType<Toolbar>().Select(tb => tb.hoverItem).FirstOrDefault(hi => hi is not null);
     }
 
-    if (Game1.activeClickableMenu is GameMenu gameMenu && gameMenu.GetCurrentPage() is InventoryPage inventory)
+    switch (page)
     {
-      hoverItem = inventory.hoveredItem;
-    }
+      case InventoryPage inventory:
+        hoverItem = inventory.hoveredItem;
+        break;
+      case CraftingPage crafting:
+        hoverItem = crafting.hoverItem;
+        break;
+      default:
+      {
+        if (Game1.activeClickableMenu is ItemGrabMenu itemMenu)
+        {
+          hoverItem = itemMenu.hoveredItem;
+        }
 
-    if (Game1.activeClickableMenu is ItemGrabMenu itemMenu)
-    {
-      hoverItem = itemMenu.hoveredItem;
+        break;
+      }
     }
 
     return hoverItem;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using StardewModdingAPI;
 
@@ -9,17 +10,12 @@ public static class ModCompat
   public const string CustomBush = "furyx639.CustomBush";
   public const string Gmcm = "spacechase0.GenericModConfigMenu";
   public const string DeluxeJournal = "MolsonCAD.DeluxeJournal";
+  public const string BetterGameMenu = "leclair.bettergamemenu";
 }
 
-public class ApiManager
+public class ApiManager(IMonitor logger)
 {
-  private readonly IMonitor _logger;
   private readonly Dictionary<string, object> _registeredApis = new();
-
-  public ApiManager(IMonitor logger)
-  {
-    _logger = logger;
-  }
 
   public T? TryRegisterApi<T>(
     IModHelper helper,
@@ -36,25 +32,36 @@ public class ApiManager
 
     if (minimumVersion != null && modInfo.Manifest.Version.IsOlderThan(minimumVersion))
     {
-      _logger.Log(
+      logger.Log(
         $"Requested version {minimumVersion} for mod {modId}, but got {modInfo.Manifest.Version} instead, cannot use API.",
         LogLevel.Warn
       );
       return null;
     }
 
-    var api = helper.ModRegistry.GetApi<T>(modId);
+    T? api;
+    try
+    {
+      // This can throw if the API cannot be mapped to type T by Pintail.
+      api = helper.ModRegistry.GetApi<T>(modId);
+    }
+    catch (Exception ex)
+    {
+      logger.Log($"Could not get API for mod {modId} due to error: {ex}", LogLevel.Warn);
+      api = null;
+    }
+
     if (api is null)
     {
       if (warnIfNotPresent)
       {
-        _logger.Log($"Could not find API for mod {modId}, but one was requested", LogLevel.Warn);
+        logger.Log($"Could not find API for mod {modId}, but one was requested", LogLevel.Warn);
       }
 
       return null;
     }
 
-    _logger.Log($"Loaded API for mod {modId}", LogLevel.Info);
+    logger.Log($"Loaded API for mod {modId}", LogLevel.Info);
     _registeredApis[modId] = api;
     return api;
   }
@@ -73,7 +80,7 @@ public class ApiManager
       return true;
     }
 
-    _logger.Log($"API was registered for mod {modId} but the requested type is not supported", LogLevel.Warn);
+    logger.Log($"API was registered for mod {modId} but the requested type is not supported", LogLevel.Warn);
     return false;
   }
 }

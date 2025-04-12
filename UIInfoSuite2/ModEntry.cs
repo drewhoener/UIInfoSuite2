@@ -190,6 +190,7 @@ internal class ModEntry : Mod
   {
     _container.GetInstance<SoundHelper>().Initialize(Helper);
     _container.GetInstance<ApiManager>().TryRegisterApi<ICustomBushApi>(Helper, ModCompat.CustomBush, "1.2.1", true);
+    _container.GetInstance<ApiManager>().TryRegisterApi<IBetterGameMenuApi>(Helper, ModCompat.BetterGameMenu, "0.1.0");
   }
 
 #region Debug
