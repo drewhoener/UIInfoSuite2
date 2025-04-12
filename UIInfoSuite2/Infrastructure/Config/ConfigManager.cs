@@ -259,23 +259,6 @@ public class ConfigManager : IDisposable
       I18n.Gmcm_Section_NotificationIcons_Tooltip // "Configure notification icons"
     );
 
-    // Merchant
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_Merchant); // "Traveling Merchant"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Merchant_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Merchant_Enable_Tooltip,
-      getValue: () => Config.ShowTravelingMerchantIcon,
-      setValue: value => Config.ShowTravelingMerchantIcon = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Merchant_HideOnVisit,
-      tooltip: I18n.Gmcm_Modules_Icons_Merchant_HideOnVisit_Tooltip,
-      getValue: () => Config.HideMerchantIconWhenVisited,
-      setValue: value => Config.HideMerchantIconWhenVisited = value
-    );
-
     // Other Icons
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_OtherIcons); // "Other Icons"
     modConfigMenuApi.AddBoolOption(

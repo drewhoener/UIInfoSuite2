@@ -1,120 +1,98 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Objects;
-using UIInfoSuite2.Infrastructure;
+using UIInfoSuite2.Compatibility;
+using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Models;
+using UIInfoSuite2.Infrastructure.Models.Icons;
+using UIInfoSuite2.Infrastructure.Modules.Base;
 
-namespace UIInfoSuite2.UIElements;
+namespace UIInfoSuite2.Infrastructure.Modules.Hud;
 
-public class ShowTravelingMerchant : IDisposable
+// ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
+internal class TravelingMerchantReminderModule(
+  IModEvents modEvents,
+  IMonitor logger,
+  ConfigManager configManager,
+  HudIconStorage iconStorage
+) : SingleHudIconModule<MerchantIcon>(modEvents, logger, configManager, iconStorage)
 {
-#region Properties
-  private bool _travelingMerchantIsHere;
-  private bool _travelingMerchantIsVisited;
-  private ClickableTextureComponent _travelingMerchantIcon;
+  protected override string IconKey => "MerchantIcon";
 
-  private bool Enabled { get; set; }
-  private bool HideWhenVisited { get; set; }
-
-  private readonly IModHelper _helper;
-#endregion
-
-
-#region Lifecycle
-  public ShowTravelingMerchant(IModHelper helper)
+  public override bool ShouldEnable()
   {
-    _helper = helper;
+    return Config.ShowTravelingMerchantIcon;
   }
 
-  public void Dispose()
+  protected override MerchantIcon GenerateNewIcon()
   {
-    ToggleOption(false);
+    return new MerchantIcon();
   }
 
-  public void ToggleOption(bool showTravelingMerchant)
+  public override void OnEnable()
   {
-    Enabled = showTravelingMerchant;
+    base.OnEnable();
+    ModEvents.GameLoop.DayStarted += OnDayStarted;
+    ModEvents.Display.MenuChanged += OnMenuChanged;
+    Icon.UpdateMerchantIcon();
+  }
 
-    _helper.Events.Display.RenderingHud -= OnRenderingHud;
-    _helper.Events.Display.RenderedHud -= OnRenderedHud;
-    _helper.Events.GameLoop.DayStarted -= OnDayStarted;
-    _helper.Events.Display.MenuChanged -= OnMenuChanged;
+  public override void OnDisable()
+  {
+    ModEvents.GameLoop.DayStarted -= OnDayStarted;
+    ModEvents.Display.MenuChanged -= OnMenuChanged;
+    base.OnDisable();
+  }
 
-    if (showTravelingMerchant)
+  private void OnDayStarted(object? sender, EventArgs e)
+  {
+    Icon.UpdateMerchantIcon();
+  }
+
+  private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
+  {
+    if (e.NewMenu is ShopMenu menu && menu.forSale.Any(s => s is not Hat) && Game1.currentLocation.Name == "Forest")
     {
-      UpdateTravelingMerchant();
-      _helper.Events.Display.RenderingHud += OnRenderingHud;
-      _helper.Events.Display.RenderedHud += OnRenderedHud;
-      _helper.Events.GameLoop.DayStarted += OnDayStarted;
-      _helper.Events.Display.MenuChanged += OnMenuChanged;
+      Icon.VisitedMerchant = true;
     }
   }
 
-  public void ToggleHideWhenVisitedOption(bool hideWhenVisited)
+#region Configuration Setup
+  public override string GetConfigPage()
   {
-    HideWhenVisited = hideWhenVisited;
-    ToggleOption(Enabled);
-  }
-#endregion
-
-
-#region Event subscriptions
-  private void OnDayStarted(object sender, EventArgs e)
-  {
-    UpdateTravelingMerchant();
+    return ConfigPageNames.HudIcons;
   }
 
-  private void OnMenuChanged(object sender, MenuChangedEventArgs e)
+  public override string GetConfigSection()
   {
-    if (e.NewMenu is ShopMenu menu && menu.forSale.Any(s => !(s is Hat)) && Game1.currentLocation.Name == "Forest")
-    {
-      _travelingMerchantIsVisited = true;
-    }
+    return ConfigSectionNames.NotificationIcons;
   }
 
-  private void OnRenderingHud(object sender, RenderingHudEventArgs e)
+  public override string GetSubHeader()
   {
-    // Draw icon
-    if (UIElementUtils.IsRenderingNormally() && ShouldDrawIcon())
-    {
-      Point iconPosition = IconHandler.Handler.GetNewIconPosition();
-      _travelingMerchantIcon = new ClickableTextureComponent(
-        new Rectangle(iconPosition.X, iconPosition.Y, 40, 40),
-        Game1.mouseCursors,
-        new Rectangle(192, 1411, 20, 20),
-        2f
-      );
-      _travelingMerchantIcon.draw(Game1.spriteBatch);
-    }
+    return I18n.Gmcm_Group_Merchant();
   }
 
-  private void OnRenderedHud(object sender, RenderedHudEventArgs e)
+  public override void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
   {
-    // Show text on hover
-    if (ShouldDrawIcon() && (_travelingMerchantIcon?.containsPoint(Game1.getMouseX(), Game1.getMouseY()) ?? false))
-    {
-      string hoverText = I18n.TravelingMerchantIsInTown();
-      IClickableMenu.drawHoverText(Game1.spriteBatch, hoverText, Game1.dialogueFont);
-    }
-  }
-#endregion
-
-
-#region Logic
-  private void UpdateTravelingMerchant()
-  {
-    _travelingMerchantIsHere = ((Forest)Game1.getLocationFromName(nameof(Forest))).ShouldTravelingMerchantVisitToday();
-    _travelingMerchantIsVisited = false;
-  }
-
-  private bool ShouldDrawIcon()
-  {
-    return _travelingMerchantIsHere && (!_travelingMerchantIsVisited || !HideWhenVisited);
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Merchant_Enable,
+      tooltip: I18n.Gmcm_Modules_Icons_Merchant_Enable_Tooltip,
+      getValue: () => Config.ShowTravelingMerchantIcon,
+      setValue: value => Config.ShowTravelingMerchantIcon = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Merchant_HideOnVisit,
+      tooltip: I18n.Gmcm_Modules_Icons_Merchant_HideOnVisit_Tooltip,
+      getValue: () => Config.HideMerchantIconWhenVisited,
+      setValue: value => Config.HideMerchantIconWhenVisited = value
+    );
   }
 #endregion
 }
