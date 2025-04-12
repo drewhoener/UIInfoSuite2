@@ -8,6 +8,8 @@ public static class UIElementUtils
   public static bool IsRenderingNormally()
   {
     return !Game1.game1.takingMapScreenshot &&
+           !Game1.showingEndOfNightStuff &&
+           Game1.farmEvent == null && Game1.farmEventOverride == null &&
            (!Game1.eventUp || Game1.isFestival()) &&
            !Game1.viewportFreeze &&
            !Game1.freezeControls &&
