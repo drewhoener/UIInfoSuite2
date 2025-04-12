@@ -106,6 +106,11 @@ internal class ClickableIcon
     _icon.Value = GenerateTextureComponent();
   }
 
+  public void MarkDirty()
+  {
+    _hasRenderingChanged.Value = true;
+  }
+
   public bool HasRenderingChanged(bool markClean = true)
   {
     bool dirty = _hasRenderingChanged.Value;

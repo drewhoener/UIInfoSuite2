@@ -269,14 +269,6 @@ public class ConfigManager : IDisposable
       setValue: value => Config.ShowQueenOfSauceIcon = value
     );
 
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Carpenter_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Carpenter_Enable_Tooltip,
-      getValue: () => Config.ShowRobinBuildingStatusIcon,
-      setValue: value => Config.ShowRobinBuildingStatusIcon = value
-    );
-
     // Tooltips Page
     modConfigMenuApi.AddPage(_manifest, "tooltips", I18n.Gmcm_Page_Tooltips_Title);
 
