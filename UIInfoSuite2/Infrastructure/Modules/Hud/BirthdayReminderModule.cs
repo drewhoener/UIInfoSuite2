@@ -80,10 +80,10 @@ internal class BirthdayReminderModule(
 
   public override void OnDisable()
   {
-    base.OnDisable();
     ModEvents.GameLoop.OneSecondUpdateTicked -= OnUpdateTicked;
     ModEvents.GameLoop.DayStarted -= OnDayStarted;
     ModEvents.GameLoop.DayEnding -= OnDayEnd;
+    base.OnDisable();
   }
 
 
