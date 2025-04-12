@@ -87,7 +87,7 @@ internal class DailyLuckModule(
 
   protected override ClickableIcon GenerateNewIcon()
   {
-    var luckIcon = new ClickableIcon(Game1.mouseCursors, new Rectangle(50, 428, 10, 10), 40);
+    var luckIcon = new ClickableIcon(Game1.mouseCursors, new Rectangle(50, 428, 10, 10), 40) { RenderPriority = -1 };
     luckIcon.AutoDrawDelegate = spriteBatch => { luckIcon.Draw(spriteBatch, _color.Value, 1f); };
 
     return luckIcon;

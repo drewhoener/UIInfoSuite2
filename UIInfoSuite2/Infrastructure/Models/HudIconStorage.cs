@@ -102,6 +102,7 @@ internal class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManag
 
     logger.Log("Icon rows are no longer valid, recalculating...");
     _iconRows = _icons.Values.Where(icon => icon.ShouldDraw())
+      .OrderBy(icon => icon.RenderPriority)
       .Chunk(Config.HudIconsPerRow)
       .Select(row => new HudIconRow(row, row.Max(icon => icon.Dimensions.Height)))
       .ToList();

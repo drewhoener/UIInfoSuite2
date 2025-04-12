@@ -52,6 +52,8 @@ internal class ClickableIcon
 
   protected ModConfig Config => ConfigManager.Config;
 
+  public int RenderPriority { get; set; }
+
   public string HoverText
   {
     get => _hoverText.Value;
