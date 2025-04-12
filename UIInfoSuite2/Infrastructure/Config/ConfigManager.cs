@@ -293,20 +293,6 @@ public class ConfigManager : IDisposable
       getValue: () => Config.ShowRobinBuildingStatusIcon,
       setValue: value => Config.ShowRobinBuildingStatusIcon = value
     );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Berry_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Berry_Enable_Tooltip,
-      getValue: () => Config.ShowSeasonalBerryIcon,
-      setValue: value => Config.ShowSeasonalBerryIcon = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Icons_Hazelnut_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Hazelnut_Enable_Tooltip,
-      getValue: () => Config.ShowSeasonalBerryHazelnutIcon,
-      setValue: value => Config.ShowSeasonalBerryHazelnutIcon = value
-    );
 
     // Tooltips Page
     modConfigMenuApi.AddPage(_manifest, "tooltips", I18n.Gmcm_Page_Tooltips_Title);

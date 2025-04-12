@@ -95,6 +95,7 @@ internal class ModEntry : Mod
     RegisterBaseModuleSingleton<MenuShortcutDisplay>();
     RegisterHudModuleSingleton<DailyLuckModule>();
     RegisterHudModuleSingleton<DailyWeatherModule>();
+    RegisterHudModuleSingleton<SeasonalBerryDisplayModule>();
     RegisterHudModuleSingleton<WeeklyRecipeModule>();
     RegisterHudModuleSingleton<ToolUpgradeReminderModule>();
     RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
