@@ -200,6 +200,8 @@
   "gmcm.modules.tooltips.animals.enable.tooltip": "Toggle whether an icon is shown above an animal you haven't pet",
   "gmcm.modules.tooltips.animals.hide-on-friends": "Hide interact icon on full friendship",
   "gmcm.modules.tooltips.animals.hide-on-friends.tooltip": "If the animal interact icon should be hidden when they have full friendship",
+  "gmcm.modules.tooltips.animals.show-produce": "Show Produce availability",
+  "gmcm.modules.tooltips.animals.show-produce.tooltip": "Displays a bubble above the animal with the product that can be harvested",
   // Crops
   "gmcm.modules.tooltips.crops.enable": "Show tooltip for crops",
   "gmcm.modules.tooltips.crops.enable.tooltip": "Toggle whether a tooltip is shown when hovering over crops",

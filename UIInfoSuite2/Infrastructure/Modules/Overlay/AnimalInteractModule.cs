@@ -13,89 +13,80 @@ using StardewValley.GameData.FarmAnimals;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Locations;
 using StardewValley.Network;
+using UIInfoSuite2.Compatibility;
+using UIInfoSuite2.Infrastructure.Config;
+using UIInfoSuite2.Infrastructure.Interfaces;
+using UIInfoSuite2.Infrastructure.Modules.Base;
 using UIInfoSuite2.UIElements;
 
 namespace UIInfoSuite2.Infrastructure.Modules.Overlay;
 
-internal class ShowWhenAnimalNeedsPet : IDisposable
+// ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
+internal class AnimalInteractModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager)
+  : BaseModule(modEvents, logger, configManager), IConfigurable
 {
-#region Properties
-  private readonly PerScreen<float> _yMovementPerDraw = new();
   private readonly PerScreen<float> _alpha = new();
+  private readonly PerScreen<float> _yMovementPerDraw = new();
 
-  private bool Enabled { get; set; }
-  private bool HideOnMaxFriendship { get; set; }
-
-  private readonly IModHelper _helper;
-#endregion
-
-
-#region Lifecycle
-  public ShowWhenAnimalNeedsPet(IModHelper helper)
+  public override bool ShouldEnable()
   {
-    _helper = helper;
+    return Config.ShowAnimalsNeedPets;
   }
 
-  public void Dispose()
+  public override void OnEnable()
   {
-    ToggleOption(false);
+    ModEvents.Display.RenderingHud += OnRenderingHud_DrawAnimalHasProduct;
+    ModEvents.Display.RenderingHud += OnRenderingHud_DrawNeedsPetTooltip;
+    ModEvents.GameLoop.UpdateTicked += UpdateTicked;
   }
 
-  public void ToggleOption(bool showWhenAnimalNeedsPet)
+  public override void OnDisable()
   {
-    Enabled = showWhenAnimalNeedsPet;
+    ModEvents.Display.RenderingHud -= OnRenderingHud_DrawAnimalHasProduct;
+    ModEvents.Display.RenderingHud -= OnRenderingHud_DrawNeedsPetTooltip;
+    ModEvents.GameLoop.UpdateTicked -= UpdateTicked;
+  }
 
-    _helper.Events.Player.Warped -= OnWarped;
-    _helper.Events.Display.RenderingHud -= OnRenderingHud_DrawAnimalHasProduct;
-    _helper.Events.Display.RenderingHud -= OnRenderingHud_DrawNeedsPetTooltip;
-    _helper.Events.GameLoop.UpdateTicked -= UpdateTicked;
-
-    if (showWhenAnimalNeedsPet)
+  private static bool CanRenderAnimalOverlay(bool allowFarmhouse = false)
+  {
+    if (!UIElementUtils.IsRenderingNormally() || Game1.activeClickableMenu != null)
     {
-      _helper.Events.Player.Warped += OnWarped;
-      _helper.Events.Display.RenderingHud += OnRenderingHud_DrawAnimalHasProduct;
-      _helper.Events.Display.RenderingHud += OnRenderingHud_DrawNeedsPetTooltip;
-      _helper.Events.GameLoop.UpdateTicked += UpdateTicked;
+      return false;
     }
+
+    GameLocation? currentLoc = Game1.currentLocation;
+    if (currentLoc is FarmHouse && !allowFarmhouse)
+    {
+      return false;
+    }
+
+    return currentLoc is AnimalHouse or Farm;
   }
-
-  public void ToggleDisableOnMaxFriendshipOption(bool hideOnMaxFriendship)
-  {
-    HideOnMaxFriendship = hideOnMaxFriendship;
-    ToggleOption(Enabled);
-  }
-#endregion
-
-
-#region Event subscriptions
-  private void OnWarped(object? sender, WarpedEventArgs e) { }
 
   private void OnRenderingHud_DrawNeedsPetTooltip(object? sender, RenderingHudEventArgs e)
   {
-    if (UIElementUtils.IsRenderingNormally() &&
-        Game1.activeClickableMenu == null &&
-        (Game1.currentLocation is AnimalHouse || Game1.currentLocation is Farm || Game1.currentLocation is FarmHouse))
+    if (!CanRenderAnimalOverlay(true))
     {
-      DrawIconForFarmAnimals();
-      DrawIconForPets();
+      return;
     }
+
+    DrawIconForFarmAnimals();
+    DrawIconForPets();
   }
 
   private void OnRenderingHud_DrawAnimalHasProduct(object? sender, RenderingHudEventArgs e)
   {
-    if (UIElementUtils.IsRenderingNormally() &&
-        Game1.activeClickableMenu == null &&
-        (Game1.currentLocation is AnimalHouse || Game1.currentLocation is Farm))
+    if (CanRenderAnimalOverlay())
     {
-      DrawAnimalHasProduct();
+      return;
     }
+
+    DrawAnimalHasProduct();
   }
 
   private void UpdateTicked(object? sender, UpdateTickedEventArgs e)
   {
-    if (!UIElementUtils.IsRenderingNormally() ||
-        Game1.activeClickableMenu != null ||
-        !(Game1.currentLocation is AnimalHouse || Game1.currentLocation is Farm || Game1.currentLocation is FarmHouse))
+    if (!CanRenderAnimalOverlay(true))
     {
       return;
     }
@@ -104,9 +95,7 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
     _yMovementPerDraw.Value = -6f + 6f * sine;
     _alpha.Value = 0.8f + 0.2f * sine;
   }
-#endregion
 
-#region Logic
   private void DrawAnimalHasProduct()
   {
     NetLongDictionary<FarmAnimal, NetRef<FarmAnimal>>? animalsInCurrentLocation = GetAnimalsInCurrentLocation();
@@ -115,24 +104,26 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
       return;
     }
 
-    foreach (KeyValuePair<long, FarmAnimal> animal in animalsInCurrentLocation.Pairs)
+    foreach ((_, FarmAnimal animal) in animalsInCurrentLocation.Pairs)
     {
-      FarmAnimalHarvestType? harvestType = animal.Value.GetHarvestType();
-      if (harvestType == FarmAnimalHarvestType.DropOvernight ||
-          animal.Value.IsEmoting ||
-          animal.Value.currentProduce.Value == "430" || // 430 is truffle
-          animal.Value.currentProduce.Value == null ||
-          animal.Value.age.Value < animal.Value.GetAnimalData().DaysToMature)
+      FarmAnimalHarvestType? harvestType = animal.GetHarvestType();
+      // Check to make sure the animal is grown, they have produce, and the produce is something that can be harvested
+      // directly from them.
+      string? currentProduce = animal.currentProduce.Value;
+      bool hasAllowedProduce = currentProduce != null && currentProduce != "430"; // Truffle
+      bool isGrown = animal.age.Value >= animal.GetAnimalData().DaysToMature;
+      if (harvestType == FarmAnimalHarvestType.DropOvernight || animal.IsEmoting || !hasAllowedProduce || !isGrown)
       {
         continue;
       }
 
-      Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(animal.Value);
-      positionAboveAnimal.Y += (float)(Math.Sin(
-                                         Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 300.0 +
-                                         animal.Value.Name.GetHashCode()
-                                       ) *
-                                       5.0);
+      Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(animal);
+
+      // Offset the produce bubble by some sinusoidal value dependent on render time.
+      double totalMillis = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
+      double sinOffset = Math.Sin(totalMillis / 300.0 + animal.Name.GetHashCode()) * 5.0;
+      positionAboveAnimal.Y += (float) sinOffset;
+
       Game1.spriteBatch.Draw(
         Game1.emoteSpriteSheet,
         Utility.ModifyCoordinatesForUIScale(new Vector2(positionAboveAnimal.X + 14f, positionAboveAnimal.Y)),
@@ -150,8 +141,7 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
         1f
       );
 
-      string produceItemId = animal.Value.currentProduce.Value;
-      ParsedItemData? produceData = ItemRegistry.GetData(produceItemId);
+      ParsedItemData? produceData = ItemRegistry.GetData(currentProduce);
       Rectangle sourceRectangle = produceData.GetSourceRect();
       Game1.spriteBatch.Draw(
         produceData.GetTexture(),
@@ -167,6 +157,20 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
     }
   }
 
+  /// <summary>
+  ///   Used to determine if we need an offset because of the animal's sprite size
+  /// </summary>
+  /// <param name="animal"></param>
+  /// <returns>If the animal type is a "big" animal</returns>
+  private static bool IsLargeAnimal(FarmAnimal animal)
+  {
+    string animalType = animal.type.Value.ToLower();
+    return animalType.Contains("cow") ||
+           animalType.Contains("sheep") ||
+           animalType.Contains("goat") ||
+           animalType.Contains("pig");
+  }
+
   private void DrawIconForFarmAnimals()
   {
     NetLongDictionary<FarmAnimal, NetRef<FarmAnimal>>? animalsInCurrentLocation = GetAnimalsInCurrentLocation();
@@ -176,75 +180,61 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
       return;
     }
 
-    foreach (KeyValuePair<long, FarmAnimal> animal in animalsInCurrentLocation.Pairs)
+    foreach ((_, FarmAnimal animal) in animalsInCurrentLocation.Pairs)
     {
-      if (animal.Value.IsEmoting ||
-          animal.Value.wasPet.Value ||
-          (animal.Value.friendshipTowardFarmer.Value >= 1000 && HideOnMaxFriendship))
+      int animalFriendship = animal.friendshipTowardFarmer.Value;
+      if (animal.IsEmoting || animal.wasPet.Value || (animalFriendship >= 1000 && Config.HideAnimalPetOnMaxFriendship))
       {
         continue;
       }
 
-      Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(animal.Value);
-      string animalType = animal.Value.type.Value.ToLower();
-
-      if (animalType.Contains("cow") ||
-          animalType.Contains("sheep") ||
-          animalType.Contains("goat") ||
-          animalType.Contains("pig"))
+      Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(animal);
+      if (IsLargeAnimal(animal))
       {
         positionAboveAnimal.X += 50f;
         positionAboveAnimal.Y += 50f;
       }
 
-      Game1.spriteBatch.Draw(
-        Game1.mouseCursors,
-        Utility.ModifyCoordinatesForUIScale(
-          new Vector2(positionAboveAnimal.X, positionAboveAnimal.Y + _yMovementPerDraw.Value)
-        ),
-        new Rectangle(32, 0, 16, 16),
-        Color.White * _alpha.Value,
-        0.0f,
-        Vector2.Zero,
-        4f,
-        SpriteEffects.None,
-        1f
-      );
+      DrawPetHand(positionAboveAnimal);
     }
   }
 
   private void DrawIconForPets()
   {
-    foreach (NPC? character in Game1.currentLocation.characters)
+    foreach (Pet pet in GetPetsInCurrentLocation())
     {
-      if (character is not Pet pet ||
-          pet.lastPetDay.Values.Any(day => day == Game1.Date.TotalDays) ||
-          (pet.friendshipTowardFarmer.Value >= 1000 && HideOnMaxFriendship))
+      // Disqualifying checks for the pet
+      bool wasPetToday = pet.lastPetDay.Values.Any(day => day == Game1.Date.TotalDays);
+      bool isMaxFriendship = pet.friendshipTowardFarmer.Value >= 1000;
+      if (wasPetToday || (isMaxFriendship && Config.HideAnimalPetOnMaxFriendship))
       {
         continue;
       }
 
-      Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(character);
+      Vector2 positionAboveAnimal = GetPetPositionAboveAnimal(pet);
 
       positionAboveAnimal.X += 50f;
       positionAboveAnimal.Y += 20f;
-      Game1.spriteBatch.Draw(
-        Game1.mouseCursors,
-        Utility.ModifyCoordinatesForUIScale(
-          new Vector2(positionAboveAnimal.X, positionAboveAnimal.Y + _yMovementPerDraw.Value)
-        ),
-        new Rectangle(32, 0, 16, 16),
-        Color.White * _alpha.Value,
-        0.0f,
-        Vector2.Zero,
-        4f,
-        SpriteEffects.None,
-        1f
-      );
+      DrawPetHand(positionAboveAnimal);
     }
   }
 
-  private Vector2 GetPetPositionAboveAnimal(Character animal)
+  private void DrawPetHand(Vector2 handPosition)
+  {
+    Game1.spriteBatch.Draw(
+      Game1.mouseCursors,
+      Utility.ModifyCoordinatesForUIScale(new Vector2(handPosition.X, handPosition.Y + _yMovementPerDraw.Value)),
+      new Rectangle(32, 0, 16, 16),
+      Color.White * _alpha.Value,
+      0.0f,
+      Vector2.Zero,
+      4f,
+      SpriteEffects.None,
+      1f
+    );
+  }
+
+  private static Vector2 GetPetPositionAboveAnimal(Character animal)
   {
     Vector2 animalPosition = animal.getLocalPosition(Game1.viewport);
     animalPosition.X += 10;
@@ -252,7 +242,7 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
     return animalPosition;
   }
 
-  private NetLongDictionary<FarmAnimal, NetRef<FarmAnimal>>? GetAnimalsInCurrentLocation()
+  private static NetLongDictionary<FarmAnimal, NetRef<FarmAnimal>>? GetAnimalsInCurrentLocation()
   {
     NetLongDictionary<FarmAnimal, NetRef<FarmAnimal>>? animals = Game1.currentLocation switch
     {
@@ -262,6 +252,52 @@ internal class ShowWhenAnimalNeedsPet : IDisposable
     };
 
     return animals;
+  }
+
+  private static IEnumerable<Pet> GetPetsInCurrentLocation()
+  {
+    return Game1.currentLocation.characters.Where(character => character is Pet).Cast<Pet>();
+  }
+
+#region Configuration Setup
+  public string GetConfigPage()
+  {
+    return ConfigPageNames.Tooltips;
+  }
+
+  public string GetConfigSection()
+  {
+    return ConfigSectionNames.EmptySection;
+  }
+
+  public string GetSubHeader()
+  {
+    return I18n.Gmcm_Group_AnimalTooltips();
+  }
+
+  public void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
+  {
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Tooltips_Animals_Enable,
+      tooltip: I18n.Gmcm_Modules_Tooltips_Animals_Enable_Tooltip,
+      getValue: () => Config.ShowAnimalsNeedPets,
+      setValue: value => Config.ShowAnimalsNeedPets = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Tooltips_Animals_HideOnFriends,
+      tooltip: I18n.Gmcm_Modules_Tooltips_Animals_HideOnFriends_Tooltip,
+      getValue: () => Config.HideAnimalPetOnMaxFriendship,
+      setValue: value => Config.HideAnimalPetOnMaxFriendship = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Tooltips_Animals_ShowProduce,
+      tooltip: I18n.Gmcm_Modules_Tooltips_Animals_ShowProduce_Tooltip,
+      getValue: () => Config.ShowAnimalProduceReady,
+      setValue: value => Config.ShowAnimalProduceReady = value
+    );
   }
 #endregion
 }

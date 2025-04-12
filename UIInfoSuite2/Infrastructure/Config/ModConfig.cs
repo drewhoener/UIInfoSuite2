@@ -52,6 +52,7 @@ public sealed class ModConfig
 
   // Animal Hands
   public bool ShowAnimalsNeedPets { get; set; } = true;
+  public bool ShowAnimalProduceReady { get; set; } = true;
   public bool HideAnimalPetOnMaxFriendship { get; set; } = true;
 #endregion
 

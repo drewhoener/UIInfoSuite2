@@ -280,23 +280,6 @@ public class ConfigManager : IDisposable
     // Tooltips Page
     modConfigMenuApi.AddPage(_manifest, "tooltips", I18n.Gmcm_Page_Tooltips_Title);
 
-    // Animals
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_AnimalTooltips); // "Animal Tooltips"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Tooltips_Animals_Enable,
-      tooltip: I18n.Gmcm_Modules_Tooltips_Animals_Enable_Tooltip,
-      getValue: () => Config.ShowAnimalsNeedPets,
-      setValue: value => Config.ShowAnimalsNeedPets = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Tooltips_Animals_HideOnFriends,
-      tooltip: I18n.Gmcm_Modules_Tooltips_Animals_HideOnFriends_Tooltip,
-      getValue: () => Config.HideAnimalPetOnMaxFriendship,
-      setValue: value => Config.HideAnimalPetOnMaxFriendship = value
-    );
-
     // Objects
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_ObjectTooltips); // "Object Tooltips"
     modConfigMenuApi.AddBoolOption(

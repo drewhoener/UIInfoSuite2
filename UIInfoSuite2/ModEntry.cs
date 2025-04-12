@@ -21,6 +21,7 @@ using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Modules.Base;
 using UIInfoSuite2.Infrastructure.Modules.Hud;
 using UIInfoSuite2.Infrastructure.Modules.MenuAdditions;
+using UIInfoSuite2.Infrastructure.Modules.Overlay;
 using UIInfoSuite2.Infrastructure.Patches;
 using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
 
@@ -101,6 +102,7 @@ internal class ModEntry : Mod
     RegisterHudModuleSingleton<TravelingMerchantReminderModule>();
     RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
     RegisterBaseModuleSingleton<PartialHeartFillModule>();
+    RegisterBaseModuleSingleton<AnimalInteractModule>();
 
     _container.Verify();
 
