@@ -13,8 +13,9 @@ using StardewValley.GameData.FarmAnimals;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Locations;
 using StardewValley.Network;
+using UIInfoSuite2.UIElements;
 
-namespace UIInfoSuite2.UIElements;
+namespace UIInfoSuite2.Infrastructure.Modules.Overlay;
 
 internal class ShowWhenAnimalNeedsPet : IDisposable
 {
