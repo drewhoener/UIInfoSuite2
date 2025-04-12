@@ -324,19 +324,6 @@ public class ConfigManager : IDisposable
     // Menu Features Page
     modConfigMenuApi.AddPage(_manifest, "menu-features", I18n.Gmcm_Page_MenuFeatures_Title);
 
-    // Social Menu Features
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_SocialFeatures); // "Social Menu Features"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Menus_GiftLock_Enable,
-      tooltip: I18n.Gmcm_Modules_Menus_GiftLock_Enable_Tooltip,
-      getValue: () => Config.ShowLockAfterNpcGift,
-      setValue: value => Config.ShowLockAfterNpcGift = value
-    );
-
-    // Shop Features
-
-
     // Bundle Features
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_BundleFeatures); // "Bundle Features"
     modConfigMenuApi.AddBoolOption(
