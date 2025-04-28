@@ -1,73 +1,15 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
+using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.ItemTypeDefinitions;
-using StardewValley.Tools;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Models.Icons;
 using UIInfoSuite2.Infrastructure.Modules.Base;
 
-namespace UIInfoSuite2.UIElements;
-
-internal class ToolIcon : ClickableIcon
-{
-  private readonly PerScreen<Tool?> _tool = new(() => null);
-
-  public ToolIcon() : base(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40)
-  {
-    UpdateTool();
-  }
-
-  public Tool? Tool => _tool.Value;
-
-  public void UpdateTool()
-  {
-    if (_tool.Value == Game1.player.toolBeingUpgraded.Value)
-    {
-      return;
-    }
-
-    _tool.Value = Game1.player.toolBeingUpgraded.Value;
-    if (Tool is null)
-    {
-      return;
-    }
-
-    switch (Tool)
-    {
-      case Axe or Pickaxe or Hoe or WateringCan or Pan or GenericTool { IndexOfMenuItemView: >= 13 and <= 16 }:
-      {
-        ParsedItemData itemData = ItemRegistry.GetDataOrErrorItem(Tool.QualifiedItemId);
-        BaseTexture.Value = itemData.GetTexture();
-        SetSourceBounds(itemData.GetSourceRect());
-        break;
-      }
-    }
-
-    if (Game1.player.daysLeftForToolUpgrade.Value > 0)
-    {
-      HoverText = string.Format(
-        I18n.DaysUntilToolIsUpgraded(),
-        Game1.player.daysLeftForToolUpgrade.Value,
-        Tool.DisplayName
-      );
-    }
-    else
-    {
-      HoverText = string.Format(I18n.ToolIsFinishedBeingUpgraded(), Tool.DisplayName);
-    }
-  }
-
-  protected override bool _ShouldDraw()
-  {
-    return Tool is not null;
-  }
-}
+namespace UIInfoSuite2.Infrastructure.Modules.Hud;
 
 internal class ToolUpgradeReminderModule(
   IModEvents modEvents,
@@ -91,19 +33,29 @@ internal class ToolUpgradeReminderModule(
   public override void OnEnable()
   {
     base.OnEnable();
-    ModEvents.GameLoop.OneSecondUpdateTicked += UpdateToolInfo;
-    ModEvents.GameLoop.DayStarted += UpdateToolInfo;
+    Game1.player.toolBeingUpgraded.fieldChangeEvent += OnFieldUpdateTool;
+    ModEvents.GameLoop.DayStarted += OnEventUpdateTool;
   }
 
   public override void OnDisable()
   {
-    ModEvents.GameLoop.OneSecondUpdateTicked -= UpdateToolInfo;
-    ModEvents.GameLoop.DayStarted -= UpdateToolInfo;
+    Game1.player.toolBeingUpgraded.fieldChangeEvent -= OnFieldUpdateTool;
+    ModEvents.GameLoop.DayStarted -= OnEventUpdateTool;
     base.OnDisable();
   }
 
+  private void OnFieldUpdateTool(NetRef<Tool> netRef, Tool oldTool, Tool newTool)
+  {
+    UpdateToolInfo();
+  }
 
-  private void UpdateToolInfo(object? sender, EventArgs e)
+  private void OnEventUpdateTool(object? sender, EventArgs e)
+  {
+    UpdateToolInfo();
+  }
+
+
+  private void UpdateToolInfo()
   {
     if (Icon.Tool != Game1.player.toolBeingUpgraded.Value)
     {
