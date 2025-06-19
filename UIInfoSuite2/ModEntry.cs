@@ -1,6 +1,9 @@
-﻿using System;
+﻿// #define LAYOUT_DEBUG
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using SimpleInjector;
@@ -21,9 +24,14 @@ using UIInfoSuite2.Infrastructure.Models;
 using UIInfoSuite2.Infrastructure.Modules.Base;
 using UIInfoSuite2.Infrastructure.Modules.Hud;
 using UIInfoSuite2.Infrastructure.Modules.MenuAdditions;
+using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.ExtendedItemInfo;
+using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts;
 using UIInfoSuite2.Infrastructure.Modules.Overlay;
 using UIInfoSuite2.Infrastructure.Patches;
-using UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
+
+#if DEBUG
+[assembly: MetadataUpdateHandler(typeof(HotReloadService))]
+#endif
 
 namespace UIInfoSuite2;
 
@@ -34,6 +42,8 @@ internal class ModEntry : Mod
   private readonly Container _container = new();
 
   public static ModEntry Instance { get; private set; } = null!;
+
+  public static ModConfig Config => GetSingleton<ConfigManager>().Config;
 
   public static T GetSingleton<T>() where T : class
   {
@@ -92,8 +102,10 @@ internal class ModEntry : Mod
 
     // Register Modules
     RegisterConfigurable<ConfigurableHudIconPositioning>();
+    RegisterConfigurable<ConfigurableDebugOptions>();
     RegisterPatchable<PatchRenderingMenuContentStep>();
-    RegisterBaseModuleSingleton<MenuShortcutDisplay>();
+    RegisterBaseModuleSingleton<MenuShortcutModule>();
+    // RegisterBaseModuleSingleton<ShowCropAndBarrelTime>();
     RegisterHudModuleSingleton<BirthdayReminderModule>();
     RegisterHudModuleSingleton<ConstructionTrackerModule>();
     RegisterHudModuleSingleton<DailyLuckModule>();
@@ -102,10 +114,13 @@ internal class ModEntry : Mod
     RegisterHudModuleSingleton<WeeklyRecipeModule>();
     RegisterHudModuleSingleton<ToolUpgradeReminderModule>();
     RegisterHudModuleSingleton<TravelingMerchantReminderModule>();
+    RegisterBaseModuleSingleton<ExtendedItemInfoModule>();
     RegisterBaseModuleSingleton<GiftLockModule>();
     RegisterBaseModuleSingleton<PartialHeartFillModule>();
     RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
     RegisterBaseModuleSingleton<AnimalInteractModule>();
+    RegisterBaseModuleSingleton<ObjectEffectRangeModule>();
+    RegisterBaseModuleSingleton<ObjectInfoModule>();
 
     _container.Verify();
 
@@ -116,7 +131,7 @@ internal class ModEntry : Mod
     helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
     helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
     _container.GetInstance<EventsManager>().OnConfigChange += (_, _) => ReloadModules();
-    _container.GetInstance<MenuShortcutDisplay>().Register(helper);
+    _container.GetInstance<MenuShortcutModule>().Register(helper);
 
     IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded(ModCompat.DeluxeJournal);
 
@@ -201,6 +216,14 @@ internal class ModEntry : Mod
   public static void DebugLog(string message, LogLevel level = LogLevel.Trace)
   {
 #if DEBUG
+    Instance.Monitor.Log(message, level);
+#endif
+  }
+
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public static void LayoutDebug(string message, LogLevel level = LogLevel.Trace)
+  {
+#if LAYOUT_DEBUG
     Instance.Monitor.Log(message, level);
 #endif
   }

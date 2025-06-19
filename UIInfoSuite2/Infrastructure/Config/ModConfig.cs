@@ -5,6 +5,10 @@ namespace UIInfoSuite2.Infrastructure.Config;
 
 public sealed class ModConfig
 {
+#region Advanced Config
+  public bool DrawDebugBounds { get; set; } = false;
+#endregion
+
 #region HUD Items Config
   // Icons
   public int HudIconsPerRow { get; set; } = 5;
@@ -62,6 +66,9 @@ public sealed class ModConfig
 
   // Harvest price display for seeds
   public bool ShowHarvestPricesInShop { get; set; } = true;
+
+  // Extended Item information
+  public bool ShowExtendedItemInfo { get; set; } = true;
 
   // Bundle required items on mouse over
   public bool ShowItemsRequiredForBundles { get; set; } = true;

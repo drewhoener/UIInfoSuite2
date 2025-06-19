@@ -1,9 +1,9 @@
 ﻿{
   "Name": "UI Info Suite 2",
-  "Author": "Annosz",
+  "Author": "Abs0rbed, Annosz, Tilwa",
   "Version": "2.3.7",
   "Description": "Adds a useful information to the user interface. Based on Cdaragorn's excellent UI Info Suite.",
-  "UniqueID": "Annosz.UiInfoSuite2",
+  "UniqueID": "UIInfoSuite.UIInfoSuite2",
   "EntryDll": "UIInfoSuite2.dll",
   "MinimumApiVersion": "4.0.5",
   "UpdateKeys": [

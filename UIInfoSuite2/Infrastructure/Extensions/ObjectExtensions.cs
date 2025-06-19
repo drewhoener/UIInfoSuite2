@@ -2,12 +2,111 @@
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Objects;
 
 namespace UIInfoSuite2.Infrastructure.Extensions;
 
 public static class ObjectExtensions
 {
+  public static Rectangle GetHeadShot(this NPC npc)
+  {
+    int size;
+    if (!NpcHeadShotSize.TryGetValue(npc.Name, out size))
+    {
+      size = 4;
+    }
+
+    Rectangle mugShotSourceRect = npc.getMugShotSourceRect();
+    mugShotSourceRect.Height -= size / 2;
+    mugShotSourceRect.Y -= size / 2;
+    return mugShotSourceRect;
+  }
+
+  public static string GetCropString(this Crop? crop)
+  {
+    if (crop == null)
+    {
+      return "null";
+    }
+
+    return $"Crop[" +
+           $"Type={(!string.IsNullOrEmpty(crop.netSeedIndex.Value) ? crop.netSeedIndex.Value : crop.whichForageCrop.Value)}, " +
+           $"Phase={crop.currentPhase.Value}/{crop.phaseDays.Count - 1}, " + // -1 because last phase is finalPhaseLength
+           $"DayOfPhase={crop.dayOfCurrentPhase.Value}, " +
+           $"Harvest={crop.indexOfHarvest.Value}, " +
+           $"FullyGrown={crop.fullyGrown.Value}, " +
+           $"Dead={crop.dead.Value}, " +
+           $"ForageCrop={crop.forageCrop.Value}" +
+           (crop.forageCrop.Value ? $", ForageType={crop.whichForageCrop.Value}" : "") +
+           (crop.programColored.Value ? $", Tint={crop.tintColor.Value}" : "") +
+           "]";
+  }
+
+  public static string SafeGetString(this IModHelper helper, string key)
+  {
+    var result = string.Empty;
+
+    if (!string.IsNullOrEmpty(key) && helper != null)
+    {
+      result = helper.Translation.Get(key);
+    }
+
+    return result;
+  }
+
+  public static int OrZero(this int? nullable)
+  {
+    return nullable ?? 0;
+  }
+
+  public static float OrZero(this float? nullable)
+  {
+    return nullable ?? 0.0f;
+  }
+
+  public static double OrZero(this double? nullable)
+  {
+    return nullable ?? 0.0;
+  }
+
+  public static bool IsSolarPanel(this Object? tileObject)
+  {
+    if (tileObject == null)
+    {
+      return false;
+    }
+
+    return tileObject.bigCraftable.Value && tileObject.ItemId == SolarPanelId;
+  }
+
+  public static bool IsWorking(this Object? tileObject)
+  {
+    if (tileObject == null)
+    {
+      return false;
+    }
+
+    if (tileObject is Cask cask)
+    {
+      return cask.daysToMature.Value > 0;
+    }
+
+    if (!tileObject.bigCraftable.Value)
+    {
+      return false;
+    }
+
+    if (tileObject.IsSolarPanel())
+    {
+      return tileObject.MinutesUntilReady > 0 || tileObject.heldObject.Value == null;
+    }
+
+    return tileObject.MinutesUntilReady > 0;
+  }
+
 #region Properties
+  private const string SolarPanelId = "231";
+
   private static readonly Dictionary<string, int> NpcHeadShotSize = new()
   {
     { "Piere", 9 },
@@ -46,45 +145,4 @@ public static class ObjectExtensions
     { "Willy", 10 }
   };
 #endregion
-
-  public static Rectangle GetHeadShot(this NPC npc)
-  {
-    int size;
-    if (!NpcHeadShotSize.TryGetValue(npc.Name, out size))
-    {
-      size = 4;
-    }
-
-    Rectangle mugShotSourceRect = npc.getMugShotSourceRect();
-    mugShotSourceRect.Height -= size / 2;
-    mugShotSourceRect.Y -= size / 2;
-    return mugShotSourceRect;
-  }
-
-  public static string SafeGetString(this IModHelper helper, string key)
-  {
-    var result = string.Empty;
-
-    if (!string.IsNullOrEmpty(key) && helper != null)
-    {
-      result = helper.Translation.Get(key);
-    }
-
-    return result;
-  }
-
-  public static int OrZero(this int? nullable)
-  {
-    return nullable ?? 0;
-  }
-
-  public static float OrZero(this float? nullable)
-  {
-    return nullable ?? 0.0f;
-  }
-
-  public static double OrZero(this double? nullable)
-  {
-    return nullable ?? 0.0;
-  }
 }

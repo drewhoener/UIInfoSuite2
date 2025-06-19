@@ -17,34 +17,40 @@ namespace UIInfoSuite2.UIElements;
 
 internal class ShowItemHoverInformation : IDisposable
 {
-  private readonly BundleHelper _bundleHelper;
-
-  private readonly ClickableTextureComponent _bundleIcon = new(
-    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-    Game1.mouseCursors,
-    new Rectangle(331, 374, 15, 14),
-    3f
+  private static readonly Lazy<ClickableTextureComponent> _shippingBottomIcon = new(
+    () => new ClickableTextureComponent(
+      new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
+      Game1.mouseCursors,
+      new Rectangle(526, 218, 30, 22),
+      1.2f
+    )
   );
+
+  private static readonly Lazy<ClickableTextureComponent> _bundleIcon = new(
+    () => new ClickableTextureComponent(
+      new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
+      Game1.mouseCursors,
+      new Rectangle(331, 374, 15, 14),
+      3f
+    )
+  );
+
+  private static readonly Lazy<ClickableTextureComponent> _shippingTopIcon = new(
+    () => new ClickableTextureComponent(
+      new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
+      Game1.mouseCursors,
+      new Rectangle(134, 236, 30, 15),
+      1.2f
+    )
+  );
+
+  private readonly BundleHelper _bundleHelper;
 
   private readonly IModHelper _helper;
 
   private readonly PerScreen<Item?> _hoverItem = new();
   private readonly IMonitor _logger;
   private readonly ClickableTextureComponent _museumIcon;
-
-  private readonly ClickableTextureComponent _shippingBottomIcon = new(
-    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-    Game1.mouseCursors,
-    new Rectangle(526, 218, 30, 22),
-    1.2f
-  );
-
-  private readonly ClickableTextureComponent _shippingTopIcon = new(
-    new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-    Game1.mouseCursors,
-    new Rectangle(134, 236, 30, 15),
-    1.2f
-  );
 
   private LibraryMuseum _libraryMuseum;
 
@@ -369,7 +375,7 @@ internal class ShowItemHoverInformation : IDisposable
     b.DrawString(Game1.smallFont, text, position, Game1.textColor);
   }
 
-  private void DrawBundleBanner(
+  public static void DrawBundleBanner(
     SpriteBatch spriteBatch,
     string bundleName,
     Vector2 position,
@@ -399,11 +405,11 @@ internal class ShowItemHoverInformation : IDisposable
     spriteBatch.Draw(
       Game1.mouseCursors,
       position,
-      _bundleIcon.sourceRect,
+      _bundleIcon.Value.sourceRect,
       Color.White,
       0f,
       Vector2.Zero,
-      _bundleIcon.scale,
+      _bundleIcon.Value.scale,
       SpriteEffects.None,
       0.86f
     );
@@ -412,7 +418,7 @@ internal class ShowItemHoverInformation : IDisposable
       spriteBatch,
       bundleName,
       Game1.dialogueFont,
-      position + new Vector2(_bundleIcon.sourceRect.Width * _bundleIcon.scale + 3, 0),
+      position + new Vector2(_bundleIcon.Value.sourceRect.Width * _bundleIcon.Value.scale + 3, 0),
       Color.Ivory,
       Color.DarkSlateGray,
       horizontalShadowOffset: 2,
@@ -421,7 +427,7 @@ internal class ShowItemHoverInformation : IDisposable
     );
   }
 
-  private void DrawShippingBin(SpriteBatch b, Vector2 position, Vector2 origin)
+  public static void DrawShippingBin(SpriteBatch b, Vector2 position, Vector2 origin)
   {
     var shippingBinOffset = new Vector2(0, 2);
     // var shippingBinLidOffset = Vector2.Zero;
@@ -429,24 +435,24 @@ internal class ShowItemHoverInformation : IDisposable
     // NB This is not the texture used to draw the shipping bin on the farm map.
     //    The one for the farm is located in "Buildings\Shipping Bin".
     b.Draw(
-      _shippingBottomIcon.texture,
+      _shippingBottomIcon.Value.texture,
       position,
-      _shippingBottomIcon.sourceRect,
+      _shippingBottomIcon.Value.sourceRect,
       Color.White,
       0f,
       origin - shippingBinOffset,
-      _shippingBottomIcon.scale,
+      _shippingBottomIcon.Value.scale,
       SpriteEffects.None,
       0.86f
     );
     b.Draw(
-      _shippingTopIcon.texture,
+      _shippingTopIcon.Value.texture,
       position,
-      _shippingTopIcon.sourceRect,
+      _shippingTopIcon.Value.sourceRect,
       Color.White,
       0f,
       origin,
-      _shippingTopIcon.scale,
+      _shippingTopIcon.Value.scale,
       SpriteEffects.None,
       0.86f
     );

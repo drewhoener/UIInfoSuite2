@@ -10,13 +10,15 @@ internal static class ConfigPageNames
   public const string Tooltips = "tooltips";
   public const string MenuFeatures = "menu-features";
   public const string Keybinds = "keybinds";
+  public const string Advanced = "advanced";
 
   public static string[] Items =
   [
     HudIcons,
     Tooltips,
     MenuFeatures,
-    Keybinds
+    Keybinds,
+    Advanced
   ];
 
   public static GMCMPageTuple GetPageLinkStrings(string pageName)
@@ -27,6 +29,7 @@ internal static class ConfigPageNames
       Tooltips => new GMCMPageTuple(I18n.Gmcm_Page_Tooltips_Title, I18n.Gmcm_Page_Tooltips_Tooltip),
       MenuFeatures => new GMCMPageTuple(I18n.Gmcm_Page_MenuFeatures_Title, I18n.Gmcm_Page_MenuFeatures_Tooltip),
       Keybinds => new GMCMPageTuple(I18n.Gmcm_Page_Keybinds_Title, I18n.Gmcm_Page_Keybinds_Tooltip),
+      Advanced => new GMCMPageTuple(I18n.Gmcm_Page_Advanced_Title, I18n.Gmcm_Page_Advanced_Tooltip),
       _ => throw new NotSupportedException($"Page {pageName} is not supported")
     };
   }

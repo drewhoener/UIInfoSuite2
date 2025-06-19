@@ -5,9 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Locations;
-using UIInfoSuite2.Infrastructure;
 
-namespace UIInfoSuite2.UIElements.MenuShortcuts;
+namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
 public class MonsterSlayerShortcut : BaseMenuShortcut
 {

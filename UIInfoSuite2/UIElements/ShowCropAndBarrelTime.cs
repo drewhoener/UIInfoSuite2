@@ -15,14 +15,18 @@ using StardewValley.TerrainFeatures;
 using StardewValley.TokenizableStrings;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
+using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
+using UIInfoSuite2.Infrastructure.Models.Tooltip;
+using UIInfoSuite2.Infrastructure.Modules.Base;
 using Object = StardewValley.Object;
 
 namespace UIInfoSuite2.UIElements;
 
-internal class ShowCropAndBarrelTime : IDisposable
+internal class ShowCropAndBarrelTime(IModEvents modEvents, IMonitor logger, ConfigManager configManager)
+  : BaseModule(modEvents, logger, configManager)
 {
   private const int MAX_TREE_GROWTH_STAGE = 5;
 
@@ -45,30 +49,26 @@ internal class ShowCropAndBarrelTime : IDisposable
   private readonly PerScreen<Object?> _currentTile = new();
   private readonly PerScreen<Building?> _currentTileBuilding = new();
 
-  private readonly IModHelper _helper;
+  private MouseTooltipDom? _newTooltip;
 
-  public ShowCropAndBarrelTime(IModHelper helper)
+
+  public override bool ShouldEnable()
   {
-    _helper = helper;
+    return Config.ShowCropTooltip;
   }
 
-  public void Dispose()
+  public override void OnEnable()
   {
-    ToggleOption(false);
+    _newTooltip = new MouseTooltipDom();
+    ModEvents.Display.RenderingHud += OnRenderingHud;
+    ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
   }
 
-  public void ToggleOption(bool showCropAndBarrelTimes)
+  public override void OnDisable()
   {
-    _helper.Events.Display.RenderingHud -= OnRenderingHud;
-    _helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
-
-    if (!showCropAndBarrelTimes)
-    {
-      return;
-    }
-
-    _helper.Events.Display.RenderingHud += OnRenderingHud;
-    _helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+    _newTooltip = null;
+    ModEvents.Display.RenderingHud -= OnRenderingHud;
+    ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
   }
 
   /// <summary>Raised after the game state is updated (≈60 times per second).</summary>
@@ -135,6 +135,7 @@ internal class ShowCropAndBarrelTime : IDisposable
   /// </summary>
   /// <param name="sender">The event sender.</param>
   /// <param name="e">The event arguments.</param>
+  [EventPriority(EventPriority.Low)]
   private void OnRenderingHud(object? sender, RenderingHudEventArgs e)
   {
     if (Game1.activeClickableMenu != null)
@@ -150,6 +151,14 @@ internal class ShowCropAndBarrelTime : IDisposable
 
     int overrideX = -1;
     int overrideY = -1;
+
+    if (currentTile != null)
+    {
+      ModEntry.Instance.Monitor.Log($"Current Tile Object: {currentTile.DisplayName}");
+    }
+
+    _newTooltip!.MachineTooltipContainer.Machine = currentTile;
+    _newTooltip!.BuildingTooltipContainer.Building = currentTileBuilding;
 
     if (currentTileBuilding is not null)
     {
@@ -189,9 +198,9 @@ internal class ShowCropAndBarrelTime : IDisposable
       }
     }
 
-    if (lines.Count <= 0)
+    if (terrain is null)
     {
-      return;
+      _newTooltip!.CropTooltipContainer.Crop = null;
     }
 
     if (Game1.options.gamepadControls && Game1.timerUntilMouseFade <= 0)
@@ -200,13 +209,25 @@ internal class ShowCropAndBarrelTime : IDisposable
       overrideY = (int)(tile.Y + Utility.ModifyCoordinateForUIScale(32));
     }
 
-    IClickableMenu.drawHoverText(
-      Game1.spriteBatch,
-      string.Join('\n', lines),
-      Game1.smallFont,
-      overrideX: overrideX,
-      overrideY: overrideY
-    );
+    if (_newTooltip != null)
+    {
+      _newTooltip.DrawSafely(e.SpriteBatch, overrideX, overrideY);
+    }
+    else
+    {
+      if (lines.Count <= 0)
+      {
+        return;
+      }
+
+      IClickableMenu.drawHoverText(
+        Game1.spriteBatch,
+        string.Join('\n', lines),
+        Game1.smallFont,
+        overrideX: overrideX,
+        overrideY: overrideY
+      );
+    }
   }
 
   private static string GetFertilizerString(HoeDirt dirtTile)
@@ -289,7 +310,7 @@ internal class ShowCropAndBarrelTime : IDisposable
         : $"{parsedItemData.DisplayName}: {daysUntilReady} {I18n.Days()}{chanceStr}";
     }
 
-    private static Dictionary<string, int> GetItemCountMap(List<Item?> items)
+    public static Dictionary<string, int> GetItemCountMap(List<Item?> items)
     {
       Dictionary<string, int> itemCounter = new();
       foreach (Item? outputItem in items)
@@ -344,7 +365,6 @@ internal class ShowCropAndBarrelTime : IDisposable
       {
         entries.Add($"{displayName} x{count}");
       }
-
 
       return true;
     }
@@ -446,6 +466,7 @@ internal class ShowCropAndBarrelTime : IDisposable
           daysLeft -= hoeDirt.crop.dayOfCurrentPhase.Value;
         }
 
+        ModEntry.GetSingleton<ShowCropAndBarrelTime>()._newTooltip!.CropTooltipContainer.Crop = hoeDirt.crop;
 
         string cropName = ModEntry.GetSingleton<DropsHelper>().GetCropHarvestName(crop);
         string daysLeftStr = daysLeft <= 0 ? I18n.ReadyToHarvest() : $"{daysLeft} {I18n.Days()}";

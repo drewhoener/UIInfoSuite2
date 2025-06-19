@@ -63,7 +63,7 @@ public static class MachineHelper
   /// <summary>Get the building chests which match a set of chest names.</summary>
   /// <param name="building">The building whose chests to get.</param>
   /// <param name="chestNames">The chest names to match.</param>
-  public static IEnumerable<Chest> GetBuildingChests(Building building, ISet<string> chestNames)
+  public static IEnumerable<Chest> GetBuildingChestsFromNames(Building building, ISet<string> chestNames)
   {
     foreach (Chest chest in building.buildingChests)
     {
@@ -72,6 +72,24 @@ public static class MachineHelper
         yield return chest;
       }
     }
+  }
+
+  public static IEnumerable<Chest> GetBuildingChestsFromType(Building building, BuildingChestType chestType)
+  {
+    HashSet<string> inputChestNames = [];
+    HashSet<string> outputChestNames = [];
+    GetBuildingChestNames(building.GetData(), inputChestNames, outputChestNames);
+
+    IEnumerable<Chest> inputChests =
+      inputChestNames.Select(building.GetBuildingChest).Where(chest => chest is not null);
+    IEnumerable<Chest> outputChests =
+      outputChestNames.Select(building.GetBuildingChest).Where(chest => chest is not null);
+    return chestType switch
+    {
+      BuildingChestType.Chest => inputChests.Concat(outputChests),
+      BuildingChestType.Load => inputChests,
+      _ => outputChests
+    };
   }
 
   public static void GetBuildingChestItems(Building? building, List<Item?> inputItems, List<Item?> outputItems)
@@ -86,7 +104,7 @@ public static class MachineHelper
     GetBuildingChestNames(building.GetData(), inputChestNames, outputChestNames);
 
     IEnumerable<Chest> inputChests = inputChestNames.Select(building.GetBuildingChest)
-                                                    .Where(chest => chest is not null);
+      .Where(chest => chest is not null);
     IEnumerable<Chest> outputChests =
       outputChestNames.Select(building.GetBuildingChest).Where(chest => chest is not null);
 

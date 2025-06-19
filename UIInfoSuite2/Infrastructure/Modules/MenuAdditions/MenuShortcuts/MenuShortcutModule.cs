@@ -9,10 +9,11 @@ using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Events.Args;
 using UIInfoSuite2.Infrastructure.Modules.Base;
+using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
-namespace UIInfoSuite2.UIElements.MenuShortcuts.MenuShortcutDisplay;
+namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts;
 
-internal class MenuShortcutDisplay(
+internal class MenuShortcutModule(
   IModEvents modEvents,
   IMonitor logger,
   ConfigManager configManager,

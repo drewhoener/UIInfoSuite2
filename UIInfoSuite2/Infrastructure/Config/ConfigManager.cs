@@ -84,6 +84,7 @@ public class ConfigManager : IDisposable
     List<IConfigurable> topLevelConfigs = [];
     Dictionary<string, List<IConfigurable>> configurations = new();
     var currentSection = "";
+    var currentSubHeader = "";
 
     foreach (IConfigurable configurable in ModEntry.GetContainerCollection<IConfigurable>())
     {
@@ -105,9 +106,10 @@ public class ConfigManager : IDisposable
     {
       currentSection = UpdateSection(currentSection, element);
       string? subHeader = element.GetSubHeader();
-      if (subHeader != null)
+      if (subHeader != null && subHeader != currentSubHeader)
       {
         modConfigMenuApi.AddSubHeader(_manifest, () => subHeader);
+        currentSubHeader = subHeader;
       }
 
       element.AddConfigOptions(modConfigMenuApi, _manifest);
@@ -116,6 +118,7 @@ public class ConfigManager : IDisposable
 
     // Reset section tracker
     currentSection = "";
+    currentSubHeader = "";
     // Add all sub-page links
     foreach (string pageKey in ConfigPageNames.Items)
     {
@@ -137,9 +140,10 @@ public class ConfigManager : IDisposable
         // Add elements
         currentSection = UpdateSection(currentSection, element);
         string? subHeader = element.GetSubHeader();
-        if (subHeader != null)
+        if (subHeader != null && subHeader != currentSubHeader)
         {
           modConfigMenuApi.AddSubHeader(_manifest, () => subHeader);
+          currentSubHeader = subHeader;
         }
 
         element.AddConfigOptions(modConfigMenuApi, _manifest);
@@ -274,20 +278,6 @@ public class ConfigManager : IDisposable
 
     // Objects
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_ObjectTooltips); // "Object Tooltips"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Tooltips_Crops_Enable,
-      tooltip: I18n.Gmcm_Modules_Tooltips_Crops_Enable_Tooltip,
-      getValue: () => Config.ShowCropTooltip,
-      setValue: value => Config.ShowCropTooltip = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Tooltips_Machines_Enable,
-      tooltip: I18n.Gmcm_Modules_Tooltips_Machines_Enable_Tooltip,
-      getValue: () => Config.ShowMachineTooltip,
-      setValue: value => Config.ShowMachineTooltip = value
-    );
 
     // Range Indicators
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_RangeTooltips); // "Range Indicators"
@@ -315,16 +305,6 @@ public class ConfigManager : IDisposable
 
     // Menu Features Page
     modConfigMenuApi.AddPage(_manifest, "menu-features", I18n.Gmcm_Page_MenuFeatures_Title);
-
-    // Bundle Features
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_BundleFeatures); // "Bundle Features"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Menus_Bundles_Enable,
-      tooltip: I18n.Gmcm_Modules_Menus_Bundles_Enable_Tooltip,
-      getValue: () => Config.ShowItemsRequiredForBundles,
-      setValue: value => Config.ShowItemsRequiredForBundles = value
-    );
 
     // Menu Shortcuts
     AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_MenuShortcuts); // "Menu Shortcuts"
@@ -388,15 +368,15 @@ public class ConfigManager : IDisposable
     );
     modConfigMenuApi.AddKeybindList(
       _manifest,
-      name: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowHover,
-      tooltip: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowHover_Tooltip,
+      name: I18n.Gmcm_Section_Keybinds_ItemRange_ShowHover,
+      tooltip: I18n.Gmcm_Section_Keybinds_ItemRange_ShowHover_Tooltip,
       getValue: () => Config.ShowItemRangeHoverKeybind,
       setValue: value => Config.ShowItemRangeHoverKeybind = value
     );
     modConfigMenuApi.AddKeybindList(
       _manifest,
-      name: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowAll,
-      tooltip: I18n.Gmcm_Section_Keybindsd_ItemRange_ShowAll_Tooltip,
+      name: I18n.Gmcm_Section_Keybinds_ItemRange_ShowAll,
+      tooltip: I18n.Gmcm_Section_Keybinds_ItemRange_ShowAll_Tooltip,
       getValue: () => Config.ShowAllItemRangesHoverKeybind,
       setValue: value => Config.ShowAllItemRangesHoverKeybind = value
     );

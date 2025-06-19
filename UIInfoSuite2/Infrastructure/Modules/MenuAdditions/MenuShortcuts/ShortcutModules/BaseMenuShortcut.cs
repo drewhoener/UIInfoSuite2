@@ -6,7 +6,7 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace UIInfoSuite2.UIElements.MenuShortcuts;
+namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
 public abstract class BaseMenuShortcut
 {

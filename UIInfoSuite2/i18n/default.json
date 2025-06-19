@@ -110,6 +110,8 @@
   "gmcm.page.menuFeatures.tooltip": "Configure additional menu features",
   "gmcm.page.keybinds.title": "Keybinds",
   "gmcm.page.keybinds.tooltip": "Configure keyboard shortcuts",
+  "gmcm.page.advanced.title": "Advanced Configuration",
+  "gmcm.page.advanced.tooltip": "Debugging tools mostly",
   // Sections
   "gmcm.section.hudGlobal.title": "Global HUD Settings",
   "gmcm.section.hudGlobal.tooltip": "Settings that affect all HUD icons",
@@ -130,7 +132,7 @@
   "gmcm.group.rangeTooltips": "Range Indicators",
   "gmcm.group.socialFeatures": "Social Menu Features",
   "gmcm.group.shopFeatures": "Shop Features",
-  "gmcm.group.bundleFeatures": "Bundle Features",
+  "gmcm.group.extendedItemInfo": "Extended Item Information",
   "gmcm.group.menuShortcuts": "Menu Shortcuts",
   "gmcm.group.menuKeybinds": "Menu Shortcuts",
   "gmcm.group.rangeKeybinds": "Range Display Shortcuts",
@@ -183,7 +185,7 @@
   "gmcm.modules.icons.recipes.enable.tooltip": "Toggle whether the Queen of Sauce icon is shown when you can learn a new recipe",
   // Tool upgrade
   "gmcm.modules.icons.tool.enable": "Show Blacksmith upgrade icon",
-  "gmcm.modules.icons.tool.enable.tooltip": "Toggle whether an a tool icon is shown when you're upgrading at the blacksmith",
+  "gmcm.modules.icons.tool.enable.tooltip": "Toggle whether a tool icon is shown when you're upgrading at the blacksmith",
   // Robin
   "gmcm.modules.icons.carpenter.enable": "Show Robin construction icon",
   "gmcm.modules.icons.carpenter.enable.tooltip": "Toggle whether an icon is shown when Robin is doing work on your farm",
@@ -227,9 +229,13 @@
   // Harvest Prices
   "gmcm.modules.menus.harvest-prices.enable": "Show harvest price in shop",
   "gmcm.modules.menus.harvest-prices.enable.tooltip": "Toggle an additional panel that shows crop harvest prices in shops",
-  // Bundle Info
-  "gmcm.modules.menus.bundles.enable": "Show bundle information",
-  "gmcm.modules.menus.bundles.enable.tooltip": "Show the name of a bundle when hovering over an item that can be donated",
+  // Extended Item Info
+  "gmcm.modules.menus.extended-item-info.enable": "Show Extended Item Info",
+  "gmcm.modules.menus.extended-item-info.enable.tooltip": "Enable / Disable all additions to an item's display menu",
+  "gmcm.modules.menus.extended-item-info.bundles.enable": "Show bundle information",
+  "gmcm.modules.menus.extended-item-info.bundles.enable.tooltip": "Show the name of a bundle when hovering over an item that can be donated",
+  //  "gmcm.modules.menus.extended-item-info.enable": "Show bundle information",
+  //  "gmcm.modules.menus.extended-item-info.enable.tooltip": "Show the name of a bundle when hovering over an item that can be donated",
   // Menu shortcuts
   "gmcm.modules.menus.shortcuts.enable": "Show menu shortcuts",
   "gmcm.modules.menus.shortcuts.enable.tooltip": "Show a panel of available menus for quick access",
@@ -248,8 +254,11 @@
   "gmcm.section.keybinds.slayer.tooltip": "Opens the Slayer Menu",
   "gmcm.section.keybinds.item-range": "Toggle item range display",
   "gmcm.section.keybinds.item-range.tooltip": "Quickly toggle the range display for scarecrows and sprinklers",
-  "gmcm.section.keybindsd.item-range.show-hover": "Show item range on hover",
-  "gmcm.section.keybindsd.item-range.show-hover.tooltip": "Hold down this button to show the range of the machine/scarecrow your mouse is on",
-  "gmcm.section.keybindsd.item-range.show-all": "Show all nearby item ranges",
-  "gmcm.section.keybindsd.item-range.show-all.tooltip": "Hold this to show all nearby machine/scarecrow ranges"
+  "gmcm.section.keybinds.item-range.show-hover": "Show item range on hover",
+  "gmcm.section.keybinds.item-range.show-hover.tooltip": "Hold down this button to show the range of the machine/scarecrow your mouse is on",
+  "gmcm.section.keybinds.item-range.show-all": "Show all nearby item ranges",
+  "gmcm.section.keybinds.item-range.show-all.tooltip": "Hold this to show all nearby machine/scarecrow ranges",
+  // Advanced
+  "gmcm.section.advanced.draw-debug-bounds.enable": "Draw Debug Bounds",
+  "gmcm.section.advanced.draw-debug-bounds.enable.tooltip": "Draw debug bounds around containers showing padding & content"
 }

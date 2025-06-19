@@ -318,11 +318,11 @@ internal class LocationOfTownsfolk : IDisposable
       new Point((int)location.Value.X, (int)location.Value.Y)
     );
 
-    if (mapPosition is null)
-    {
-      ModEntry.MonitorObject.LogOnce($"Unable to draw headshot for {character.Name}");
-      return;
-    }
+    // if (mapPosition is null)
+    // {
+    //   ModEntry.MonitorObject.LogOnce($"Unable to draw headshot for {character.Name}");
+    //   return;
+    // }
 
     MapRegion mapRegion = mapPosition.Region;
     Rectangle mapBounds = mapRegion.GetMapPixelBounds();
@@ -363,14 +363,16 @@ internal class LocationOfTownsfolk : IDisposable
   private static Vector2? GetMapCoordinatesForNPC(NPC character)
   {
     var playerNormalizedTile = new Point(Math.Max(0, Game1.player.TilePoint.X), Math.Max(0, Game1.player.TilePoint.Y));
-    MapAreaPosition? playerMapAreaPosition = Tools.GetMapPositionDataSafe(Game1.player.currentLocation, playerNormalizedTile);
+    MapAreaPosition? playerMapAreaPosition =
+      Tools.GetMapPositionDataSafe(Game1.player.currentLocation, playerNormalizedTile);
     // ^^ Regarding that ?? clause...  If the player is in the farmhouse or barn or any building on the farm, GetPositionData is
     //  going to return null.  Thus the fallback to pretending the player is on the farm.  However, it seems to me that
     //  Game1.player.currentLocation.GetParentLocation() would be the safer long-term bet.  But rule number 1 of modding is this:
     //  the game code is always right, even when it's wrong.
 
     var characterNormalizedTile = new Point(Math.Max(0, character.TilePoint.X), Math.Max(0, character.TilePoint.Y));
-    MapAreaPosition? characterMapAreaPosition = Tools.GetMapPositionDataSafe(character.currentLocation, characterNormalizedTile);
+    MapAreaPosition? characterMapAreaPosition =
+      Tools.GetMapPositionDataSafe(character.currentLocation, characterNormalizedTile);
 
     if (playerMapAreaPosition != null &&
         characterMapAreaPosition != null &&

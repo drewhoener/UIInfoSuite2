@@ -362,4 +362,65 @@ public static class Tools
     string seasonLocalName = Game1.content.LoadString("Strings\\StringsFromCSFiles:" + Utility.getSeasonKey(season));
     return Capitalize(seasonLocalName);
   }
+
+  public static (int x, int y) CalculateTooltipPosition(
+    int width,
+    int height,
+    int xOffset = 0,
+    int yOffset = 0,
+    int overrideX = -1,
+    int overrideY = -1
+  )
+  {
+    int x = overrideX != -1 ? overrideX : Game1.getOldMouseX() + 32 + xOffset;
+    int y = overrideY != -1 ? overrideY : Game1.getOldMouseY() + 32 + yOffset;
+
+    Rectangle safeArea = Utility.getSafeArea();
+
+    // Adjust position if tooltip would go off screen
+    if (x + width > safeArea.Right)
+    {
+      x = safeArea.Right - width;
+      y += 16;
+    }
+
+    if (y + height > safeArea.Bottom)
+    {
+      x += 16;
+      if (x + width > safeArea.Right)
+      {
+        x = safeArea.Right - width;
+      }
+
+      y = safeArea.Bottom - height;
+    }
+
+    return (x, y);
+  }
+
+  public static void DrawBoxOutline(SpriteBatch spriteBatch, Rectangle rectangle, Color color, int lineWidth)
+  {
+    DrawBoxOutline(spriteBatch, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, color, lineWidth);
+  }
+
+  public static void DrawBoxOutline(
+    SpriteBatch spriteBatch,
+    int x,
+    int y,
+    int width,
+    int height,
+    Color color,
+    int lineWidth,
+    bool dimensionsInternal = false
+  )
+  {
+    int x2 = x + width - lineWidth;
+    int y2 = y + height - lineWidth;
+
+
+    spriteBatch.Draw(Game1.staminaRect, new Rectangle(x, y, lineWidth, height), color);
+    spriteBatch.Draw(Game1.staminaRect, new Rectangle(x, y, width, lineWidth), color);
+    spriteBatch.Draw(Game1.staminaRect, new Rectangle(x2, y, lineWidth, height), color);
+    spriteBatch.Draw(Game1.staminaRect, new Rectangle(x, y2, width, lineWidth), color);
+  }
 }
