@@ -1,8 +1,10 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
-using Microsoft.Xna.Framework.Audio;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Extensions;
+using StardewValley.GameData;
 
 namespace UIInfoSuite2.Infrastructure.Helpers;
 
@@ -13,27 +15,18 @@ public enum Sounds
 
 public class SoundHelper
 {
+  private readonly Dictionary<string, AudioCueData> _cueData = new();
   private readonly IMonitor _logger;
-  private bool _initialized;
-  private string _modId = "InfoSuite";
+  private readonly string _modId = "InfoSuite";
 
-  public SoundHelper(IMonitor logger)
+  public SoundHelper(IModHelper helper, IMonitor logger)
   {
     _logger = logger;
-  }
-
-  public void Initialize(IModHelper helper)
-  {
-    if (_initialized)
-    {
-      throw new InvalidOperationException("Cannot re-initialize sound helper");
-    }
-
     _modId = helper.ModContent.ModID;
 
     RegisterSound(helper, Sounds.LevelUp, "LevelUp.wav");
 
-    _initialized = true;
+    helper.Events.Content.AssetRequested += OnAssetRequested;
   }
 
   private string GetQualifiedSoundName(Sounds sound)
@@ -41,37 +34,33 @@ public class SoundHelper
     return $"{_modId}.sounds.{sound.ToString()}";
   }
 
-  private void RegisterSound(
-    IModHelper helper,
-    Sounds sound,
-    string fileName,
-    string category = "Sound",
-    int instanceLimit = -1,
-    CueDefinition.LimitBehavior? limitBehavior = null
-  )
+  private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
   {
-    CueDefinition newCueDefinition = new() { name = GetQualifiedSoundName(sound) };
-
-    if (instanceLimit > 0)
+    if (e.NameWithoutLocale.IsEquivalentTo("Data/AudioChanges"))
     {
-      newCueDefinition.instanceLimit = instanceLimit;
-      newCueDefinition.limitBehavior = limitBehavior ?? CueDefinition.LimitBehavior.ReplaceOldest;
+      e.Edit(asset =>
+        {
+          IDictionary<string, AudioCueData> data = asset.AsDictionary<string, AudioCueData>().Data;
+          data.TryAddMany(_cueData);
+        }
+      );
     }
-    else if (limitBehavior.HasValue)
-    {
-      newCueDefinition.limitBehavior = limitBehavior.Value;
-    }
+  }
 
-    SoundEffect audio;
-    string filePath = Path.Combine(helper.DirectoryPath, "assets", fileName);
-    using (var stream = new FileStream(filePath, FileMode.Open))
+  private void RegisterSound(IModHelper helper, Sounds sound, string fileName, string category = "Sound")
+  {
+    string id = GetQualifiedSoundName(sound);
+    _cueData[id] = new AudioCueData
     {
-      audio = SoundEffect.FromStream(stream);
-    }
+      Id = id,
+      Category = category,
+      FilePaths = [Path.Combine(helper.DirectoryPath, "assets", fileName)],
+      StreamedVorbis = false,
+      Looped = false,
+      UseReverb = true
+    };
 
-    newCueDefinition.SetSound(audio, Game1.audioEngine.GetCategoryIndex(category));
-    Game1.soundBank.AddCue(newCueDefinition);
-    _logger.Log($"Registered Sound: {newCueDefinition.name}");
+    _logger.Log($"Registered Sound: {id}");
   }
 
   public void Play(Sounds sound)
