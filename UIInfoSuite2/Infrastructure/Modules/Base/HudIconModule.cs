@@ -18,16 +18,31 @@ internal abstract class HudIconModule(
 
   public override void OnEnable()
   {
+    ModEvents.GameLoop.DayStarted += HudIcon_OnDayStarted;
+    ModEvents.GameLoop.DayEnding += HudIcon_OnDayEnd;
     SetupIcons();
   }
 
   public override void OnDisable()
   {
+    ModEvents.GameLoop.DayStarted -= HudIcon_OnDayStarted;
+    ModEvents.GameLoop.DayEnding -= HudIcon_OnDayEnd;
     RemoveIcons();
   }
 
   protected abstract void SetupIcons();
   protected abstract void RemoveIcons();
+
+  private void HudIcon_OnDayEnd(object? sender, DayEndingEventArgs e)
+  {
+    RemoveIcons();
+  }
+
+  private void HudIcon_OnDayStarted(object? sender, DayStartedEventArgs e)
+  {
+    RemoveIcons();
+    SetupIcons();
+  }
 
 #region Configuration Setup
   public virtual int GetOrder()

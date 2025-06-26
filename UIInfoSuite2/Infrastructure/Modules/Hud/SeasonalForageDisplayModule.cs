@@ -23,26 +23,9 @@ internal class SeasonalForageDisplayModule(
     return Config.ShowSeasonalForageIcon;
   }
 
-  public override void OnEnable()
-  {
-    base.OnEnable();
-    ModEvents.GameLoop.DayStarted += OnDayStarted;
-  }
-
-  public override void OnDisable()
-  {
-    ModEvents.GameLoop.DayStarted -= OnDayStarted;
-    base.OnDisable();
-  }
-
   protected override ForageIcon GenerateNewIcon()
   {
     return new ForageIcon();
-  }
-
-  private void OnDayStarted(object? sender, DayStartedEventArgs e)
-  {
-    SetupIcons();
   }
 
 #region Configuration Setup
