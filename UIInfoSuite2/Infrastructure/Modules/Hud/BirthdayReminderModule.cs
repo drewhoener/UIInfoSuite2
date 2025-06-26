@@ -38,7 +38,13 @@ internal class BirthdayReminderModule(
     {
       if (!Game1.player.friendshipData.TryGetValue(character.Name, out Friendship? friendship))
       {
-        continue;
+        // Skip if we want to hide unmet players
+        if (!Config.ShowBirthdayForUnmet)
+        {
+          continue;
+        }
+
+        friendship = new Friendship();
       }
 
       // Skip characters with full friendship if the config is set to
@@ -123,6 +129,13 @@ internal class BirthdayReminderModule(
       tooltip: I18n.Gmcm_Modules_Icons_Birthday_HideAfterGifted_Tooltip,
       getValue: () => Config.HideAfterGiftGiven,
       setValue: value => Config.HideAfterGiftGiven = value
+    );
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Birthday_ShowForUnmet,
+      tooltip: I18n.Gmcm_Modules_Icons_Birthday_ShowForUnmet_Tooltip,
+      getValue: () => Config.ShowBirthdayForUnmet,
+      setValue: value => Config.ShowBirthdayForUnmet = value
     );
   }
 #endregion

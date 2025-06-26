@@ -186,6 +186,8 @@
   "gmcm.modules.icons.birthday.hide-on-friends.tooltip": "If an NPC icon should be hidden after max friendship",
   "gmcm.modules.icons.birthday.hide-after-gifted": "Hide after gifted",
   "gmcm.modules.icons.birthday.hide-after-gifted.tooltip": "If the icon should be hidden after giving the NPC a birthday gift",
+  "gmcm.modules.icons.birthday.show-for-unmet": "Show for unmet NPCs",
+  "gmcm.modules.icons.birthday.show-for-unmet.tooltip": "If the icon should show even if you haven't met that character",
   // Queen of Sauce
   "gmcm.modules.icons.recipes.enable": "Show Queen of Sauce icon",
   "gmcm.modules.icons.recipes.enable.tooltip": "Toggle whether the Queen of Sauce icon is shown when you can learn a new recipe",

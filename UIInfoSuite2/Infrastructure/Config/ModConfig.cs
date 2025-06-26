@@ -42,6 +42,7 @@ public sealed class ModConfig
   public bool ShowBirthdayIcon { get; set; } = true;
   public bool HideBirthdayIfFullFriendship { get; set; } = true;
   public bool HideAfterGiftGiven { get; set; } = true;
+  public bool ShowBirthdayForUnmet { get; set; } = false;
 
   // Queen of Sauce
   public bool ShowQueenOfSauceIcon { get; set; } = true;
