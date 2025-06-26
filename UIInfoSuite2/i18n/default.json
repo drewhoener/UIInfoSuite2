@@ -58,6 +58,7 @@
   //Display icons - General
   "TodaysRecipe": "Today's Recipe: ",
   "TravelingMerchantIsInTown": "Traveling merchant is in town!",
+  "BooksellerIsInTown": "Bookseller is in town!",
   "RainNextDay": "There will be rain tomorrow",
   "ThunderstormNextDay": "There will be a thunderstorm tomorrow",
   "SnowNextDay": "There will be snow tomorrow",
@@ -124,7 +125,7 @@
   "gmcm.group.luck": "Luck Icon",
   "gmcm.group.weather": "Weather Icons",
   "gmcm.group.xpBar": "Experience Bar",
-  "gmcm.group.merchant": "Traveling Merchant",
+  "gmcm.group.merchant": "Merchants",
   "gmcm.group.birthday": "Birthday Reminder",
   "gmcm.group.seasonalForage": "Seasonal Forage",
   "gmcm.group.otherIcons": "Other Icons",
@@ -169,9 +170,13 @@
   "gmcm.modules.icons.weather.enable.tooltip": "Toggle if the weather for tomorrow is shown in your icon bar",
   "gmcm.modules.icons.weather.island": "Show island weather",
   "gmcm.modules.icons.weather.island.tooltip": "If there should be an icon for ginger island weather (when unlocked)",
-  // Travelling Merchant
-  "gmcm.modules.icons.merchant.enable": "Show Travelling Merchant icon",
-  "gmcm.modules.icons.merchant.enable.tooltip": "Toggle whether the merchant icon is shown when they are in town",
+  // Traveling Merchant
+  "gmcm.modules.icons.merchant.enable": "Show Merchant icons",
+  "gmcm.modules.icons.merchant.enable.tooltip": "Toggle whether merchant icons are shown when they are in town",
+  "gmcm.modules.icons.merchant.traveler.enable": "Show Traveling Merchant icon",
+  "gmcm.modules.icons.merchant.traveler.enable.tooltip": "Show when the traveling merchant is in town",
+  "gmcm.modules.icons.merchant.bookseller.enable": "Show Bookseller icon",
+  "gmcm.modules.icons.merchant.bookseller.enable.tooltip": "Show when the bookseller is in town",
   "gmcm.modules.icons.merchant.hide-on-visit": "Hide merchant icon when visited",
   "gmcm.modules.icons.merchant.hide-on-visit.tooltip": "If the merchant icon should be hidden after visiting",
   // Birthday Icons

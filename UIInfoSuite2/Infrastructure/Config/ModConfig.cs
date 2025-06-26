@@ -33,7 +33,9 @@ public sealed class ModConfig
   public bool ShowIslandWeather { get; set; } = true;
 
   // Merchant
+  public bool ShowMerchantIcons { get; set; } = true;
   public bool ShowTravelingMerchantIcon { get; set; } = true;
+  public bool ShowBooksellerIcon { get; set; } = true;
   public bool HideMerchantIconWhenVisited { get; set; }
 
   // Birthdays

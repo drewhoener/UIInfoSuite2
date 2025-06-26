@@ -113,7 +113,7 @@ internal class ModEntry : Mod
     RegisterHudModuleSingleton<SeasonalForageDisplayModule>();
     RegisterHudModuleSingleton<WeeklyRecipeModule>();
     RegisterHudModuleSingleton<ToolUpgradeReminderModule>();
-    RegisterHudModuleSingleton<TravelingMerchantReminderModule>();
+    RegisterHudModuleSingleton<MerchantReminderModule>();
     RegisterBaseModuleSingleton<ExtendedItemInfoModule>();
     RegisterBaseModuleSingleton<GiftLockModule>();
     RegisterBaseModuleSingleton<PartialHeartFillModule>();
