@@ -3,41 +3,41 @@ using StardewValley;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
-internal class BerryIcon : ClickableIcon
+internal class ForageIcon : ClickableIcon
 {
   private bool _isHazelnut;
-  private bool _todayHasBerry;
+  private bool _todayHasForage;
 
-  public BerryIcon() : base(Game1.objectSpriteSheet, new Rectangle(128, 193, 15, 15), 40)
+  public ForageIcon() : base(Game1.objectSpriteSheet, new Rectangle(128, 193, 15, 15), 40)
   {
-    UpdateBerryForDay();
+    UpdateForageForDay();
   }
 
-  private void ChangeBerryIcon(Rectangle bounds, string text)
+  private void ChangeForageIcon(Rectangle bounds, string text)
   {
     SetSourceBounds(bounds);
     HoverText = text;
-    _todayHasBerry = true;
+    _todayHasForage = true;
   }
 
-  public void UpdateBerryForDay()
+  public void UpdateForageForDay()
   {
     string? season = Game1.currentSeason;
     int day = Game1.dayOfMonth;
     switch (season)
     {
       case "spring" when day is >= 15 and <= 18:
-        ChangeBerryIcon(new Rectangle(128, 193, 15, 15), I18n.CanFindSalmonberry());
+        ChangeForageIcon(new Rectangle(128, 193, 15, 15), I18n.CanFindSalmonberry());
         break;
       case "fall" when day is >= 8 and <= 11:
-        ChangeBerryIcon(new Rectangle(32, 272, 16, 16), I18n.CanFindBlackberry());
+        ChangeForageIcon(new Rectangle(32, 272, 16, 16), I18n.CanFindBlackberry());
         break;
       case "fall" when day >= 15 && Config.ShowSeasonalBerryHazelnutIcon:
-        ChangeBerryIcon(new Rectangle(1, 274, 14, 14), I18n.CanFindHazelnut());
+        ChangeForageIcon(new Rectangle(1, 274, 14, 14), I18n.CanFindHazelnut());
         _isHazelnut = true;
         break;
       default:
-        _todayHasBerry = false;
+        _todayHasForage = false;
         _isHazelnut = false;
         break;
     }
@@ -50,6 +50,6 @@ internal class BerryIcon : ClickableIcon
       return false;
     }
 
-    return _todayHasBerry && base._ShouldDraw();
+    return _todayHasForage && base._ShouldDraw();
   }
 }

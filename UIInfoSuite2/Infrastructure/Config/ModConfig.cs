@@ -51,7 +51,7 @@ public sealed class ModConfig
   public bool ShowRobinBuildingStatusIcon { get; set; } = true;
 
   // Seasonal berry Icon
-  public bool ShowSeasonalBerryIcon { get; set; } = true;
+  public bool ShowSeasonalForageIcon { get; set; } = true;
   public bool ShowSeasonalBerryHazelnutIcon { get; set; }
 
   // Animal Hands

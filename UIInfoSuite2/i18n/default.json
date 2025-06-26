@@ -125,7 +125,7 @@
   "gmcm.group.xpBar": "Experience Bar",
   "gmcm.group.merchant": "Traveling Merchant",
   "gmcm.group.birthday": "Birthday Reminder",
-  "gmcm.group.seasonalBerries": "Seasonal Berries",
+  "gmcm.group.seasonalForage": "Seasonal Forage",
   "gmcm.group.otherIcons": "Other Icons",
   "gmcm.group.animalTooltips": "Animal Tooltips",
   "gmcm.group.objectTooltips": "Object Tooltips",
@@ -190,10 +190,10 @@
   "gmcm.modules.icons.carpenter.enable": "Show Robin construction icon",
   "gmcm.modules.icons.carpenter.enable.tooltip": "Toggle whether an icon is shown when Robin is doing work on your farm",
   // Seasonal Items
-  "gmcm.modules.icons.berry.enable": "Show seasonal berry icon",
-  "gmcm.modules.icons.berry.enable.tooltip": "Toggle whether an icon is shown when berries are available (salmonberry, blackberry)",
-  "gmcm.modules.icons.hazelnut.enable": "Show hazelnut icon",
-  "gmcm.modules.icons.hazelnut.enable.tooltip": "Toggle whether an icon is shown when hazelnuts are available (mid fall)",
+  "gmcm.modules.icons.forage.enable": "Show seasonal forage icon",
+  "gmcm.modules.icons.forage.enable.tooltip": "Toggle whether an icon is shown when extra forage is available (salmonberry, blackberry)",
+  "gmcm.modules.icons.forage.hazelnut.enable": "Show hazelnut icon",
+  "gmcm.modules.icons.forage.hazelnut.enable.tooltip": "Toggle whether an icon is shown when hazelnuts are available (mid fall)",
   // HUD Tooltips
   "gmcm.section.tooltips.title": "HUD Tooltips",
   "gmcm.section.tooltips.title.tooltip": "Control HUD Tooltips and other Quality-of-Life features in your world",

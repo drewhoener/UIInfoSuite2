@@ -9,18 +9,18 @@ using UIInfoSuite2.Infrastructure.Modules.Base;
 namespace UIInfoSuite2.Infrastructure.Modules.Hud;
 
 // ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
-internal class SeasonalBerryDisplayModule(
+internal class SeasonalForageDisplayModule(
   IModEvents modEvents,
   IMonitor logger,
   ConfigManager configManager,
   HudIconStorage iconStorage
-) : SingleHudIconModule<BerryIcon>(modEvents, logger, configManager, iconStorage)
+) : SingleHudIconModule<ForageIcon>(modEvents, logger, configManager, iconStorage)
 {
-  protected override string IconKey => "BerryIcon";
+  protected override string IconKey => "ForageIcon";
 
   public override bool ShouldEnable()
   {
-    return Config.ShowSeasonalBerryIcon;
+    return Config.ShowSeasonalForageIcon;
   }
 
   public override void OnEnable()
@@ -35,9 +35,9 @@ internal class SeasonalBerryDisplayModule(
     base.OnDisable();
   }
 
-  protected override BerryIcon GenerateNewIcon()
+  protected override ForageIcon GenerateNewIcon()
   {
-    return new BerryIcon();
+    return new ForageIcon();
   }
 
   private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -58,22 +58,22 @@ internal class SeasonalBerryDisplayModule(
 
   public override string GetSubHeader()
   {
-    return I18n.Gmcm_Group_SeasonalBerries();
+    return I18n.Gmcm_Group_SeasonalForage();
   }
 
   public override void AddConfigOptions(IGenericModConfigMenuApi modConfigMenuApi, IManifest manifest)
   {
     modConfigMenuApi.AddBoolOption(
       manifest,
-      name: I18n.Gmcm_Modules_Icons_Berry_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Berry_Enable_Tooltip,
-      getValue: () => Config.ShowSeasonalBerryIcon,
-      setValue: value => Config.ShowSeasonalBerryIcon = value
+      name: I18n.Gmcm_Modules_Icons_Forage_Enable,
+      tooltip: I18n.Gmcm_Modules_Icons_Forage_Enable_Tooltip,
+      getValue: () => Config.ShowSeasonalForageIcon,
+      setValue: value => Config.ShowSeasonalForageIcon = value
     );
     modConfigMenuApi.AddBoolOption(
       manifest,
-      name: I18n.Gmcm_Modules_Icons_Hazelnut_Enable,
-      tooltip: I18n.Gmcm_Modules_Icons_Hazelnut_Enable_Tooltip,
+      name: I18n.Gmcm_Modules_Icons_Forage_Hazelnut_Enable,
+      tooltip: I18n.Gmcm_Modules_Icons_Forage_Hazelnut_Enable_Tooltip,
       getValue: () => Config.ShowSeasonalBerryHazelnutIcon,
       setValue: value => Config.ShowSeasonalBerryHazelnutIcon = value
     );
