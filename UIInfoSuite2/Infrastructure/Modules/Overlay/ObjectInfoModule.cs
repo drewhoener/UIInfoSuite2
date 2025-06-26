@@ -103,13 +103,12 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
     HoeDirt? currentDirtTile = GetHoeDirtAtTile(tile);
     var currentTree = GetTerrainObjectAtTile<Tree>(tile);
 
-    _mouseTooltipDom.BuildingTooltipContainer.Building = Game1.currentLocation.getBuildingAt(tile);
-    _mouseTooltipDom.MachineTooltipContainer.Machine = GetMachineAtTile(tile);
-    _mouseTooltipDom.CropTooltipContainer.Crop = GetCropFromTerrain(currentDirtTile);
-    _mouseTooltipDom.WildTreeContainer.Tree = currentTree;
-    _mouseTooltipDom.CropStatusContainer.HoeDirt = currentDirtTile;
-    _mouseTooltipDom.CropStatusContainer.Tree = currentTree;
-    _mouseTooltipDom.FruitTreeContainer.FruitTree = GetTerrainObjectAtTile<FruitTree>(tile);
+    _mouseTooltipDom.Building = Game1.currentLocation.getBuildingAt(tile);
+    _mouseTooltipDom.Machine = GetMachineAtTile(tile);
+    _mouseTooltipDom.Crop = GetCropFromTerrain(currentDirtTile);
+    _mouseTooltipDom.WildTree = currentTree;
+    _mouseTooltipDom.HoeDirt = currentDirtTile;
+    _mouseTooltipDom.FruitTree = GetTerrainObjectAtTile<FruitTree>(tile);
 
 
     // TODO move to bushes n shit

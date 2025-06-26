@@ -1,4 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
+using StardewValley.Buildings;
+using StardewValley.TerrainFeatures;
 using UIInfoSuite2.Infrastructure.Models.Layout;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
@@ -37,6 +40,47 @@ internal class MouseTooltipDom : LayoutDom
 
   public MachineTooltipContainer MachineTooltipContainer { get; }
   public BuildingTooltipContainer BuildingTooltipContainer { get; }
+
+  public Crop? Crop
+  {
+    get => CropTooltipContainer.Crop;
+    set => CropTooltipContainer.Crop = value;
+  }
+
+  public Tree? WildTree
+  {
+    get => WildTreeContainer.Tree;
+    set
+    {
+      CropStatusContainer.Tree = value;
+      WildTreeContainer.Tree = value;
+    }
+  }
+
+  public FruitTree? FruitTree
+  {
+    get => FruitTreeContainer.FruitTree;
+    set => FruitTreeContainer.FruitTree = value;
+  }
+
+  public HoeDirt? HoeDirt
+  {
+    get => CropStatusContainer.HoeDirt;
+    set => CropStatusContainer.HoeDirt = value;
+  }
+
+  public Object? Machine
+  {
+    get => MachineTooltipContainer.Machine;
+    set => MachineTooltipContainer.Machine = value;
+  }
+
+  public Building? Building
+  {
+    get => BuildingTooltipContainer.Building;
+    set => BuildingTooltipContainer.Building = value;
+  }
+
 
   protected override void DrawSelf(SpriteBatch spriteBatch, int positionX, int positionY)
   {
