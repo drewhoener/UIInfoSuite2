@@ -52,6 +52,7 @@ public sealed class ModConfig
 
   // Seasonal berry Icon
   public bool ShowSeasonalForageIcon { get; set; } = true;
+  public bool ShowSeasonalForageBeachIcon { get; set; }
   public bool ShowSeasonalBerryHazelnutIcon { get; set; }
 
   // Animal Hands

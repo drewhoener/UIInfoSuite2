@@ -29,6 +29,9 @@ internal class ForageIcon : ClickableIcon
       case "spring" when day is >= 15 and <= 18:
         ChangeForageIcon(new Rectangle(128, 193, 15, 15), I18n.CanFindSalmonberry());
         break;
+      case "summer" when day is >= 12 and <= 14 && Config.ShowSeasonalForageBeachIcon:
+        ChangeForageIcon(new Rectangle(144, 256, 16, 16), I18n.CanFindBeachForage());
+        break;
       case "fall" when day is >= 8 and <= 11:
         ChangeForageIcon(new Rectangle(32, 272, 16, 16), I18n.CanFindBlackberry());
         break;

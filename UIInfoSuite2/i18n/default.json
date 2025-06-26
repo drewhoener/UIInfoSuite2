@@ -72,6 +72,7 @@
   "CanFindSalmonberry": "You can find Salmonberries today",
   "CanFindBlackberry": "You can find Blackberries today",
   "CanFindHazelnut": "You can find Hazelnuts on trees today",
+  "CanFindBeachForage": "You can find extra forageables on the beach today",
   //Display icons - Luck
   "DailyLuckValue": "Your daily luck is {0}",
   "FeelingLucky": "You're feelin' lucky!!",
@@ -194,6 +195,8 @@
   "gmcm.modules.icons.forage.enable.tooltip": "Toggle whether an icon is shown when extra forage is available (salmonberry, blackberry)",
   "gmcm.modules.icons.forage.hazelnut.enable": "Show hazelnut icon",
   "gmcm.modules.icons.forage.hazelnut.enable.tooltip": "Toggle whether an icon is shown when hazelnuts are available (mid fall)",
+  "gmcm.modules.icons.forage.beach.enable": "Show beach forage icon",
+  "gmcm.modules.icons.forage.beach.enable.tooltip": "Toggle whether an icon is shown when extra beach forage is available (mid summer)",
   // HUD Tooltips
   "gmcm.section.tooltips.title": "HUD Tooltips",
   "gmcm.section.tooltips.title.tooltip": "Control HUD Tooltips and other Quality-of-Life features in your world",

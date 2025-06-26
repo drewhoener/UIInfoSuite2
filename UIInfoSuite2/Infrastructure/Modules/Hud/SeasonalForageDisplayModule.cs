@@ -77,6 +77,13 @@ internal class SeasonalForageDisplayModule(
       getValue: () => Config.ShowSeasonalBerryHazelnutIcon,
       setValue: value => Config.ShowSeasonalBerryHazelnutIcon = value
     );
+    modConfigMenuApi.AddBoolOption(
+      manifest,
+      name: I18n.Gmcm_Modules_Icons_Forage_Beach_Enable,
+      tooltip: I18n.Gmcm_Modules_Icons_Forage_Beach_Enable_Tooltip,
+      getValue: () => Config.ShowSeasonalForageBeachIcon,
+      setValue: value => Config.ShowSeasonalForageBeachIcon = value
+    );
   }
 #endregion
 }
