@@ -60,13 +60,7 @@ internal class BirthdayReminderModule(
 
   protected override void RemoveIcons()
   {
-    int removed = IconStorage.RemoveIconWhere(pair => pair.Key.StartsWith(BirthdayIconPrefix));
-    Logger.Log($"Removed {removed} icons");
-    if (removed != _birthdayCharacters.Value.Count)
-    {
-      Logger.Log($"Expected to remove {_birthdayCharacters.Value.Count} icons, but removed {removed}", LogLevel.Warn);
-    }
-
+    RemoveIconsWhere(BirthdayIconPrefix, _birthdayCharacters.Value.Count);
     _birthdayCharacters.Value.Clear();
   }
 

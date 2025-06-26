@@ -1,9 +1,12 @@
-﻿using StardewModdingAPI;
+﻿using System;
+using System.Collections.Generic;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models;
+using UIInfoSuite2.Infrastructure.Models.Icons;
 
 namespace UIInfoSuite2.Infrastructure.Modules.Base;
 
@@ -32,6 +35,21 @@ internal abstract class HudIconModule(
 
   protected abstract void SetupIcons();
   protected abstract void RemoveIcons();
+
+  protected void RemoveIconsWhere(Func<KeyValuePair<string, ClickableIcon>, bool> predicate, int expectedRemoved)
+  {
+    int removed = IconStorage.RemoveIconWhere(predicate);
+    Logger.Log($"Removed {removed} icons");
+    if (removed != expectedRemoved)
+    {
+      Logger.Log($"Expected to remove {expectedRemoved} icons, but removed {removed}", LogLevel.Warn);
+    }
+  }
+
+  protected void RemoveIconsWhere(string prefix, int expectedRemoved)
+  {
+    RemoveIconsWhere(pair => pair.Key.StartsWith(prefix), expectedRemoved);
+  }
 
   private void HudIcon_OnDayEnd(object? sender, DayEndingEventArgs e)
   {

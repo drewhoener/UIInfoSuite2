@@ -50,12 +50,7 @@ internal class DailyWeatherModule : HudIconModule
 
   protected override void RemoveIcons()
   {
-    int removed = IconStorage.RemoveIconWhere(pair => pair.Key.StartsWith(WeatherIconPrefix));
-    Logger.Log($"Removed {removed} icons");
-    if (removed != 2)
-    {
-      Logger.Log($"Expected to remove 2 icons, but removed {removed}", LogLevel.Warn);
-    }
+    RemoveIconsWhere(WeatherIconPrefix, 2);
   }
 
   private void OnOneSecondTicked(object? sender, OneSecondUpdateTickedEventArgs e)
