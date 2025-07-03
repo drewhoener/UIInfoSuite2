@@ -37,4 +37,9 @@ public class DataCache<TKey, TValue> where TKey : IEquatable<TKey>
   {
     return _cacheMap.TryGetValue(key, out value);
   }
+
+  public void Clear()
+  {
+    _cacheMap.Clear();
+  }
 }

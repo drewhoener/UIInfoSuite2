@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -10,8 +8,8 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Config;
-using UIInfoSuite2.Infrastructure.Extensions;
-using UIInfoSuite2.Infrastructure.Models;
+using UIInfoSuite2.Infrastructure.Helpers;
+using UIInfoSuite2.Infrastructure.Models.ObjectRange;
 using UIInfoSuite2.Infrastructure.Modules.Base;
 using UIInfoSuite2.Infrastructure.Utilities;
 using UIInfoSuite2.UIElements;
@@ -19,165 +17,11 @@ using Object = StardewValley.Object;
 
 namespace UIInfoSuite2.Infrastructure.Modules.Overlay;
 
-internal enum OverlayType
-{
-  Sprinkler,
-  Scarecrow,
-  JunimoHut,
-  Item
-}
-
-internal class WorldObjectRange
-{
-  private readonly Vector2 _centerTile;
-  private readonly List<Vector2> _perimeterPoints;
-  private string? _itemId;
-
-  public WorldObjectRange(string itemId, Vector2 centerTile, GridPatternOptions gridPatternOptions) : this(
-    itemId,
-    OverlayType.Item,
-    centerTile,
-    gridPatternOptions
-  ) { }
-
-  public WorldObjectRange(OverlayType overlayType, Vector2 centerTile, GridPatternOptions gridPatternOptions) : this(
-    null,
-    overlayType,
-    centerTile,
-    gridPatternOptions
-  ) { }
-
-  public WorldObjectRange(
-    string? itemId,
-    OverlayType overlayType,
-    Vector2 centerTile,
-    GridPatternOptions gridPatternOptions
-  )
-  {
-    _itemId = itemId;
-    Type = overlayType;
-    _centerTile = centerTile;
-
-    bool[][] grid = GridPatternGenerator.GenerateCenteredGrid(gridPatternOptions);
-    // Naive assumption, let's just assume it's a square and allocate at least that much;
-    _perimeterPoints = new List<Vector2>(grid.Length * 4);
-
-    Tiles = GridPatternGenerator.MapToWorld(grid, centerTile).ToHashSet();
-    GeneratePerimeter(grid);
-  }
-
-  private WorldObjectRange(string? itemId, OverlayType type, HashSet<Vector2> tiles)
-  {
-    _itemId = itemId;
-    Type = type;
-    _perimeterPoints = [];
-    Tiles = tiles;
-  }
-
-  public HashSet<Vector2> Tiles { get; }
-  public OverlayType Type { get; }
-
-  public static WorldObjectRange FromSprinkler(Object selectedObject, Vector2 centerTile, bool isHeldItem)
-  {
-    bool[][] grid = GridPatternGenerator.FromSprinkler(selectedObject);
-    IEnumerable<Vector2> sprinklerTiles = selectedObject.GetSprinklerTiles();
-    if (isHeldItem)
-    {
-      sprinklerTiles = sprinklerTiles.Select(tile => tile - selectedObject.TileLocation + centerTile);
-    }
-
-    var range = new WorldObjectRange(selectedObject.ItemId, OverlayType.Sprinkler, sprinklerTiles.ToHashSet());
-    range.GeneratePerimeter(grid);
-    return range;
-  }
-
-  private void GeneratePerimeter(bool[][] grid)
-  {
-    _perimeterPoints.Clear();
-    int midpoint = grid.Length / 2;
-
-    for (var row = 0; row < grid.Length; row++)
-    {
-      for (var col = 0; col < grid[row].Length; col++)
-      {
-        if (!grid[row][col] || !IsEdgeCell(grid, row, col))
-        {
-          continue;
-        }
-
-        // Convert to world coordinates
-        float x = _centerTile.X + (col - midpoint);
-        float y = _centerTile.Y + (row - midpoint);
-        _perimeterPoints.Add(new Vector2(x, y));
-      }
-    }
-
-    // Sort edge points in clockwise order around center
-    _perimeterPoints.Sort(
-      (a, b) =>
-      {
-        double angleA = Math.Atan2(a.Y - _centerTile.Y, a.X - _centerTile.X);
-        double angleB = Math.Atan2(b.Y - _centerTile.Y, b.X - _centerTile.X);
-        return angleA.CompareTo(angleB);
-      }
-    );
-  }
-
-  private bool IsValidCell(bool[][] grid, int row, int col)
-  {
-    return row >= 0 && row < grid.Length && col >= 0 && col < grid[0].Length;
-  }
-
-  private bool IsEdgeCell(bool[][] grid, int row, int col)
-  {
-    // Only check cardinal directions (NESW)
-    var cardinalDirections = new (int rowOffset, int colOffset)[]
-    {
-      (-1, 0), // North
-      (0, 1),  // East
-      (1, 0),  // South
-      (0, -1)  // West
-    };
-
-    foreach ((int rowOffset, int colOffset) in cardinalDirections)
-    {
-      int newRow = row + rowOffset;
-      int newCol = col + colOffset;
-
-      // If neighbor is outside grid or is 0, this is an edge
-      if (!IsValidCell(grid, newRow, newCol) || !grid[newRow][newCol])
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public bool IsEnclosedBy(WorldObjectRange enclosingPolygon)
-  {
-    if (enclosingPolygon.Tiles.Count < Tiles.Count)
-    {
-      return false;
-    }
-
-    return Tiles.All(tile => enclosingPolygon.Tiles.Contains(tile));
-  }
-
-  public bool Encloses(WorldObjectRange enclosedPolygon)
-  {
-    return enclosedPolygon.IsEnclosedBy(this);
-  }
-}
-
 // ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
-internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager)
+internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager, SoundHelper soundHelper)
   : BaseModule(modEvents, logger, configManager)
 {
-  private readonly List<WorldObjectRange> _discoveredObjects = new();
-
-  private readonly PerScreen<Dictionary<Vector2, Counter<OverlayType>>> _effectiveAreaRange =
-    new(() => new Dictionary<Vector2, Counter<OverlayType>>());
+  private readonly PerScreen<RangeCache> _effectiveAreaRange = new(() => new RangeCache());
 
   /**
    * Generate a bunch of world overlay objects, store them in a dict somewhere by type
@@ -201,6 +45,12 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     ModEvents.Display.RenderingHud += OnRenderingHud;
     ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
     ModEvents.Input.ButtonsChanged += OnButtonChanged;
+    ModEvents.GameLoop.DayEnding += OnDayEnding;
+
+    Game1.player.newLevels.OnElementChanged += (_, _, _, _) =>
+    {
+      soundHelper.Play(Sounds.LevelUp);
+    };
   }
 
   public override void OnDisable()
@@ -208,6 +58,7 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     ModEvents.Display.RenderingHud -= OnRenderingHud;
     ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
     ModEvents.Input.ButtonsChanged -= OnButtonChanged;
+    ModEvents.GameLoop.DayEnding -= OnDayEnding;
   }
 #endregion
 
@@ -227,7 +78,6 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     }
 
     _effectiveAreaRange.Value.Clear();
-    _discoveredObjects.Clear();
 
     if (!ShouldDisplayRanges())
     {
@@ -241,24 +91,7 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
 
   private void OnRenderingHud(object? sender, RenderingHudEventArgs e)
   {
-    foreach ((Vector2 pos, Counter<OverlayType>? counter) in _effectiveAreaRange.Value)
-    {
-      foreach ((OverlayType overlayType, int count) in counter.Pairs)
-      {
-        Vector2 position = pos * Utility.ModifyCoordinateFromUIScale(Game1.tileSize);
-        e.SpriteBatch.Draw(
-          Game1.mouseCursors,
-          Utility.ModifyCoordinatesForUIScale(Game1.GlobalToLocal(Utility.ModifyCoordinatesForUIScale(position))),
-          new Rectangle(194, 388, 16, 16),
-          (count == 1 ? Color.White : Color.Red) * 0.7f,
-          0.0f,
-          Vector2.Zero,
-          Utility.ModifyCoordinateForUIScale(Game1.pixelZoom),
-          SpriteEffects.None,
-          0.01f
-        );
-      }
-    }
+    _effectiveAreaRange.Value.Draw(e.SpriteBatch);
   }
 
   private void OnButtonChanged(object? sender, ButtonsChangedEventArgs e)
@@ -277,6 +110,12 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     {
       ButtonShowAllRanges = true;
     }
+  }
+
+  private void OnDayEnding(object? sender, DayEndingEventArgs e)
+  {
+    _effectiveAreaRange.Value.Clear();
+    WorldObjectRange.ClearCache();
   }
 #endregion
 
@@ -442,7 +281,7 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
 
     Vector2 placementTile = GetPlacementTileForItem(currentItem);
 
-    /**
+    /*
      * 1. Get placement tile.
      * 2. Register
      */
@@ -453,11 +292,7 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
       return;
     }
 
-    _discoveredObjects.Add(curObjectRange);
-    foreach (Vector2 vector2 in curObjectRange.Tiles)
-    {
-      _effectiveAreaRange.Value.GetOrCreate(vector2).Result.Add(curObjectRange.Type);
-    }
+    _effectiveAreaRange.Value.Add(curObjectRange);
 
     List<Object> otherItems = GetSimilarObjects(currentItem);
     foreach (Object areaObject in otherItems)
@@ -468,11 +303,7 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
         continue;
       }
 
-      _discoveredObjects.Add(otherObjRange);
-      foreach (Vector2 vector2 in otherObjRange.Tiles)
-      {
-        _effectiveAreaRange.Value.GetOrCreate(vector2).Result.Add(curObjectRange.Type);
-      }
+      _effectiveAreaRange.Value.Add(otherObjRange);
     }
 
     // If buttons are down, add all nearby items to the map
@@ -494,10 +325,13 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
   /// <summary>
   ///   Get a map of tiles that represent the coverage of the requested object.
   /// </summary>
-  /// <param name="selectedObject">The object to get coverage tiles for</param>
-  /// <param name="isHeldItem">If the item is being held by the player, as opposed to being placed on the ground</param>
-  /// <param name="currentMouseTile">The tile that the mouse is hovering over</param>
-  /// <returns>An iterable of tiles in map coordinates</returns>
+  /// <param name="selectedObject">The object to calculate the coverage tiles for.</param>
+  /// <param name="isHeldItem">Indicates whether the player is currently holding the object.</param>
+  /// <param name="currentMouseTile">The tile location under the player's mouse cursor.</param>
+  /// <returns>
+  ///   A <see cref="WorldObjectRange" /> instance representing the tiles covered by the object, or <c>null</c> if the
+  ///   object is not relevant.
+  /// </returns>
   private WorldObjectRange? GetEffectiveTilesForObject(Object selectedObject, bool isHeldItem, Vector2 currentMouseTile)
   {
     Vector2 centerTile = isHeldItem ? currentMouseTile : selectedObject.TileLocation;
@@ -513,7 +347,8 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     {
       int radius = selectedObject.GetRadiusForScarecrow();
       int maxGridSize = (radius - 1) * 2 + 1;
-      return new WorldObjectRange(
+      return WorldObjectRange.FromItem(
+        selectedObject,
         OverlayType.Scarecrow,
         centerTile,
         new GridPatternOptions { Shape = GridPatternShape.Circle, MainRange = radius, MaxGridSize = maxGridSize }
@@ -527,8 +362,8 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
 
     if (IsObjectFuzzy(selectedObject, "bee house"))
     {
-      return new WorldObjectRange(
-        selectedObject.ItemId,
+      return WorldObjectRange.FromItem(
+        selectedObject,
         centerTile,
         new GridPatternOptions
         {
@@ -542,8 +377,8 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
 
     if (IsObjectFuzzy(selectedObject, "mushroom log"))
     {
-      return new WorldObjectRange(
-        selectedObject.ItemId,
+      return WorldObjectRange.FromItem(
+        selectedObject,
         centerTile,
         new GridPatternOptions { Shape = GridPatternShape.Square, MainRange = 7 }
       );
@@ -551,8 +386,8 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
 
     if (IsObjectFuzzy(selectedObject, "mossy seed"))
     {
-      return new WorldObjectRange(
-        selectedObject.ItemId,
+      return WorldObjectRange.FromItem(
+        selectedObject,
         centerTile,
         new GridPatternOptions { Shape = GridPatternShape.Square, MainRange = 5 }
       );
