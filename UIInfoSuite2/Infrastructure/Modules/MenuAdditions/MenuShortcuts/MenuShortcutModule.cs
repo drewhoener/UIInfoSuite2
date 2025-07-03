@@ -45,6 +45,7 @@ internal class MenuShortcutModule(
   {
     AddMenuShortcut(helper, new CalendarQuestMenuShortcut(80));
     AddMenuShortcut(helper, new MonsterSlayerShortcut(80));
+    AddMenuShortcut(helper, new SpecialOrderMenuShortcut(80));
   }
 
   public void AddMenuShortcut(IModHelper helper, BaseMenuShortcut shortcut)
