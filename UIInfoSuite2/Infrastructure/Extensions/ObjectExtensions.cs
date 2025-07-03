@@ -10,11 +10,7 @@ public static class ObjectExtensions
 {
   public static Rectangle GetHeadShot(this NPC npc)
   {
-    int size;
-    if (!NpcHeadShotSize.TryGetValue(npc.Name, out size))
-    {
-      size = 4;
-    }
+    int size = NpcHeadShotSize.GetValueOrDefault(npc.Name, 4);
 
     Rectangle mugShotSourceRect = npc.getMugShotSourceRect();
     mugShotSourceRect.Height -= size / 2;
