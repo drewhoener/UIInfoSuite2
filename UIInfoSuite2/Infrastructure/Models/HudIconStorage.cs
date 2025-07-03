@@ -14,12 +14,14 @@ namespace UIInfoSuite2.Infrastructure.Models;
 
 internal record HudIconRow(ClickableIcon[] Icons, int MaxRowHeight);
 
-internal class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManager configManager, ApiManager apiManager)
+internal class HudIconStorage(IModRegistry registry, IModEvents modEvents, IMonitor logger, ConfigManager configManager)
 {
   private readonly Dictionary<string, ClickableIcon> _icons = new();
 
   private List<HudIconRow> _iconRows = [];
   private bool _iconRowsDirty = true;
+
+  public bool IsQuestLogPermanent { get; set; } = registry.IsLoaded(ModCompat.DeluxeJournal);
   private ModConfig Config => configManager.Config;
 
   public void RegisterEvents()
@@ -125,7 +127,7 @@ internal class HudIconStorage(IModEvents modEvents, IMonitor logger, ConfigManag
 
     UpdateIconRows();
     int heightOffset = (Game1.options.zoomButtons ? 290 : 260) + Config.HudIconsVerticalOffset;
-    bool shouldOffsetForQuestLog = IconHandler.Handler.IsQuestLogPermanent ||
+    bool shouldOffsetForQuestLog = IsQuestLogPermanent ||
                                    Game1.player.questLog.Any() ||
                                    Game1.player.team.specialOrders.Any();
 

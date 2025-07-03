@@ -13,7 +13,6 @@ using StardewValley;
 using UIInfoSuite2.AdditionalFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
-using UIInfoSuite2.Infrastructure;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Config.Configurable;
 using UIInfoSuite2.Infrastructure.Events;
@@ -127,13 +126,10 @@ internal class ModEntry : Mod
     _skipIntro = new SkipIntro(helper.Events);
 
     helper.Events.GameLoop.GameLaunched += OnGameLaunched;
-    helper.Events.Display.Rendering += IconHandler.Handler.Reset;
     helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
     helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
     _container.GetInstance<EventsManager>().OnConfigChange += (_, _) => ReloadModules();
     _container.GetInstance<MenuShortcutModule>().Register(helper);
-
-    IconHandler.Handler.IsQuestLogPermanent = helper.ModRegistry.IsLoaded(ModCompat.DeluxeJournal);
 
     var harmony = _container.GetInstance<Harmony>();
     foreach (IPatchable patchable in GetContainerCollection<IPatchable>())
