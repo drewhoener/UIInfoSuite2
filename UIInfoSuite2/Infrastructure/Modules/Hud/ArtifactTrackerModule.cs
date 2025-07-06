@@ -23,6 +23,7 @@ internal class ArtifactTrackerModule(
 {
   private const string ArtifactSpotId = "(O)590";
   private const string SeedSpotId = "(O)SeedSpot";
+  private static Rectangle QuarryRect = new Rectangle(106, 13, 22, 22);
   private readonly Dictionary<GameLocation, HashSet<Vector2>> _trackedArtifactSpots = new();
   private readonly Dictionary<GameLocation, HashSet<Vector2>> _trackedSeedSpots = new();
   protected override string IconKey => "ArtifactIcon";
@@ -42,6 +43,16 @@ internal class ArtifactTrackerModule(
       default:
         return location.IsOutdoors;
     }
+  }
+
+  private static bool ShouldTrackTile(GameLocation gameLocation, Vector2 tile)
+  {
+    if (gameLocation is Mountain && QuarryRect.Contains(tile))
+    {
+      return Game1.MasterPlayer.mailReceived.Contains("ccCraftsRoom");
+    }
+
+    return true;
   }
 
   public override bool ShouldEnable()
@@ -80,33 +91,40 @@ internal class ArtifactTrackerModule(
       return;
     }
 
-    foreach (KeyValuePair<Vector2, SObject> kvp in e.Added)
+    foreach ((Vector2 tile, SObject obj) in e.Added)
     {
-      switch (kvp.Value.QualifiedItemId)
-      {
-        case ArtifactSpotId:
-          _trackedArtifactSpots.GetOrCreate(e.Location).Add(kvp.Key);
-          break;
-        case SeedSpotId:
-          _trackedSeedSpots.GetOrCreate(e.Location).Add(kvp.Key);
-          break;
-      }
+      TrackTile(e.Location, tile, obj);
     }
 
     foreach (KeyValuePair<Vector2, SObject> kvp in e.Removed)
     {
-      switch (kvp.Value.QualifiedItemId)
-      {
-        case ArtifactSpotId:
-          _trackedArtifactSpots.GetOrCreate(e.Location).Remove(kvp.Key);
-          break;
-        case SeedSpotId:
-          _trackedSeedSpots.GetOrCreate(e.Location).Remove(kvp.Key);
-          break;
-      }
+      UntrackTile(e.Location, kvp.Key);
     }
 
     Icon.UpdateText(_trackedArtifactSpots, _trackedSeedSpots);
+  }
+
+  private void TrackTile(GameLocation location, Vector2 tile, SObject obj)
+  {
+    if (!ShouldTrackTile(location, tile))
+    {
+      return;
+    }
+    switch (obj.QualifiedItemId)
+    {
+      case ArtifactSpotId:
+        _trackedArtifactSpots.GetOrCreate(location).Add(tile);
+        break;
+      case SeedSpotId:
+        _trackedSeedSpots.GetOrCreate(location).Add(tile);
+        break;
+    }
+  }
+
+  private void UntrackTile(GameLocation location, Vector2 tile)
+  {
+    _trackedArtifactSpots.GetOrCreate(location).Remove(tile);
+    _trackedSeedSpots.GetOrCreate(location).Remove(tile);
   }
 
   private void ScanArtifactSpots()
@@ -123,15 +141,7 @@ internal class ArtifactTrackerModule(
 
       foreach ((Vector2 tile, SObject obj) in gameLocation.Objects.Pairs)
       {
-        switch (obj.QualifiedItemId)
-        {
-          case ArtifactSpotId:
-            _trackedArtifactSpots.GetOrCreate(gameLocation).Add(tile);
-            break;
-          case SeedSpotId:
-            _trackedSeedSpots.GetOrCreate(gameLocation).Add(tile);
-            break;
-        }
+        TrackTile(gameLocation, tile, obj);
       }
     }
 

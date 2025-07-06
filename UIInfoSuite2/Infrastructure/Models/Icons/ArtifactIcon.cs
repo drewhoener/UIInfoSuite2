@@ -17,6 +17,10 @@ internal class ArtifactIcon() : ClickableIcon(ItemRegistry.GetData("(O)275"), 40
     List<string> locations = new(dict.Count);
     foreach ((GameLocation location, HashSet<Vector2> tiles) in dict)
     {
+      if (tiles.Count <= 0)
+      {
+        continue;
+      }
       string displayName = location is Farm ? location.Name : location.DisplayName;
       locations.Add($"  {displayName}: {tiles.Count}");
     }
