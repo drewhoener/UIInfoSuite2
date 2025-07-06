@@ -29,7 +29,7 @@ internal class MerchantIcon : ClickableIcon
       case Type.Bookseller:
         HoverText = I18n.BooksellerIsInTown();
         BaseTexture.Value = Game1.mouseCursors_1_6;
-        SourceBounds = new Rectangle(5, 471, 23, 22);
+        SetSourceBounds(new Rectangle(5, 471, 23, 22));
         break;
       default:
         throw new ArgumentOutOfRangeException(nameof(merchantType));
