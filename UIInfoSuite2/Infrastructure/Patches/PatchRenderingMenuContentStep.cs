@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -12,6 +13,8 @@ namespace UIInfoSuite2.Infrastructure.Patches;
 
 public class PatchRenderingMenuContentStep(IMonitor logger) : IPatchable
 {
+  private static readonly Lazy<EventsManager> EventsManager = new(ModEntry.GetSingleton<EventsManager>);
+
   // Patcher
   public void Patch(Harmony harmony)
   {
@@ -99,7 +102,6 @@ public class PatchRenderingMenuContentStep(IMonitor logger) : IPatchable
   // Injected Method
   private static void CallRenderingMenuContentStepEvent(IClickableMenu menu, SpriteBatch spriteBatch)
   {
-    var eventsManager = ModEntry.GetSingleton<EventsManager>();
-    eventsManager.TriggerOnRenderingMenuContentStep(menu, spriteBatch);
+    EventsManager.Value.TriggerOnRenderingMenuContentStep(menu, spriteBatch);
   }
 }
