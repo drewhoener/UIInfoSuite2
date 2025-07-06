@@ -13,6 +13,7 @@ using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Models.Layout;
+using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 using UIInfoSuite2.UIElements;
 using Object = StardewValley.Object;
 
@@ -325,14 +326,41 @@ internal partial class ExtendedItemInfoModule
 
   private static void DrawContainer(ContainerPatchPoint containerPatchPoint, SpriteBatch spriteBatch, int x, ref int y)
   {
-    if (!_additionalDrawContainers.ContainsKey(containerPatchPoint))
+    if (!_additionalDrawContainers.TryGetValue(containerPatchPoint, out LayoutContainer? container))
     {
       return;
     }
 
-    LayoutContainer? container = _additionalDrawContainers[containerPatchPoint];
     container.Draw(spriteBatch, x, y);
     y += container.Bounds.Height;
+  }
+
+  private static int GetMaxContainerWidth()
+  {
+    var maxWidth = 0;
+
+    foreach (LayoutContainer layoutContainer in _additionalDrawContainers.Values)
+    {
+      layoutContainer.Layout();
+      Dimensions containerSize = layoutContainer.Bounds.Size;
+      maxWidth = Math.Max(containerSize.Width, maxWidth);
+    }
+
+    return maxWidth;
+  }
+
+  private static int GetAdditionalContainerHeight()
+  {
+    var additionalHeight = 0;
+
+    foreach (LayoutContainer layoutContainer in _additionalDrawContainers.Values)
+    {
+      layoutContainer.Layout();
+      Dimensions containerSize = layoutContainer.Bounds.Size;
+      additionalHeight += containerSize.Height;
+    }
+
+    return additionalHeight;
   }
 
   private static Vector2 AddOffsetsIfBundleItem(Item? hoverItem, int heightToAdd, ref int startingHeightRef)
