@@ -73,7 +73,7 @@ internal class ClickableIcon
   public string HoverText
   {
     get => _hoverText.Value;
-    set => _hoverText.Value = value;
+    set => _hoverText.Value = Game1.parseText(value, HoverFont, 600);
   }
 
   public AspectLockedDimensions Dimensions => ScalingDimensions.Value;
