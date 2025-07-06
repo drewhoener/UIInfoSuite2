@@ -5,6 +5,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Extensions;
@@ -29,6 +30,21 @@ internal class ClickableIcon
   protected readonly PerScreen<AspectLockedDimensions> ScalingDimensions;
 
   public ClickableIcon(
+    ParsedItemData itemData,
+    float finalSize,
+    PrimaryDimension primaryDimension = PrimaryDimension.Width,
+    Action<object?, ButtonPressedEventArgs, Vector2>? clickHandlerAction = null,
+    SpriteFont? hoverFont = null
+  ) : this(
+    itemData.GetTexture(),
+    itemData.GetSourceRect(),
+    finalSize,
+    primaryDimension,
+    clickHandlerAction,
+    hoverFont
+  ) { }
+
+  public ClickableIcon(
     Texture2D baseTexture,
     Rectangle sourceBounds,
     float finalSize,
@@ -38,9 +54,9 @@ internal class ClickableIcon
   )
   {
     BaseTexture = new PerScreen<Texture2D>(() => baseTexture);
-    ScalingDimensions = new PerScreen<AspectLockedDimensions>(
-      () => new AspectLockedDimensions(sourceBounds, finalSize, primaryDimension)
-    );
+    ScalingDimensions =
+      new PerScreen<AspectLockedDimensions>(() => new AspectLockedDimensions(sourceBounds, finalSize, primaryDimension)
+      );
 
     _icon = new PerScreen<ClickableTextureComponent>(GenerateTextureComponent);
 
