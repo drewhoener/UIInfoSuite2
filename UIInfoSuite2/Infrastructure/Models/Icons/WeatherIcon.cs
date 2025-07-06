@@ -3,20 +3,44 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Extensions;
+using UIInfoSuite2.Compatibility;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
+internal struct Texture2DData
+{
+  public Texture2DData(Texture2D texture)
+  {
+    Texture = texture;
+    var colors = new Color[texture.Width * texture.Height];
+    Dimensions = new Rectangle(0, 0, texture.Width, texture.Height);
+    Texture.GetData(colors);
+    Colors = colors;
+  }
+
+  public Texture2D Texture { get; }
+  public Color[] Colors { get; }
+  public Rectangle Dimensions { get; }
+
+  public void GetSubTexture(Color[] output, Rectangle clipArea)
+  {
+    Tools.GetSubTexture(output, Colors, Dimensions, clipArea);
+  }
+}
+
 internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value, new Rectangle(0, 0, 15, 15), 40)
 {
-  private const int WeatherSheetWidth = 15 * 4 + 18 * 3;
-  private const int WeatherSheetHeight = 18;
+  private const int WeatherSheetWidth = 18 * 4;
+  private const int WeatherSheetHeight = 18 * 2;
 
   private static readonly Lazy<Texture2D> IconSheet = new(() => GenerateWeatherTexture(ModEntry.Instance.Helper));
-  private bool _isRainyTomorrow;
-  private readonly PerScreen<string> _lastWeatherValue = new(() => "");
+  private static readonly Lazy<ApiManager> ApiManager = new(ModEntry.GetSingleton<ApiManager>);
+
+  private string _lastWeatherValue = "";
+  private IWeatherData? _lastCustomWeatherData;
+  private bool _shouldDisplayWeather;
 
   public void DoWeatherCheck()
   {
@@ -35,13 +59,20 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
 
   private void UpdateIconForWeather(string weatherStr)
   {
-    if (weatherStr.EqualsIgnoreCase(_lastWeatherValue.Value))
+
+    IWeatherData? weatherData = null;
+    if (ApiManager.Value.GetApi(ModCompat.CloudySkies, out ICloudySkiesApi? cloudySkiesApi))
+    {
+      cloudySkiesApi.TryGetWeather(weatherStr, out weatherData);
+    }
+
+    if (weatherStr.EqualsIgnoreCase(_lastWeatherValue) && _lastCustomWeatherData == weatherData)
     {
       return;
     }
 
-    _lastWeatherValue.Value = weatherStr;
-    int baseOffset = isIslandWeather ? 60 : 0;
+    _lastCustomWeatherData = weatherData;
+    _lastWeatherValue = weatherStr;
     int iconSize = isIslandWeather ? 18 : 15;
     int iconIndex;
 
@@ -58,28 +89,43 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
         break;
 
       case Game1.weather_snow:
-        if (isIslandWeather)
-        {
-          _isRainyTomorrow = false;
-          return;
-        }
-
         iconIndex = 2;
         HoverText = I18n.SnowNextDay();
         break;
 
       case Game1.weather_green_rain:
-        iconIndex = isIslandWeather ? 2 : 3;
+        iconIndex = 3;
         HoverText = I18n.RainNextDay();
         break;
-
       default:
-        _isRainyTomorrow = false;
-        return;
+        if (weatherData is null)
+        {
+          _shouldDisplayWeather = false;
+          return;
+        }
+
+        iconIndex = 0;
+        HoverText = weatherData.Forecast ?? $"Custom Weather: {weatherData.DisplayName}";
+
+        break;
     }
 
-    _isRainyTomorrow = true;
-    SetSourceBounds(new Rectangle(baseOffset + iconSize * iconIndex, 0, iconSize, iconSize));
+    _shouldDisplayWeather = true;
+    if (weatherData is null || string.IsNullOrEmpty(weatherData.TVTexture))
+    {
+      BaseTexture.Value = IconSheet.Value;
+      SetSourceBounds(new Rectangle(iconSize * iconIndex, isIslandWeather ? 18 : 0, iconSize, iconSize));
+      return;
+    }
+
+    var customTexture = ModEntry.Instance.Helper.GameContent.Load<Texture2D>(weatherData.TVTexture);
+    BaseTexture.Value = GenerateCustomWeatherTexture(
+      ModEntry.Instance.Helper,
+      customTexture,
+      new Rectangle(weatherData.TVSource, new Point(13, 13)),
+      isIslandWeather
+    );
+    SetSourceBounds(new Rectangle(0, 0, iconSize, iconSize));
   }
 
   private static bool HasVisitedIsland()
@@ -114,7 +160,7 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
       return false;
     }
 
-    return _isRainyTomorrow && base._ShouldDraw();
+    return _shouldDisplayWeather && base._ShouldDraw();
   }
 
   /// <summary>
@@ -131,66 +177,104 @@ internal class WeatherIcon(bool isIslandWeather) : ClickableIcon(IconSheet.Value
     weatherIconColors = new Color[WeatherSheetWidth * WeatherSheetHeight];
     // Use our own texture in case the game's has been overwritten by a content pack.
     // Notably happens with the Cat TV Mod
-    Texture2D weatherBorderTexture = Texture2D.FromFile(
-      Game1.graphics.GraphicsDevice,
-      Path.Combine(helper.DirectoryPath, "assets", "weatherbox.png")
+    var weatherBorderData = new Texture2DData(
+      Texture2D.FromFile(Game1.graphics.GraphicsDevice, Path.Combine(helper.DirectoryPath, "assets", "weatherbox.png"))
     );
-    var weatherBorderColors = new Color[15 * 15];
-    var cursorColors = new Color[Game1.mouseCursors.Width * Game1.mouseCursors.Height];
-    var cursorColors_1_6 = new Color[Game1.mouseCursors_1_6.Width * Game1.mouseCursors_1_6.Height];
-    var bounds = new Rectangle(0, 0, Game1.mouseCursors.Width, Game1.mouseCursors.Height);
-    var bounds_1_6 = new Rectangle(0, 0, Game1.mouseCursors_1_6.Width, Game1.mouseCursors_1_6.Height);
-    weatherBorderTexture.GetData(weatherBorderColors);
-    Game1.mouseCursors.GetData(cursorColors);
-    Game1.mouseCursors_1_6.GetData(cursorColors_1_6);
+    var cursorsData = new Texture2DData(Game1.mouseCursors);
+    // ReSharper disable once InconsistentNaming
+    var cursorsData_1_6 = new Texture2DData(Game1.mouseCursors_1_6);
+    var subTextureColors = new Color[15 * 15];
+    var dims = new Point(13, 13);
+    var offset = new Point(1, 1);
+
+    // Copy over the bits we want
+    // Border from TV screen
+    weatherBorderData.GetSubTexture(subTextureColors, new Rectangle(0, 0, 15, 15));
+    // Copy to each destination on row 1 (18x18 grid alignment)
+    for (var i = 0; i < 4; i++)
+    {
+      Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(i * 18, 0, 15, 15));
+      Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(i * 18, 18, 15, 15));
+    }
+
+    subTextureColors = new Color[13 * 13];
+    // Rainy Weather - row 1, column 1 and island row 2, column 1
+    cursorsData.GetSubTexture(subTextureColors, new Rectangle(504, 333, 13, 13));
+    CopyToCell(new Point(0, 0));
+    CopyToCell(new Point(0, 1));
+
+    // Stormy Weather - row 1, column 2 and island row 2, column 2
+    cursorsData.GetSubTexture(subTextureColors, new Rectangle(426, 346, 13, 13));
+    CopyToCell(new Point(1, 0));
+    CopyToCell(new Point(1, 1));
+
+    // Snowy Weather - row 1, column 3 (no island equivalent)
+    cursorsData.GetSubTexture(subTextureColors, new Rectangle(465, 346, 13, 13));
+    CopyToCell(new Point(2, 0));
+    CopyToCell(new Point(2, 1));
+
+    // Green Rain - row 1, column 4 and island row 2, column 3
+    cursorsData_1_6.GetSubTexture(subTextureColors, new Rectangle(178, 363, 13, 13));
+    CopyToCell(new Point(3, 0));
+    CopyToCell(new Point(3, 1));
+
+    // Size of the parrot icon
+    subTextureColors = new Color[9 * 14];
+    dims = new Point(9, 14);
+    offset = new Point(9, 4);
+    cursorsData.GetSubTexture(subTextureColors, new Rectangle(146, 149, 9, 14));
+    CopyToCell(new Point(0, 1), true);
+    CopyToCell(new Point(1, 1), true);
+    CopyToCell(new Point(2, 1), true);
+    CopyToCell(new Point(3, 1), true);
+
+    iconSheet.SetData(weatherIconColors);
+
+    return iconSheet;
+
+    void CopyToCell(Point cell, bool overlay = false)
+    {
+      Point pos = cell * new Point(18, 18) + offset;
+      Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(pos, dims), overlay);
+    }
+  }
+
+  private static Texture2D GenerateCustomWeatherTexture(
+    IModHelper helper,
+    Texture2D customTexture,
+    Rectangle customTextureSource,
+    bool islandWeather
+  )
+  {
+    const int iconSize = 18;
+    // Setup Texture sheet as a copy, so as not to disturb existing sprites
+    Color[] weatherIconColors;
+    var iconSheet = new Texture2D(Game1.graphics.GraphicsDevice, iconSize, iconSize);
+    var customTextureData = new Texture2DData(customTexture);
+    var cursorsData = new Texture2DData(Game1.mouseCursors);
+    weatherIconColors = new Color[iconSize * iconSize];
+    // Use our own texture in case the game's has been overwritten by a content pack.
+    // Notably happens with the Cat TV Mod
+    var weatherBorderData = new Texture2DData(
+      Texture2D.FromFile(Game1.graphics.GraphicsDevice, Path.Combine(helper.DirectoryPath, "assets", "weatherbox.png"))
+    );
     var subTextureColors = new Color[15 * 15];
 
     // Copy over the bits we want
     // Border from TV screen
-    Tools.GetSubTexture(
-      subTextureColors,
-      weatherBorderColors,
-      new Rectangle(0, 0, 15, 15),
-      new Rectangle(0, 0, 15, 15)
-    );
-    // Copy to each destination
-    for (var i = 0; i < 4; i++)
-    {
-      Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(i * 15, 0, 15, 15));
-    }
-
-    // Add in expanded sprites for the island parrot
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(60, 0, 15, 15));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(78, 0, 15, 15));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(96, 0, 15, 15));
-
-    subTextureColors = new Color[13 * 13];
-    // Rainy Weather
-    Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(504, 333, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(1, 1, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(61, 1, 13, 13));
-
-    // Stormy Weather
-    Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(426, 346, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(16, 1, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(79, 1, 13, 13));
-
-    // Snowy Weather
-    Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(465, 346, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(31, 1, 13, 13));
-
-    // Green Rain
-    Tools.GetSubTexture(subTextureColors, cursorColors_1_6, bounds_1_6, new Rectangle(178, 363, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(46, 1, 13, 13));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(97, 1, 13, 13));
+    weatherBorderData.GetSubTexture(subTextureColors, new Rectangle(0, 0, 15, 15));
+    Tools.SetSubTexture(subTextureColors, weatherIconColors, iconSize, new Rectangle(0, 0, 15, 15));
+    // Clip the custom texture area
+    customTextureData.GetSubTexture(subTextureColors, customTextureSource);
+    Tools.SetSubTexture(subTextureColors, weatherIconColors, iconSize, new Rectangle(1, 1, 13, 13));
 
     // Size of the parrot icon
-    subTextureColors = new Color[9 * 14];
-    // Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(155, 148, 9, 14));
-    Tools.GetSubTexture(subTextureColors, cursorColors, bounds, new Rectangle(146, 149, 9, 14));
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(69, 4, 9, 14), true);
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(87, 4, 9, 14), true);
-    Tools.SetSubTexture(subTextureColors, weatherIconColors, WeatherSheetWidth, new Rectangle(105, 4, 9, 14), true);
+    if (islandWeather)
+    {
+      subTextureColors = new Color[9 * 14];
+      cursorsData.GetSubTexture(subTextureColors, new Rectangle(146, 149, 9, 14));
+      Tools.SetSubTexture(subTextureColors, weatherIconColors, iconSize, new Rectangle(9, 4, 9, 14), true);
+    }
 
     iconSheet.SetData(weatherIconColors);
 
