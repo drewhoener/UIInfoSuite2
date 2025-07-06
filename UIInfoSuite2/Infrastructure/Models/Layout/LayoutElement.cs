@@ -150,7 +150,7 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     }
 
     string lookup = identifier.ToLower();
-    (int result, _) = Identifiers.GetOrCreate(lookup, () => 0);
+    int result = Identifiers.GetOrCreate(lookup, () => 0);
     Identifiers[lookup] = result + 1;
 
     return $"{lookup}-{result}";

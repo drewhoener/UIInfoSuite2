@@ -8,9 +8,10 @@ public record GetOrCreateResult<T>(T Result, bool WasCreated);
 
 public static class CollectionExtensions
 {
-
-  public static GetOrCreateResult<TValue> GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-    where TValue : new()
+  public static GetOrCreateResult<TValue> GetOrCreateWithResult<TKey, TValue>(
+    this IDictionary<TKey, TValue> dictionary,
+    TKey key
+  ) where TValue : new()
   {
     if (dictionary.TryGetValue(key, out TValue? value))
     {
@@ -22,7 +23,7 @@ public static class CollectionExtensions
     return new GetOrCreateResult<TValue>(dictionary[key], true);
   }
 
-  public static GetOrCreateResult<TValue> GetOrCreate<TKey, TValue>(
+  public static GetOrCreateResult<TValue> GetOrCreateWithResult<TKey, TValue>(
     this IDictionary<TKey, TValue> dictionary,
     TKey key,
     Func<TValue> defaultCreate
@@ -36,6 +37,21 @@ public static class CollectionExtensions
     dictionary[key] = defaultCreate();
 
     return new GetOrCreateResult<TValue>(dictionary[key], true);
+  }
+
+  public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+    where TValue : new()
+  {
+    return dictionary.GetOrCreateWithResult(key).Result;
+  }
+
+  public static TValue GetOrCreate<TKey, TValue>(
+    this IDictionary<TKey, TValue> dictionary,
+    TKey key,
+    Func<TValue> defaultCreate
+  )
+  {
+    return dictionary.GetOrCreateWithResult(key, defaultCreate).Result;
   }
 
   public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)

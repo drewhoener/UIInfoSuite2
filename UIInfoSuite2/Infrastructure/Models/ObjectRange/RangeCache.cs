@@ -18,8 +18,8 @@ internal class RangeCache
   {
     foreach (Vector2 tile in tiles)
     {
-      _tiles.GetOrCreate(tile).Result.Add(type);
-      _tilesByLayer.GetOrCreate(type).Result.Add(tile);
+      _tiles.GetOrCreate(tile).Add(type);
+      _tilesByLayer.GetOrCreate(type).Add(tile);
     }
   }
 
@@ -46,7 +46,7 @@ internal class RangeCache
     var sourceRect = new Rectangle(194, 388, 16, 16);
     float tileToPixelScale = Utility.ModifyCoordinateFromUIScale(Game1.tileSize);
     float pixelToTileScale = Utility.ModifyCoordinateForUIScale(Game1.pixelZoom);
-    foreach ((Vector2 tile, int count) in _tilesByLayer.GetOrCreate(overlayType).Result.Pairs)
+    foreach ((Vector2 tile, int count) in _tilesByLayer.GetOrCreate(overlayType).Pairs)
     {
       Vector2 position = tile * tileToPixelScale;
       b.Draw(

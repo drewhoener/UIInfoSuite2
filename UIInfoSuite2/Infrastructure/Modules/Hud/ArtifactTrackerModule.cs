@@ -85,10 +85,10 @@ internal class ArtifactTrackerModule(
       switch (kvp.Value.QualifiedItemId)
       {
         case ArtifactSpotId:
-          _trackedArtifactSpots.GetOrCreate(e.Location).Result.Add(kvp.Key);
+          _trackedArtifactSpots.GetOrCreate(e.Location).Add(kvp.Key);
           break;
         case SeedSpotId:
-          _trackedSeedSpots.GetOrCreate(e.Location).Result.Add(kvp.Key);
+          _trackedSeedSpots.GetOrCreate(e.Location).Add(kvp.Key);
           break;
       }
     }
@@ -98,10 +98,10 @@ internal class ArtifactTrackerModule(
       switch (kvp.Value.QualifiedItemId)
       {
         case ArtifactSpotId:
-          _trackedArtifactSpots.GetOrCreate(e.Location).Result.Remove(kvp.Key);
+          _trackedArtifactSpots.GetOrCreate(e.Location).Remove(kvp.Key);
           break;
         case SeedSpotId:
-          _trackedSeedSpots.GetOrCreate(e.Location).Result.Remove(kvp.Key);
+          _trackedSeedSpots.GetOrCreate(e.Location).Remove(kvp.Key);
           break;
       }
     }
@@ -126,10 +126,10 @@ internal class ArtifactTrackerModule(
         switch (obj.QualifiedItemId)
         {
           case ArtifactSpotId:
-            _trackedArtifactSpots.GetOrCreate(gameLocation).Result.Add(tile);
+            _trackedArtifactSpots.GetOrCreate(gameLocation).Add(tile);
             break;
           case SeedSpotId:
-            _trackedSeedSpots.GetOrCreate(gameLocation).Result.Add(tile);
+            _trackedSeedSpots.GetOrCreate(gameLocation).Add(tile);
             break;
         }
       }

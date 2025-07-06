@@ -95,7 +95,7 @@ public class ConfigManager : IDisposable
       }
       else
       {
-        configurations.GetOrCreate(pageKey).Result.Add(configurable);
+        configurations.GetOrCreate(pageKey).Add(configurable);
       }
     }
 
