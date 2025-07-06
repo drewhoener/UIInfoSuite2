@@ -205,6 +205,11 @@
   "gmcm.modules.icons.forage.hazelnut.enable.tooltip": "Toggle whether an icon is shown when hazelnuts are available (mid fall)",
   "gmcm.modules.icons.forage.beach.enable": "Show beach forage icon",
   "gmcm.modules.icons.forage.beach.enable.tooltip": "Toggle whether an icon is shown when extra beach forage is available (mid summer)",
+  // Artifact Spots
+  "gmcm.modules.icons.artifacts.enable": "Show artifact spot count",
+  "gmcm.modules.icons.artifacts.enable.tooltip": "Lists the number of uncollected artifact spots around the map",
+  "gmcm.modules.icons.artifacts.seeds.enable": "Show seed spot count",
+  "gmcm.modules.icons.artifacts.seeds.enable.tooltip": "Lists the number of uncollected seed spots around the map",
   // HUD Tooltips
   "gmcm.section.tooltips.title": "HUD Tooltips",
   "gmcm.section.tooltips.title.tooltip": "Control HUD Tooltips and other Quality-of-Life features in your world",

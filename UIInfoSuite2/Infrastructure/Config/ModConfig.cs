@@ -62,6 +62,10 @@ public sealed class ModConfig
   public bool ShowAnimalsNeedPets { get; set; } = true;
   public bool ShowAnimalProduceReady { get; set; } = true;
   public bool HideAnimalPetOnMaxFriendship { get; set; } = true;
+
+  // Artifact Spots
+  public bool ShowArtifactSpotCount { get; set; } = true;
+  public bool ShowSeedSpotCount { get; set; } = true;
 #endregion
 
 #region Menu Tweaks Config
