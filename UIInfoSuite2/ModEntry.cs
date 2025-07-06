@@ -118,6 +118,7 @@ internal class ModEntry : Mod
     RegisterBaseModuleSingleton<GiftLockModule>();
     RegisterBaseModuleSingleton<PartialHeartFillModule>();
     RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
+    RegisterBaseModuleSingleton<SocialPageFilterModule>();
     RegisterBaseModuleSingleton<AnimalInteractModule>();
     RegisterBaseModuleSingleton<ObjectEffectRangeModule>();
     RegisterBaseModuleSingleton<ObjectInfoModule>();
