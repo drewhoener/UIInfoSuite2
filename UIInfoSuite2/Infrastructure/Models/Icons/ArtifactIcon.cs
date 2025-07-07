@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using StardewValley;
+using StardewValley.TokenizableStrings;
 
 namespace UIInfoSuite2.Infrastructure.Models.Icons;
 
@@ -21,7 +22,8 @@ internal class ArtifactIcon() : ClickableIcon(ItemRegistry.GetData("(O)275"), 40
       {
         continue;
       }
-      string displayName = location is Farm ? location.Name : location.DisplayName;
+
+      string displayName = location is Farm ? location.Name : TokenParser.ParseText(location.DisplayName);
       locations.Add($"  {displayName}: {tiles.Count}");
     }
 

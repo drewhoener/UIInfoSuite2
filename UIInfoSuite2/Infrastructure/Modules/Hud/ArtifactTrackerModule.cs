@@ -23,7 +23,7 @@ internal class ArtifactTrackerModule(
 {
   private const string ArtifactSpotId = "(O)590";
   private const string SeedSpotId = "(O)SeedSpot";
-  private static Rectangle QuarryRect = new Rectangle(106, 13, 22, 22);
+  private static Rectangle QuarryRect = new(106, 13, 22, 22);
   private readonly Dictionary<GameLocation, HashSet<Vector2>> _trackedArtifactSpots = new();
   private readonly Dictionary<GameLocation, HashSet<Vector2>> _trackedSeedSpots = new();
   protected override string IconKey => "ArtifactIcon";
@@ -41,7 +41,8 @@ internal class ArtifactTrackerModule(
       case Woods:
         return Game1.MasterPlayer.mailReceived.Contains("beenToWoods");
       default:
-        return location.IsOutdoors;
+        // Weird fix for SVE using real locations for their events
+        return location.IsOutdoors && location.warps.Count > 0 && !location.DisplayName.StartsWith("Custom_");
     }
   }
 
@@ -110,6 +111,7 @@ internal class ArtifactTrackerModule(
     {
       return;
     }
+
     switch (obj.QualifiedItemId)
     {
       case ArtifactSpotId:
