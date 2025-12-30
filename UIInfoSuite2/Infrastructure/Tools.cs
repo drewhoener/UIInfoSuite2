@@ -423,4 +423,9 @@ public static class Tools
     spriteBatch.Draw(Game1.staminaRect, new Rectangle(x2, y, lineWidth, height), color);
     spriteBatch.Draw(Game1.staminaRect, new Rectangle(x, y2, width, lineWidth), color);
   }
+
+  public static bool IsMasteryLevel()
+  {
+    return Game1.player.Level >= 25;
+  }
 }

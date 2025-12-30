@@ -230,37 +230,6 @@ public class ConfigManager : IDisposable
       I18n.Gmcm_Section_StatusIcons_Tooltip // "Configure status indicator icons"
     );
 
-    // Experience Bar
-    AddGroupHeader(modConfigMenuApi, I18n.Gmcm_Group_XpBar); // "Experience Bar"
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Enable,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Enable_Tooltip,
-      getValue: () => Config.ShowExperienceBar,
-      setValue: value => Config.ShowExperienceBar = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Fadeout,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Fadeout_Tooltip,
-      getValue: () => Config.AllowExperienceBarToFadeOut,
-      setValue: value => Config.AllowExperienceBarToFadeOut = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Gain,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Gain_Tooltip,
-      getValue: () => Config.ShowExperienceGain,
-      setValue: value => Config.ShowExperienceGain = value
-    );
-    modConfigMenuApi.AddBoolOption(
-      _manifest,
-      name: I18n.Gmcm_Modules_Xpbar_Levelup,
-      tooltip: I18n.Gmcm_Modules_Xpbar_Levelup_Tooltip,
-      getValue: () => Config.ShowLevelUpAnimation,
-      setValue: value => Config.ShowLevelUpAnimation = value
-    );
-
     // Notification Icons
     modConfigMenuApi.AddSectionTitle(
       _manifest,

@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Events.Args;
 
@@ -9,6 +10,7 @@ public class EventsManager
 {
   public event EventHandler<EventArgs>? OnConfigChange;
   public event EventHandler<RenderingMenuContentStepArgs>? OnRenderingMenuContentStep;
+  public event EventHandler<MasteryXpGainArgs>? OnMasteryXpGain;
 
   public void TriggerOnConfigChange()
   {
@@ -18,6 +20,11 @@ public class EventsManager
   public void TriggerOnRenderingMenuContentStep(IClickableMenu menu, SpriteBatch spriteBatch)
   {
     OnRenderingMenuContentStep?.Invoke(this, new RenderingMenuContentStepArgs(menu, spriteBatch));
+  }
+
+  public void TriggerOnMasteryXpGain(Farmer player, int skillType, int oldXp, int newXp)
+  {
+    OnMasteryXpGain?.Invoke(this, new MasteryXpGainArgs(player, skillType, oldXp, newXp));
   }
 }
 

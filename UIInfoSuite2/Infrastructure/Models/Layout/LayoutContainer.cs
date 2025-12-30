@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 namespace UIInfoSuite2.Infrastructure.Models.Layout;
@@ -22,8 +23,6 @@ internal class LayoutContainer : LayoutElement, IDisposable
     Column
     // TODO: Row Reverse, Column Reverse
   }
-
-  private static readonly Rectangle BoxTextureRect = new(0, 256, 60, 60);
 
   private readonly HashSet<string> _childIds = [];
   private readonly List<LayoutElement> _children = [];
@@ -360,7 +359,7 @@ internal class LayoutContainer : LayoutElement, IDisposable
     IClickableMenu.drawTextureBox(
       spriteBatch,
       Game1.menuTexture,
-      BoxTextureRect,
+      TextureHelper.OutlinedTextureBox,
       x,
       y,
       finalWidth,

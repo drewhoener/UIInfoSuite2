@@ -100,12 +100,22 @@ public static class ObjectExtensions
     return tileObject.MinutesUntilReady > 0;
   }
 
+  public static Rectangle ToRectangle(this Vector2 vector, int width, int height)
+  {
+    return new Rectangle((int)vector.X, (int)vector.Y, width, height);
+  }
+
+  public static Rectangle ToRectangle(this Point vector, int width, int height)
+  {
+    return new Rectangle(vector.X, vector.Y, width, height);
+  }
+
 #region Properties
   private const string SolarPanelId = "231";
 
   private static readonly Dictionary<string, int> NpcHeadShotSize = new()
   {
-    { "Piere", 9 },
+    { "Pierre", 9 },
     { "Sebastian", 7 },
     { "Evelyn", 5 },
     { "Penny", 6 },
