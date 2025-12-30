@@ -40,6 +40,12 @@ internal class TrackableValue<T>(
     return dirty;
   }
 
+  public void Mark()
+  {
+    IsDirty = true;
+    onChangeNotifier?.Invoke(debugIdentifier);
+  }
+
   public bool SetAndMark(T newValue, bool forceMark = false, bool runCallback = true)
   {
     if (!forceMark && Equals(newValue, _value))
@@ -48,10 +54,9 @@ internal class TrackableValue<T>(
     }
 
     _value = newValue;
-    IsDirty = true;
     if (runCallback)
     {
-      onChangeNotifier?.Invoke(debugIdentifier);
+      Mark();
     }
 
     return true;
