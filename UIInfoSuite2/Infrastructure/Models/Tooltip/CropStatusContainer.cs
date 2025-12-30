@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
 using Netcode;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
@@ -13,13 +12,6 @@ namespace UIInfoSuite2.Infrastructure.Models.Tooltip;
 
 internal class CropStatusContainer : LayoutContainer
 {
-  private readonly TooltipText _cropDaysRemainingElement = new(
-    "UIIS2::UnknownTime",
-    0.75f,
-    identifier: "CropTimeRemaining"
-  );
-
-  private readonly TooltipIcon _cropIcon = new(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40);
   private readonly List<TooltipIcon> _fertilizerIcons = [];
   private readonly TooltipIcon _treeFertilizerIcon;
   private readonly TooltipIcon _wateringCanIcon;
@@ -56,7 +48,7 @@ internal class CropStatusContainer : LayoutContainer
 
   private static TooltipIcon CreateItemIcon(
     string itemId,
-    int finalSize = 40,
+    int finalSize = 30,
     PrimaryDimension dimension = PrimaryDimension.Width,
     string? identifier = null
   )
