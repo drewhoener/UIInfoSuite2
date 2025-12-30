@@ -47,6 +47,11 @@ public class ConfigManager : IDisposable
     LocalizedContentManager.OnLanguageChange -= OnLanguageChange;
   }
 
+  private IGenericModConfigMenuApi? GetModConfigApi()
+  {
+    return _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
+  }
+
   public void SaveConfig()
   {
     _helper.WriteConfig(Config);
@@ -60,7 +65,7 @@ public class ConfigManager : IDisposable
 
   private void OnLanguageChange(LocalizedContentManager.LanguageCode code)
   {
-    var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
+    IGenericModConfigMenuApi? modConfigMenuApi = GetModConfigApi();
     if (modConfigMenuApi is null)
     {
       return;
@@ -72,7 +77,7 @@ public class ConfigManager : IDisposable
 
   private void RegisterModConfig()
   {
-    var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
+    IGenericModConfigMenuApi? modConfigMenuApi = GetModConfigApi();
     if (modConfigMenuApi == null)
     {
       return;
@@ -83,8 +88,8 @@ public class ConfigManager : IDisposable
     // Bucket configurable items into their correct pages
     List<IConfigurable> topLevelConfigs = [];
     Dictionary<string, List<IConfigurable>> configurations = new();
-    var currentSection = "";
-    var currentSubHeader = "";
+    string currentSection = "";
+    string currentSubHeader = "";
 
     foreach (IConfigurable configurable in ModEntry.GetContainerCollection<IConfigurable>())
     {
@@ -175,7 +180,7 @@ public class ConfigManager : IDisposable
 
   private void OnGameLaunchedOld(object? sender, GameLaunchedEventArgs e)
   {
-    var modConfigMenuApi = _apiManager.TryRegisterApi<IGenericModConfigMenuApi>(_helper, ModCompat.Gmcm, "1.6.0");
+    IGenericModConfigMenuApi? modConfigMenuApi = GetModConfigApi();
     if (modConfigMenuApi == null)
     {
       return;

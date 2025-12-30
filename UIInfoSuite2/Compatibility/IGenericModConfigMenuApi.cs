@@ -29,7 +29,6 @@ public interface IGenericModConfigMenuApi
   /// </remarks>
   void Register(IManifest mod, Action reset, Action save, bool titleScreenOnly = false);
 
-
   /****
    ** Basic options
    ****/
@@ -176,7 +175,7 @@ public interface IGenericModConfigMenuApi
     string fieldId = null
   );
 
-  /// <summary>Add a key binding at the current position in the form.</summary>
+  /// <summary>Add a keybind at the current position in the form.</summary>
   /// <param name="mod">The mod's manifest.</param>
   /// <param name="getValue">Get the current value from the mod config.</param>
   /// <param name="setValue">Set a new value in the mod config.</param>
@@ -198,7 +197,7 @@ public interface IGenericModConfigMenuApi
     string fieldId = null
   );
 
-  /// <summary>Add a key binding list at the current position in the form.</summary>
+  /// <summary>Add a keybind list at the current position in the form.</summary>
   /// <param name="mod">The mod's manifest.</param>
   /// <param name="getValue">Get the current value from the mod config.</param>
   /// <param name="setValue">Set a new value in the mod config.</param>
@@ -322,6 +321,10 @@ public interface IGenericModConfigMenuApi
   /// <summary>Open the config UI for a specific mod.</summary>
   /// <param name="mod">The mod's manifest.</param>
   void OpenModMenu(IManifest mod);
+
+  /// <summary>Open the config UI for a specific mod, as a child menu if there is an existing menu.</summary>
+  /// <param name="mod">The mod's manifest.</param>
+  void OpenModMenuAsChildMenu(IManifest mod);
 
   /// <summary>Get the currently-displayed mod config menu, if any.</summary>
   /// <param name="mod">The manifest of the mod whose config menu is being shown, or <c>null</c> if not applicable.</param>
