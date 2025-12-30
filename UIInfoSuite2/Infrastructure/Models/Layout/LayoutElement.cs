@@ -40,7 +40,7 @@ internal abstract class LayoutElement : ITrackable, IDisposable
   protected readonly TrackedInsets PaddingTracked;
   private LayoutElement? _parent;
   protected internal LayoutBounds Bounds = new();
-  protected Dimensions ContentSize = Dimensions.Empty;
+  internal Dimensions ContentSize = Dimensions.Empty;
 
   protected LayoutElement(string? identifier)
   {
