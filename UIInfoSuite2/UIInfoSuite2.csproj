@@ -25,8 +25,8 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2"/>
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0"/>
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1" />
     <PackageReference Include="SimpleInjector" Version="5.5.0"/>
   </ItemGroup>
 
