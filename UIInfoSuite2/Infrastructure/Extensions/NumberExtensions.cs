@@ -4,11 +4,17 @@ namespace UIInfoSuite2.Infrastructure.Extensions;
 
 public static class NumberExtensions
 {
+  /// <summary>
+  /// Safe comparison for floating point numbers.
+  /// </summary>
+  /// <see href="https://stackoverflow.com/a/3875619"/>
+  /// <param name="a">First Number</param>
+  /// <param name="b">Second Number</param>
+  /// <param name="epsilon">Epsilon value for comparison, defaults to double.Epsilon</param>
+  /// <returns>If the numbers are equal within the confines of the data type's min-normal value.</returns>
   public static bool NearlyEqual(this double a, double b, double epsilon = double.Epsilon)
   {
-    const double
-      minNormal = 2.2250738585072014E-308; // equivalent to BitConverter.Int64BitsToDouble(0x0010000000000000L)
-
+    const double minNormal = double.Epsilon;
     double absA = Math.Abs(a);
     double absB = Math.Abs(b);
     double diff = Math.Abs(a - b);
@@ -32,8 +38,7 @@ public static class NumberExtensions
 
   public static bool NearlyEqual(this float a, float b, float epsilon = float.Epsilon)
   {
-    const float minNormal = 1.17549435E-38f; // equivalent to BitConverter.Int32BitsToSingle(0x00800000)
-
+    const float minNormal = float.Epsilon;
     float absA = Math.Abs(a);
     float absB = Math.Abs(b);
     float diff = Math.Abs(a - b);

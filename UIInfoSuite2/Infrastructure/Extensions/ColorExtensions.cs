@@ -49,15 +49,15 @@ public static class ColorExtensions
       float deltaG = ((max - g) / 6f + delta / 2f) / delta;
       float deltaB = ((max - b) / 6f + delta / 2f) / delta;
 
-      if (AlmostEqual(r, max))
+      if (r.NearlyEqual(max))
       {
         h = deltaB - deltaG;
       }
-      else if (AlmostEqual(g, max))
+      else if (g.NearlyEqual(max))
       {
         h = 1f / 3f + deltaR - deltaB;
       }
-      else if (AlmostEqual(b, max))
+      else if (b.NearlyEqual(max))
       {
         h = 2f / 3f + deltaG - deltaR;
       }
@@ -124,35 +124,5 @@ public static class ColorExtensions
     }
 
     return Math.Clamp(ret, 0, 1);
-  }
-
-  // Comparing floats is hard
-  // https://stackoverflow.com/a/67678949
-  public static bool AlmostEqual(float a, float b, float? epsilon = null)
-  {
-    return AlmostEqual((double)a, b, epsilon);
-  }
-
-  public static bool AlmostEqual(double a, double b, double? epsilon = null)
-  {
-    epsilon ??= double.Epsilon;
-    double absA = Math.Abs(a);
-    double absB = Math.Abs(b);
-    double diff = Math.Abs(a - b);
-
-    if (a.Equals(b))
-    {
-      // shortcut, handles infinities
-      return true;
-    }
-
-    if (a == 0 || b == 0 || absA + absB < double.MinValue)
-    {
-      // a or b is zero or both are extremely close to it
-      // relative error is less meaningful here
-      return diff < epsilon * double.MinValue;
-    } // use relative error
-
-    return diff / Math.Min(absA + absB, double.MaxValue) < epsilon;
   }
 }
