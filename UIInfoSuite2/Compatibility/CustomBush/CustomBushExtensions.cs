@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using StardewValley;
-using StardewValley.ItemTypeDefinitions;
 using StardewValley.TerrainFeatures;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
@@ -11,45 +11,78 @@ namespace UIInfoSuite2.Compatibility.CustomBush;
 
 internal static class CustomBushExtensions
 {
-  private const string ShakeOffItem = $"{ModCompat.CustomBush}/ShakeOff";
+  private static readonly Lazy<ApiManager> ApiManagerLazy = ModEntry.LazyGetSingleton<ApiManager>();
+  private static readonly Lazy<DropsHelper> DropsHelperLazy = ModEntry.LazyGetSingleton<DropsHelper>();
+
+  private static ICustomBushApi? CustomBushApi
+  {
+    get
+    {
+      ApiManagerLazy.Value.GetApi(ModCompat.CustomBush, out ICustomBushApi? customBushApi);
+      return customBushApi;
+    }
+  }
+
+  private static DropsHelper DropsHelper => DropsHelperLazy.Value;
+
+  public static bool IsCustomBush(this Bush? bush)
+  {
+    ICustomBushApi? customBushApi = CustomBushApi;
+    if (customBushApi is null || bush is null)
+    {
+      return false;
+    }
+
+    return customBushApi.IsCustomBush(bush);
+  }
 
   public static bool GetShakeOffItemIfReady(
-    this ICustomBush customBush,
+    this ICustomBushData customBush,
     Bush bush,
-    [NotNullWhen(true)] out ParsedItemData? item
+    [NotNullWhen(true)] out Item? item
   )
   {
     item = null;
-    if (bush.size.Value != Bush.greenTeaBush)
+    ICustomBushApi? customBushApi = CustomBushApi;
+    if (customBushApi == null)
     {
       return false;
     }
 
-    if (!bush.modData.TryGetValue(ShakeOffItem, out string itemId))
-    {
-      return false;
-    }
-
-    item = ItemRegistry.GetData(itemId);
-    return true;
+    return bush.size.Value == Bush.greenTeaBush && customBushApi.TryGetShakeOffItem(bush, out item);
   }
 
-  public static List<PossibleDroppedItem> GetCustomBushDropItems(this ICustomBushApi api, ICustomBush bush, string? id)
+  public static List<PossibleDroppedItem> GetCustomBushDropItems(this Bush? bush)
   {
-    if (id == null || string.IsNullOrEmpty(id))
+    ICustomBushApi? customBushApi = CustomBushApi;
+    if (bush is null ||
+        customBushApi is null ||
+        !bush.IsCustomBush() ||
+        !customBushApi.TryGetBush(bush, out ICustomBushData? data, out string? id))
     {
-      return new List<PossibleDroppedItem>();
+      return [];
     }
 
-    api.TryGetDrops(id, out IList<ICustomBushDrop>? drops);
-    return drops == null
-      ? new List<PossibleDroppedItem>()
-      : ModEntry.GetSingleton<DropsHelper>().GetGenericDropItems(drops, id, bush.DisplayName, BushDropConverter);
+    return customBushApi.GetCustomBushDropItems(data, id);
+  }
+
+  public static List<PossibleDroppedItem> GetCustomBushDropItems(
+    this ICustomBushApi api,
+    ICustomBushData bush,
+    string? id
+  )
+  {
+    if (id == null || string.IsNullOrEmpty(id) || !api.TryGetDrops(id, out IList<ICustomBushDrop>? drops))
+    {
+      return [];
+    }
+
+    return DropsHelper.GetGenericDropItems(drops, id, bush.DisplayName, BushDropConverter);
 
     DropInfo BushDropConverter(ICustomBushDrop input)
     {
       // TODO Duplicated Code Fruit Tree
-      List<string> conditions = new();
+      List<string> conditions = [];
       conditions.AddIfNotNull(input.Condition);
 
       if (input.Season.HasValue)
