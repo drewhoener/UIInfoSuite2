@@ -17,13 +17,9 @@ internal class CropTooltipContainer : LayoutContainer
     identifier: "CropTimeRemaining"
   );
 
-  private readonly TooltipIcon _cropIcon = new(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 20);
+  private readonly TooltipIcon _cropIcon = new(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40);
 
-  private readonly TooltipText _cropNameElement = TooltipText.Bold(
-    "UIIS2::UnknownCrop",
-    identifier: "CropName",
-    scale: 0.75f
-  );
+  private readonly TooltipText _cropNameElement = TooltipText.Bold("UIIS2::UnknownCrop", identifier: "CropName");
 
   private readonly DropsHelper _dropsHelper;
   private Crop? _crop;
