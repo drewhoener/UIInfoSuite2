@@ -12,6 +12,7 @@ internal class MouseTooltipDom : LayoutDom
   public MouseTooltipDom()
   {
     CropTooltipContainer = new CropTooltipContainer();
+    BushTooltipContainer = new BushTooltipContainer();
     MachineTooltipContainer = new MachineTooltipContainer();
     BuildingTooltipContainer = new BuildingTooltipContainer();
     CropStatusContainer = new CropStatusContainer();
@@ -23,6 +24,7 @@ internal class MouseTooltipDom : LayoutDom
 
     AddChildren(
       CropTooltipContainer,
+      BushTooltipContainer,
       WildTreeContainer,
       FruitTreeContainer,
       CropStatusContainer,
@@ -32,6 +34,9 @@ internal class MouseTooltipDom : LayoutDom
   }
 
   public CropTooltipContainer CropTooltipContainer { get; }
+
+  public BushTooltipContainer BushTooltipContainer { get; }
+
   public WildTreeTooltipContainer WildTreeContainer { get; }
 
   public FruitTreeTooltipContainer FruitTreeContainer { get; }
@@ -79,6 +84,12 @@ internal class MouseTooltipDom : LayoutDom
   {
     get => BuildingTooltipContainer.Building;
     set => BuildingTooltipContainer.Building = value;
+  }
+
+  public Bush? Bush
+  {
+    get => BushTooltipContainer.Bush;
+    set => BushTooltipContainer.Bush = value;
   }
 
 

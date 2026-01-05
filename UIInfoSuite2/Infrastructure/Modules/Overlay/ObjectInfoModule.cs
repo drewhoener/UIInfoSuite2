@@ -109,29 +109,23 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
     _mouseTooltipDom.WildTree = currentTree;
     _mouseTooltipDom.HoeDirt = currentDirtTile;
     _mouseTooltipDom.FruitTree = GetTerrainObjectAtTile<FruitTree>(tile);
-
-
-    // TODO move to bushes n shit
-    // // Make sure that _terrain is null before overwriting it because Tea Saplings are added to terrainFeatures and not IndoorPot.bush
-    // if (_currentTerrain.Value != null || _currentTile.Value is not IndoorPot pot)
-    // {
-    //   return;
-    // }
-    //
-    // if (pot.hoeDirt.Value != null)
-    // {
-    //   _currentTerrain.Value = pot.hoeDirt.Value;
-    // }
-    //
-    // if (pot.bush.Value != null)
-    // {
-    //   _currentTerrain.Value = pot.bush.Value;
-    // }
+    _mouseTooltipDom.Bush = GetBushFromTile(tile);
   }
 
   private static Object? GetMachineAtTile(Vector2 tile)
   {
     return Game1.currentLocation.Objects.TryGetValue(tile, out Object? currentObject) ? currentObject : null;
+  }
+
+  private static IndoorPot? GetPotAtTile(Vector2 tile)
+  {
+    if (!Game1.currentLocation.Objects.TryGetValue(tile, out Object? currentObject) ||
+        currentObject is not IndoorPot indoorPot)
+    {
+      return null;
+    }
+
+    return indoorPot;
   }
 
   private static HoeDirt? GetHoeDirtAtTile(Vector2 tile)
@@ -147,13 +141,7 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
     }
 
     // Out of options, check for a pot in the world
-    if (!Game1.currentLocation.Objects.TryGetValue(tile, out Object? currentObject) ||
-        currentObject is not IndoorPot indoorPot)
-    {
-      return null;
-    }
-
-    return indoorPot.hoeDirt.Value;
+    return GetPotAtTile(tile)?.hoeDirt.Value;
   }
 
   private static T? GetTerrainObjectAtTile<T>(Vector2 tile) where T : TerrainFeature
@@ -179,6 +167,12 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
     }
 
     return hoeDirt.crop;
+  }
+
+  private static Bush? GetBushFromTile(Vector2 tile)
+  {
+    var bush = GetTerrainObjectAtTile<Bush>(tile);
+    return bush ?? GetPotAtTile(tile)?.bush.Value;
   }
 
 #region Configuration Setup
