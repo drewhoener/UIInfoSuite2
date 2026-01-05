@@ -24,10 +24,21 @@ internal class ArtifactIcon() : ClickableIcon(ItemRegistry.GetData("(O)275"), 40
       }
 
       string displayName = location is Farm ? location.Name : TokenParser.ParseText(location.DisplayName);
-      locations.Add($"  {displayName}: {tiles.Count}");
+      locations.Add($"  {NormalizeUntranslated(displayName)}: {tiles.Count}");
     }
 
     return string.Join('\n', locations);
+  }
+
+  private static string NormalizeUntranslated(string str)
+  {
+    if (!str.StartsWith("(no translation:"))
+    {
+      return str;
+    }
+
+    string[] split = str.Split(':');
+    return split[1].Trim(')');
   }
 
   public void UpdateText(
