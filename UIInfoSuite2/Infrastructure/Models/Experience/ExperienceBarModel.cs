@@ -19,7 +19,7 @@ internal class ExperienceBarModel : ProgressBar
   private int _skillType = Farmer.farmingSkill;
   private XpThreshold _xpThreshold = new(0, 0, 0);
 
-  public ExperienceBarModel(int maxBarWidth = 300) : base(
+  public ExperienceBarModel(int maxBarWidth = 250) : base(
     TextureHelper.SkillFillColors[Farmer.farmingSkill],
     maxBarWidth
   )
