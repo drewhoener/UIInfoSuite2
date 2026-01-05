@@ -16,7 +16,7 @@ namespace UIInfoSuite2.Infrastructure.Models.Tooltip;
 
 internal class MachineTooltipContainer : LayoutContainer
 {
-  private static readonly Lazy<ParsedItemData> batteryItem = new(() => ItemRegistry.GetDataOrErrorItem("787"));
+  private static readonly Lazy<ParsedItemData> BatteryItem = new(() => ItemRegistry.GetDataOrErrorItem("787"));
   private readonly TooltipText _machineName = TooltipText.Bold("UIIS2::UnknownMachine", identifier: "MachineName");
   private readonly TooltipText _timeRemaining = new("UIIS2::UnknownTime", 0.75f, identifier: "MachineTimeRemaining");
   private SObject? _machine;
@@ -116,7 +116,7 @@ internal class MachineTooltipContainer : LayoutContainer
   {
     if (machine.IsSolarPanel() && machine.IsWorking() && machine.MinutesUntilReady == 0)
     {
-      return batteryItem.Value.DisplayName;
+      return BatteryItem.Value.DisplayName;
     }
 
     return machine.heldObject.Value.DisplayName;
