@@ -1,4 +1,5 @@
 ﻿using Netcode;
+using StardewModdingAPI;
 using StardewValley.GameData.WildTrees;
 using StardewValley.TerrainFeatures;
 using StardewValley.TokenizableStrings;
@@ -119,8 +120,15 @@ internal class WildTreeTooltipContainer : LayoutContainer
 
     // Try to get the tree from the wild tree data
     WildTreeData? data = tree.GetData();
-    return data.CustomFields.TryGetValue(WildTreeNameField, out string? value)
-      ? TokenParser.ParseText(value)
-      : $"Unknown (#{tree.treeType.Value})";
+    if (data.CustomFields.TryGetValue(WildTreeNameField, out string? value))
+    {
+      return TokenParser.ParseText(value);
+    }
+
+    ModEntry.Instance.Monitor.LogOnce(
+      $"Unknown Tree \"{tree.treeType.Value}\"! If this is a modded tree, you should let the author know to implement the {WildTreeNameField} custom field for proper DisplayName support.",
+      LogLevel.Alert
+    );
+    return $"Unknown (#{tree.treeType.Value})";
   }
 }
