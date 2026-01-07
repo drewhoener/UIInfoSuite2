@@ -158,7 +158,14 @@ internal class ExperienceModule(
     }
 
     floatingTextManager.Add(
-      new FloatingText($"Exp: {experienceGain}", XpVisibleTicks, new Vector2(0, -0.5f), true, FloatingTextKey)
+      new FloatingText(
+        $"Exp: {experienceGain}",
+        XpVisibleTicks,
+        new Vector2(0, -0.5f),
+        true,
+        FloatingTextKey,
+        fullAlphaTicks: 20
+      )
     );
   }
 

@@ -15,7 +15,8 @@ internal class FloatingText(
   Vector2 velocity,
   bool fadeOut = true,
   string id = "FloatingText",
-  int zIndex = 0
+  int zIndex = 0,
+  int fullAlphaTicks = 0
 )
 {
   private static readonly Vector2 HeadOffset = new(-28, -130);
@@ -41,7 +42,7 @@ internal class FloatingText(
   public void Update()
   {
     _ticksAlive++;
-    if (fadeOut)
+    if (fadeOut && _ticksAlive >= fullAlphaTicks)
     {
       _alpha = 1.0f - _ticksAlive / (float)lifetimeTicks;
     }
@@ -107,8 +108,8 @@ internal class FloatingTextManager(
 
     foreach (FloatingText text in _textCache.Value)
     {
-      text.Update();
       text.Draw(e.SpriteBatch);
+      text.Update();
     }
 
     _textCache.Value.RemoveAll(text => !text.IsAlive);
