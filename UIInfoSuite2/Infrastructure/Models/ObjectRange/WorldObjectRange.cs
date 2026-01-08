@@ -142,6 +142,36 @@ internal class WorldObjectRange
     return new WorldObjectRange(selectedObject.ItemId, OverlayType.Sprinkler, centerTile, sprinklerTiles.ToHashSet());
   }
 
+  public static WorldObjectRange FromTreasureTotem(Object selectedObject, Vector2 centerTile)
+  {
+    if (FromCache(selectedObject, centerTile, out WorldObjectRange? range))
+    {
+      ModEntry.Instance.Monitor.Log($"Using Cached Object {range._itemId} at {range.CenterTile}");
+      return range;
+    }
+
+    const int radius = 3;
+    int gridSize = 2 * radius + 1;
+    var grid = new bool[gridSize][];
+
+    for (var row = 0; row < gridSize; row++)
+    {
+      grid[row] = new bool[gridSize];
+      for (var col = 0; col < gridSize; col++)
+      {
+        int dy = Math.Abs(radius - row);
+        int dx = Math.Abs(radius - col);
+        double distance = Math.Sqrt(dx * dx + dy * dy);
+
+        // Include points at exactly radius distance (with small tolerance for floating point)
+        grid[row][col] = Math.Abs(distance - radius) < 0.5;
+      }
+    }
+
+    HashSet<Vector2> tiles = GridPatternGenerator.MapToWorld(grid, centerTile).ToHashSet();
+    return new WorldObjectRange(selectedObject.ItemId, OverlayType.Sprinkler, centerTile, tiles);
+  }
+
   /// <summary>
   ///   Determines if the current object's range of tiles is completely enclosed by another object's range of tiles.
   /// </summary>

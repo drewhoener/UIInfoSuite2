@@ -18,8 +18,12 @@ using Object = StardewValley.Object;
 namespace UIInfoSuite2.Infrastructure.Modules.Overlay;
 
 // ReSharper disable once ClassNeverInstantiated.Global Instantiated by SimpleInjector
-internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager, SoundHelper soundHelper)
-  : BaseModule(modEvents, logger, configManager)
+internal class ObjectEffectRangeModule(
+  IModEvents modEvents,
+  IMonitor logger,
+  ConfigManager configManager,
+  SoundHelper soundHelper
+) : BaseModule(modEvents, logger, configManager)
 {
   private readonly PerScreen<RangeCache> _effectiveAreaRange = new(() => new RangeCache());
 
@@ -269,7 +273,7 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
 
   private void UpdateTilesForArea()
   {
-    if (Game1.player.CurrentItem is not Object currentItem || !currentItem.isPlaceable())
+    if (Game1.player.CurrentItem is not Object currentItem || !IsValidItem(currentItem))
     {
       return;
     }
@@ -317,6 +321,11 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     return [];
   }
 
+  private static bool IsValidItem(Object currentItem)
+  {
+    return currentItem.isPlaceable() || currentItem.ItemId == "TreasureTotem";
+  }
+
   /// <summary>
   ///   Get a map of tiles that represent the coverage of the requested object.
   /// </summary>
@@ -332,6 +341,10 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     Vector2 centerTile = isHeldItem ? currentMouseTile : selectedObject.TileLocation;
 
     // Add stuff like totems here
+    if (selectedObject.ItemId == "TreasureTotem")
+    {
+      return WorldObjectRange.FromTreasureTotem(selectedObject, Game1.player.Tile);
+    }
 
     if (!selectedObject.isPlaceable())
     {
