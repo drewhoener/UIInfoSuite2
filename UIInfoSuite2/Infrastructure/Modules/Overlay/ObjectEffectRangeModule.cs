@@ -46,11 +46,6 @@ internal class ObjectEffectRangeModule(IModEvents modEvents, IMonitor logger, Co
     ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
     ModEvents.Input.ButtonsChanged += OnButtonChanged;
     ModEvents.GameLoop.DayEnding += OnDayEnding;
-
-    Game1.player.newLevels.OnElementChanged += (_, _, _, _) =>
-    {
-      soundHelper.Play(Sounds.LevelUp);
-    };
   }
 
   public override void OnDisable()
