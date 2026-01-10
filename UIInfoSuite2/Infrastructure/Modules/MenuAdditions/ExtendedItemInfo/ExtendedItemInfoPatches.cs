@@ -82,7 +82,7 @@ internal partial class ExtendedItemInfoModule
       new HarmonyMethod(typeof(ExtendedItemInfoModule), nameof(Prefix_IClickableMenu_DrawHoverText)),
       new HarmonyMethod(typeof(ExtendedItemInfoModule), nameof(Postfix_IClickableMenu_DrawHoverText)),
 #endif
-      new HarmonyMethod(typeof(ExtendedItemInfoModule), nameof(Transpile_IClickableMenu_DrawHoverText))
+      transpiler: new HarmonyMethod(typeof(ExtendedItemInfoModule), nameof(Transpile_IClickableMenu_DrawHoverText))
     );
   }
 

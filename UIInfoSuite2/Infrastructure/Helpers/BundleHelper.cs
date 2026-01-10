@@ -58,7 +58,7 @@ internal class BundleHelper
 
   public BundleRequiredItem? GetBundleItemIfNotDonated(Item item)
   {
-    if (item is not SObject donatedItem || donatedItem.bigCraftable.Value)
+    if (!Context.IsWorldReady || item is not SObject donatedItem || donatedItem.bigCraftable.Value)
     {
       return null;
     }
