@@ -64,16 +64,15 @@ internal class MenuShortcutModule(
     SpriteBatch batch = stepArgs.SpriteBatch;
 
     BaseMenuShortcut[] drawableElements = _menuShortcuts.Where(e => e.ShouldDraw).ToArray();
-    if (stepArgs.Menu is not GameMenu menu || menu.invisible || !drawableElements.Any())
+    if (!drawableElements.Any() || Tools.GetCurrentMenuPage() is not InventoryPage page)
     {
       return;
     }
 
     _maxElementHeight = drawableElements.Max(e => e.RenderedHeight);
-
-    int xStart = menu.xPositionOnScreen;
-    int width = menu.pages[menu.currentTab].width;
-    int yStart = menu.yPositionOnScreen + menu.pages[menu.currentTab].height - 20 + SpaceAfterMenuBottom;
+    int xStart = page.xPositionOnScreen;
+    int width = page.width;
+    int yStart = page.yPositionOnScreen + page.height - 20 + SpaceAfterMenuBottom;
     int height = _maxElementHeight + PaddingAroundElements * 2;
 
     IClickableMenu.drawTextureBox(batch, xStart, yStart, width, height, Color.White);

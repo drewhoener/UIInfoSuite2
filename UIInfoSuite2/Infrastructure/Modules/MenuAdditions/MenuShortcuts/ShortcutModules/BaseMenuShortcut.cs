@@ -84,8 +84,7 @@ public abstract class BaseMenuShortcut
   {
     if (args.Button != SButton.MouseLeft ||
         Game1.player.CursorSlotItem is not null ||
-        Game1.activeClickableMenu is not GameMenu gameMenu ||
-        gameMenu.currentTab == GameMenu.mapTab)
+        Tools.GetCurrentMenuPage() is not InventoryPage)
     {
       return;
     }
