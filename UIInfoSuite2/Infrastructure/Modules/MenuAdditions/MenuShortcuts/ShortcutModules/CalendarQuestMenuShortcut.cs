@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
@@ -37,6 +38,13 @@ public class CalendarQuestMenuShortcut : BaseMenuShortcut
     }
 
     bool showDailyQuest = mouseCoords.X >= MenuButton.bounds.X + MenuButton.bounds.Width / 2f;
+
+    if (showDailyQuest && AccessTools.TypeByName("HelpWanted.OrdersBillboard") is Type type && Activator.CreateInstance(type) is IClickableMenu menu)
+    {
+      Game1.activeClickableMenu.SetChildMenu(menu);
+      return;
+    }
+
     Game1.activeClickableMenu.SetChildMenu(new Billboard(showDailyQuest));
   }
 }
