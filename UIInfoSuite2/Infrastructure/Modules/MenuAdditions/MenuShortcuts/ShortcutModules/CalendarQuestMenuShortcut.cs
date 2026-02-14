@@ -32,11 +32,6 @@ public class CalendarQuestMenuShortcut : BaseMenuShortcut
 
   protected override void HandleClickEvent(object? sender, ButtonPressedEventArgs args, Vector2 mouseCoords)
   {
-    if (Game1.questOfTheDay != null && string.IsNullOrEmpty(Game1.questOfTheDay.currentObjective))
-    {
-      Game1.questOfTheDay.currentObjective = "wat?";
-    }
-
     bool showDailyQuest = mouseCoords.X >= MenuButton.bounds.X + MenuButton.bounds.Width / 2f;
 
     if (showDailyQuest && AccessTools.TypeByName("HelpWanted.OrdersBillboard") is Type type && Activator.CreateInstance(type) is IClickableMenu menu)
