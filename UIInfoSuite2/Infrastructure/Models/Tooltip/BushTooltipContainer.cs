@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.TerrainFeatures;
+using System.Collections.Generic;
+using System.Linq;
+using UIInfoSuite2.Compatibility;
+using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 using UIInfoSuite2.Infrastructure.Models.Layout;
@@ -37,9 +39,7 @@ internal class BushTooltipContainer : LayoutContainer
   public BushTooltipContainer(Bush? crop = null) : base("BushTooltip")
   {
     _dropsHelper = ModEntry.GetSingleton<DropsHelper>();
-    _bushIcon.Padding.SetInsets(10, 10, 10, 10);
-    _bushIcon.Margin.Top = 10;
-    _bushDaysRemainingElement.Margin.Top = 10;
+
     Direction = LayoutDirection.Row;
 
     ComponentSpacing = 10;
@@ -79,34 +79,85 @@ internal class BushTooltipContainer : LayoutContainer
     }
 
     IsHidden = false;
+    ComponentSpacing = 10;
+    _dropsText.IsHidden = true;
     _doesNotProduceElement.IsHidden = true;
     _bushDaysRemainingElement.IsHidden = true;
 
-    ComponentSpacing = 10;
+    Season currentSeason = Game1.season;
 
-    var ageToMature = 20;
-    var isReadyToday = false;
-    bool willProduceThisSeason = Game1.season != Season.Winter;
-    string bushName = ItemRegistry.GetData("(O)251").DisplayName;
-    bool inProductionPeriod = Game1.dayOfMonth >= 22;
-    int daysUntilProductionPeriod = inProductionPeriod ? 0 : 22 - Game1.dayOfMonth;
+    int ageToMature;
+    bool isReadyToday = false;
+    bool willProduceThisSeason;
+    string bushName;
+
     List<PossibleDroppedItem> droppedItems = [];
 
-    ParsedItemData teaLeafData = ItemRegistry.GetData("(O)815");
+    if (ModEntry.GetSingleton<ApiManager>().GetApi(ModCompat.CustomBush, out ICustomBushApi? customBushApi)
+      && customBushApi.TryGetBush(Bush, out ICustomBushData? bushData, out string? bushID))
+    {
+      ageToMature = bushData.AgeToProduce;
+      willProduceThisSeason = bushData.Seasons.Contains(currentSeason);
+      bushName = ItemRegistry.GetData(bushID).DisplayName;
 
-    if (Bush.tileSheetOffset.Value == 1)
+      if (customBushApi.TryGetDrops(bushID, out IList<ICustomBushDrop>? drops))
+      {
+        foreach (var drop in drops)
+        {
+          var dropData = ItemRegistry.GetData(drop.ItemId);
+
+          _bushIcon.SetIcon(dropData.GetTexture(), dropData.GetSourceRect(), 48);
+
+          if (!willProduceThisSeason) continue;
+
+          if (Bush.tileSheetOffset.Value == 1)
+          {
+            droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Today(), dropData, drop.Chance));
+            isReadyToday = true;
+            continue;
+          }
+
+          if(DropsHelper.GetNextDay(drop.Condition, false) is int nextDay)
+          {
+            WorldDate whenThisHappens = new(Game1.Date);
+            whenThisHappens.TotalDays += nextDay - Game1.dayOfMonth;
+
+            droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.FromDays(whenThisHappens), dropData, drop.Chance));
+          }
+        }
+      }
+    } else
     {
-      droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Today(), teaLeafData, 1.0f));
-      isReadyToday = true;
-    }
-    else if (Game1.dayOfMonth >= 21 && Game1.dayOfMonth < 28)
-    {
-      droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Tomorrow(), teaLeafData, 1.0f));
+      ageToMature = 20;
+      willProduceThisSeason = Game1.season != Season.Winter;
+      bushName = ItemRegistry.GetData("(O)251").DisplayName;
+
+      var dropData = ItemRegistry.GetData("(O)815");
+      _bushIcon.SetIcon(dropData.GetTexture(), dropData.GetSourceRect(), 48);
+
+
+      if (Bush.tileSheetOffset.Value == 1)
+      {
+        droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Today(), dropData, 1.0f));
+        isReadyToday = true;
+      }
+      else if (Game1.dayOfMonth >= 21 && Game1.dayOfMonth < 28)
+      {
+        droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.Tomorrow(), dropData, 1.0f));
+      }
+      else
+      {
+        WorldDate whenThisHappens = new(Game1.Date);
+        whenThisHappens.TotalDays += 22 - Game1.dayOfMonth;
+        droppedItems.Add(new PossibleDroppedItem(ConditionFutureResult.FromDays(whenThisHappens), dropData, 1.0f));
+      }
     }
 
     _bushNameElement.Text = bushName;
 
+    // Too young to start producing
     bool isMature = Bush.getAge() >= ageToMature;
+
     if (!isMature || !willProduceThisSeason)
     {
       if (!isMature)
@@ -114,23 +165,14 @@ internal class BushTooltipContainer : LayoutContainer
         _bushDaysRemainingElement.Text = $"{ageToMature - Bush.getAge()} {I18n.DaysToMature()}";
         _bushDaysRemainingElement.IsHidden = false;
       }
-
       if (!willProduceThisSeason)
       {
         _doesNotProduceElement.IsHidden = false;
       }
-
       return;
     }
 
-    // Too early in the season to produce
-    if (!inProductionPeriod)
-    {
-      _bushDaysRemainingElement.Text = $"{daysUntilProductionPeriod} {I18n.Days()}";
-      _bushDaysRemainingElement.IsHidden = false;
-      return;
-    }
-
+    _dropsText.IsHidden = false;
     _dropsText.Text = string.Join(", ", droppedItems.Select(item => GetInfoStringForDrop(item, isReadyToday)));
   }
 
@@ -143,6 +185,7 @@ internal class BushTooltipContainer : LayoutContainer
     {
       return $"Unknown {I18n.Days()}";
     }
+
 
     string chanceStr = 1.0f.Equals(chance) ? "" : $" ({chance * 100:2F}%)";
     int daysUntilReady = nextDayToProduce.DayOfMonth - Game1.dayOfMonth;

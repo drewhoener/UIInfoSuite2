@@ -46,6 +46,7 @@ internal class SocialPageFilterModule : BaseModule, IPatchable, IConfigurable
 
   public void Patch(Harmony harmony)
   {
+    if (ModEntry.GetSingleton<IModRegistry>().IsLoaded("FlyingTNT.SocialPageOrderRedux")) return;
     harmony.Patch(
       AccessTools.DeclaredMethod(typeof(SocialPage), nameof(SocialPage.draw)),
       transpiler: new HarmonyMethod(typeof(SocialPageFilterModule), nameof(SocialPage_draw_Transpiler)),

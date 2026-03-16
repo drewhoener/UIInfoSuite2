@@ -6,6 +6,7 @@ using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley.Menus;
+using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Interfaces;
 
@@ -38,10 +39,24 @@ public class PatchRenderingMenuContentStep(IMonitor logger) : IPatchable
       AccessTools.DeclaredMethod(typeof(PatchRenderingMenuContentStep), nameof(TranspileShopMenuDraw))
     );
 
+    // Patch BetterGameMenu
+    MethodInfo? betterGameMenuPatchMethod = AccessTools.DeclaredMethod(
+      "Leclair.Stardew.BetterGameMenu.Menus.BetterGameMenuImpl:draw",
+      [typeof(SpriteBatch)]
+    );
+    var betterGameMenuTranspiler = new HarmonyMethod(
+      AccessTools.DeclaredMethod(typeof(PatchRenderingMenuContentStep), nameof(TranspileBetterGameMenuDraw))
+    );
+
     logger.Log("Patching Game Menu Content Step");
     harmony.Patch(gameMenuPatchMethod, transpiler: gameMenuTranspiler);
     logger.Log("Patching Shop Menu Content Step");
     harmony.Patch(shopMenuPatchMethod, transpiler: shopMenuTranspiler);
+    if (ModEntry.GetSingleton<IModRegistry>().IsLoaded(ModCompat.BetterGameMenu))
+    {
+      logger.Log("Patching Better Game Menu Content Step");
+      harmony.Patch(betterGameMenuPatchMethod, transpiler: betterGameMenuTranspiler);
+    }
   }
 
   // Transpiler
@@ -78,6 +93,24 @@ public class PatchRenderingMenuContentStep(IMonitor logger) : IPatchable
         new CodeMatch(i => i.opcode == OpCodes.Call)
       )
       .ThrowIfNotMatch("Unable to find insertion point content rendering in ShopMenu");
+    InsertEventPatch(matcher);
+
+    return matcher.InstructionEnumeration();
+  }
+  private static IEnumerable<CodeInstruction> TranspileBetterGameMenuDraw(
+    IEnumerable<CodeInstruction> instructions,
+    ILGenerator generator
+  )
+  {
+    CodeMatcher matcher = new(instructions, generator);
+
+    matcher.MatchStartForward(
+        new CodeMatch(OpCodes.Ldarg_0),
+        new CodeMatch(i => i.opcode == OpCodes.Ldfld),
+        new CodeMatch(OpCodes.Ldarg_0),
+        new CodeMatch(i => i.opcode == OpCodes.Ldfld)
+      )
+      .ThrowIfNotMatch("Unable to find insertion point content rendering in BetterGameMenu");
     InsertEventPatch(matcher);
 
     return matcher.InstructionEnumeration();

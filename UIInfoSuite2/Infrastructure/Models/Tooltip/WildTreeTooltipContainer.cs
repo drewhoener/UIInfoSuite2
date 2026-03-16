@@ -120,7 +120,7 @@ internal class WildTreeTooltipContainer : LayoutContainer
 
     // Try to get the tree from the wild tree data
     WildTreeData? data = tree.GetData();
-    if (data.CustomFields.TryGetValue(WildTreeNameField, out string? value))
+    if (data.CustomFields is not null && data.CustomFields.TryGetValue(WildTreeNameField, out string? value))
     {
       return TokenParser.ParseText(value);
     }
