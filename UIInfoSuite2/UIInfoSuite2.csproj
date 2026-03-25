@@ -3,7 +3,7 @@
     <Version>2.3.7</Version>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <ModZipPath>$(SolutionDir)\Releases</ModZipPath>
+    <ModZipPath>$(SolutionDir)/Releases</ModZipPath>
     <BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
     <EnableHarmony>true</EnableHarmony>
     <LangVersion>preview</LangVersion>
@@ -20,7 +20,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
 
-    <ModZipPath>$(SolutionDir)\DebugBuilds</ModZipPath>
+    <ModZipPath>$(SolutionDir)/DebugBuilds</ModZipPath>
   </PropertyGroup>
 
   <ItemGroup>
