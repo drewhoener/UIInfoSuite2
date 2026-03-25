@@ -107,30 +107,30 @@ internal class ModEntry : Mod
     _container.Collection.Register<IConfigurable>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
 
     // Register Modules
-    RegisterConfigurable<ConfigurableHudIconPositioning>();
-    RegisterConfigurable<ConfigurableDebugOptions>();
-    RegisterPatchable<PatchRenderingMenuContentStep>();
-    RegisterPatchable<PatchMasteryXpGainEvent>();
-    RegisterBaseModuleSingleton<MenuShortcutModule>();
+    Register<ConfigurableHudIconPositioning>();
+    Register<ConfigurableDebugOptions>();
+    Register<PatchRenderingMenuContentStep>();
+    Register<PatchMasteryXpGainEvent>();
+    Register<MenuShortcutModule>();
     // RegisterBaseModuleSingleton<ShowCropAndBarrelTime>();
-    RegisterHudModuleSingleton<ArtifactTrackerModule>();
-    RegisterHudModuleSingleton<BirthdayReminderModule>();
-    RegisterHudModuleSingleton<ConstructionTrackerModule>();
-    RegisterHudModuleSingleton<DailyLuckModule>();
-    RegisterHudModuleSingleton<DailyWeatherModule>();
-    RegisterHudModuleSingleton<SeasonalForageDisplayModule>();
-    RegisterHudModuleSingleton<WeeklyRecipeModule>();
-    RegisterHudModuleSingleton<ToolUpgradeReminderModule>();
-    RegisterHudModuleSingleton<MerchantReminderModule>();
-    RegisterBaseModuleSingleton<ExtendedItemInfoModule>();
-    RegisterBaseModuleSingleton<GiftLockModule>();
-    RegisterBaseModuleSingleton<PartialHeartFillModule>();
-    RegisterBaseModuleSingleton<ShopHarvestPriceModule>();
-    RegisterBaseModuleSingleton<SocialPageFilterModule>();
-    RegisterBaseModuleSingleton<AnimalInteractModule>();
-    RegisterBaseModuleSingleton<ObjectEffectRangeModule>();
-    RegisterBaseModuleSingleton<ObjectInfoModule>();
-    RegisterBaseModuleSingleton<ExperienceModule>();
+    Register<ArtifactTrackerModule>();
+    Register<BirthdayReminderModule>();
+    Register<ConstructionTrackerModule>();
+    Register<DailyLuckModule>();
+    Register<DailyWeatherModule>();
+    Register<SeasonalForageDisplayModule>();
+    Register<WeeklyRecipeModule>();
+    Register<ToolUpgradeReminderModule>();
+    Register<MerchantReminderModule>();
+    Register<ExtendedItemInfoModule>();
+    Register<GiftLockModule>();
+    Register<PartialHeartFillModule>();
+    Register<ShopHarvestPriceModule>();
+    Register<SocialPageFilterModule>();
+    Register<AnimalInteractModule>();
+    Register<ObjectEffectRangeModule>();
+    Register<ObjectInfoModule>();
+    Register<ExperienceModule>();
 
     _container.Verify();
 
@@ -239,39 +239,34 @@ internal class ModEntry : Mod
 #endregion
 
 #region Module Setup
-  private void RegisterPatchable<T>() where T : class, IPatchable
-  {
-    _container.Collection.Append<IPatchable, T>();
-  }
 
-  private void RegisterConfigurable<T>() where T : class, IConfigurable
-  {
-    _container.Collection.Append<IConfigurable, T>();
-  }
-
-  private void RegisterBaseModuleSingleton<T>(bool registerConfigurable = true, bool registerPatchable = true)
-    where T : BaseModule
+  private void Register<T>() where T : class
   {
     _container.RegisterSingleton<T>();
-    _container.Collection.Append<BaseModule, T>();
+
+    // Check if T implements BaseModule using interface check
+    if (typeof(BaseModule).IsAssignableFrom(typeof(T)))
+    {
+      _container.Collection.Append(typeof(BaseModule), typeof(T));
+    }
+
+    // Check if T implements HudIconModule using interface check
+    if (typeof(HudIconModule).IsAssignableFrom(typeof(T)))
+    {
+      _container.Collection.Append(typeof(HudIconModule), typeof(T));
+    }
 
     // Check if T implements IPatchable using interface check
-    if (registerPatchable && typeof(IPatchable).IsAssignableFrom(typeof(T)))
+    if (typeof(IPatchable).IsAssignableFrom(typeof(T)))
     {
       _container.Collection.Append(typeof(IPatchable), typeof(T));
     }
 
     // Check if T implements IConfigurable using interface check
-    if (registerConfigurable && typeof(IConfigurable).IsAssignableFrom(typeof(T)))
+    if (typeof(IConfigurable).IsAssignableFrom(typeof(T)))
     {
       _container.Collection.Append(typeof(IConfigurable), typeof(T));
     }
-  }
-
-  private void RegisterHudModuleSingleton<T>() where T : HudIconModule
-  {
-    RegisterBaseModuleSingleton<T>();
-    _container.Collection.Append<HudIconModule, T>();
   }
 #endregion
 }
