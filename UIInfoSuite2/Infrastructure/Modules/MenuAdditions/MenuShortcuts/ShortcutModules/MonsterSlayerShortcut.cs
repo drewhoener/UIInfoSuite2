@@ -8,7 +8,7 @@ using StardewValley.Locations;
 
 namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
-public class MonsterSlayerShortcut : BaseMenuShortcut
+internal class MonsterSlayerShortcut : MenuShortcutElement
 {
   private const float InitialHeight = 32;
   private const float InitialWidth = 38;
@@ -31,8 +31,6 @@ public class MonsterSlayerShortcut : BaseMenuShortcut
   );
 
   public MonsterSlayerShortcut(int finalHeight) : base(finalHeight) { }
-
-  public override int RenderedWidth => (int)(InitialWidth * ScaleFactor);
 
   protected override float ScaleFactor => RenderedHeight / InitialHeight;
 

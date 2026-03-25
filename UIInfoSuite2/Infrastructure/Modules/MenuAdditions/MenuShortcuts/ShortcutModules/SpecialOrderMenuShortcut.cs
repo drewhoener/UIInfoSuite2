@@ -8,7 +8,7 @@ using StardewValley.Menus;
 
 namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
-public class SpecialOrderMenuShortcut(int finalHeight) : BaseMenuShortcut(finalHeight)
+internal class SpecialOrderMenuShortcut(int finalHeight) : MenuShortcutElement(finalHeight)
 {
   private const float InitialHeight = 31;
   private const float InitialWidth = 48;
@@ -16,7 +16,6 @@ public class SpecialOrderMenuShortcut(int finalHeight) : BaseMenuShortcut(finalH
   private readonly Lazy<Texture2D> _texture =
     new(() => Game1.content.Load<Texture2D>(Path.Combine("Maps", "summer_town")));
 
-  public override int RenderedWidth => (int)(InitialWidth * ScaleFactor);
   protected override float ScaleFactor => RenderedHeight / InitialHeight;
   protected override Texture2D Texture => _texture.Value;
   protected override Rectangle SourceRectangle => new(464, 993, (int)InitialWidth, (int)InitialHeight);

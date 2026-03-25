@@ -8,7 +8,7 @@ using StardewValley.Menus;
 
 namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
-public class CalendarQuestMenuShortcut : BaseMenuShortcut
+internal class CalendarQuestMenuShortcut : MenuShortcutElement
 {
   private const float InitialHeight = 20;
   private const float InitialWidth = 35;
@@ -19,7 +19,6 @@ public class CalendarQuestMenuShortcut : BaseMenuShortcut
 
   public CalendarQuestMenuShortcut(int finalHeight) : base(finalHeight) { }
 
-  public override int RenderedWidth => (int)(InitialWidth * ScaleFactor);
   protected override float ScaleFactor => RenderedHeight / InitialHeight;
   protected override Texture2D Texture => _texture.Value;
   protected override Rectangle SourceRectangle => new(122, 291, (int)InitialWidth, (int)InitialHeight);

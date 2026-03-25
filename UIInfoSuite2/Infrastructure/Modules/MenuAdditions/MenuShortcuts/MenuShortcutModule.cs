@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
@@ -8,6 +7,7 @@ using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Events.Args;
+using UIInfoSuite2.Infrastructure.Models.Layout;
 using UIInfoSuite2.Infrastructure.Modules.Base;
 using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
@@ -20,11 +20,12 @@ internal class MenuShortcutModule(
   EventsManager eventsManager
 ) : BaseModule(modEvents, logger, configManager)
 {
-  private readonly List<BaseMenuShortcut> _menuShortcuts = new();
-  private int _maxElementHeight = 100;
+  public const int PaddingAroundElements = 30;
+  public const int SpaceAfterMenuBottom = 10;
 
-  public int PaddingAroundElements => 30;
-  public int SpaceAfterMenuBottom => 10;
+  private readonly List<MenuShortcutElement> _menuShortcuts = new();
+  private readonly LayoutContainer _container = LayoutContainer.Row("MenuShortcuts")
+    .WithSpacing(PaddingAroundElements);
 
   public override bool ShouldEnable()
   {
@@ -48,49 +49,46 @@ internal class MenuShortcutModule(
     AddMenuShortcut(helper, new SpecialOrderMenuShortcut(80));
   }
 
-  public void AddMenuShortcut(IModHelper helper, BaseMenuShortcut shortcut)
+  public void AddMenuShortcut(IModHelper helper, MenuShortcutElement shortcut)
   {
-    if (shortcut.RenderedHeight > _maxElementHeight)
-    {
-      _maxElementHeight = shortcut.RenderedHeight;
-    }
-
     _menuShortcuts.Add(shortcut);
+    _container.AddChildren(shortcut);
     helper.Events.Input.ButtonPressed += shortcut.OnClick;
   }
 
   public void Draw(object? sender, RenderingMenuContentStepArgs stepArgs)
   {
-    SpriteBatch batch = stepArgs.SpriteBatch;
-
-    BaseMenuShortcut[] drawableElements = _menuShortcuts.Where(e => e.ShouldDraw).ToArray();
-    if (stepArgs.Menu is not GameMenu menu || menu.invisible || !drawableElements.Any())
+    if (stepArgs.Menu is not GameMenu menu || menu.invisible)
     {
       return;
     }
 
-    _maxElementHeight = drawableElements.Max(e => e.RenderedHeight);
+    // Sync per-frame game-state conditions into layout visibility before measuring
+    foreach (MenuShortcutElement shortcut in _menuShortcuts)
+    {
+      shortcut.IsHidden = !shortcut.ShouldDraw;
+    }
 
+    _container.Layout();
+
+    if (_menuShortcuts.TrueForAll(s => s.IsHidden))
+    {
+      return;
+    }
+
+    SpriteBatch batch = stepArgs.SpriteBatch;
     int xStart = menu.xPositionOnScreen;
     int width = menu.pages[menu.currentTab].width;
     int yStart = menu.yPositionOnScreen + menu.pages[menu.currentTab].height - 20 + SpaceAfterMenuBottom;
-    int height = _maxElementHeight + PaddingAroundElements * 2;
+    int height = _container.Bounds.Size.Height + PaddingAroundElements * 2;
 
     IClickableMenu.drawTextureBox(batch, xStart, yStart, width, height, Color.White);
 
-    int halfPadding = PaddingAroundElements / 2;
-    int elementXStart = halfPadding;
+    _container.Draw(batch, xStart + PaddingAroundElements, yStart + PaddingAroundElements);
 
-    foreach (BaseMenuShortcut menuShortcut in drawableElements)
+    foreach (MenuShortcutElement shortcut in _menuShortcuts)
     {
-      elementXStart += halfPadding;
-      menuShortcut.Draw(batch, xStart + elementXStart, yStart + PaddingAroundElements);
-      elementXStart += menuShortcut.RenderedWidth + halfPadding;
-    }
-
-    foreach (BaseMenuShortcut menuShortcut in drawableElements)
-    {
-      menuShortcut.DrawHoverText(batch);
+      shortcut.DrawHoverText(batch);
     }
   }
 }
