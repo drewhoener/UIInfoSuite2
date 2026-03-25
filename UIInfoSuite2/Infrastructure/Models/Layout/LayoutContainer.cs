@@ -7,6 +7,7 @@ using StardewValley;
 using StardewValley.Menus;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
+using UIInfoSuite2.Infrastructure.Models.Layout.Enums;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 namespace UIInfoSuite2.Infrastructure.Models.Layout;
@@ -28,6 +29,7 @@ internal class LayoutContainer : LayoutElement, IDisposable
   private readonly List<LayoutElement> _children = [];
   private readonly HashSet<string> _dirtyChildren = [];
   private readonly List<LayoutElement> _visibleChildren = [];
+  private Alignment _alignment = Alignment.TopLeft;
   private int _componentSpacing = 2;
   private Dimensions _componentSpacingSize = new(0, 2);
   private LayoutDirection _layoutDirection = LayoutDirection.Column;
@@ -63,6 +65,28 @@ internal class LayoutContainer : LayoutElement, IDisposable
     {
       _layoutDirection = value;
       UpdateLayoutSpacing();
+      MarkFlagDirty(LayoutDirtyFlags.Direction);
+    }
+  }
+
+  /// <summary>
+  ///   Gets or sets the 9-grid alignment for children within this container.
+  ///   The horizontal axis controls main-axis justify (start/center/end) and the vertical axis
+  ///   controls cross-axis alignment (start/center/end), both relative to the layout direction.
+  ///   For Row: Left/Center/Right = horizontal justify, Top/Middle/Bottom = vertical align.
+  ///   For Column: Top/Center/Bottom = vertical justify, Left/Center/Right = horizontal align.
+  /// </summary>
+  public Alignment Alignment
+  {
+    get => _alignment;
+    set
+    {
+      if (_alignment == value)
+      {
+        return;
+      }
+
+      _alignment = value;
       MarkFlagDirty(LayoutDirtyFlags.Direction);
     }
   }
@@ -296,31 +320,68 @@ internal class LayoutContainer : LayoutElement, IDisposable
   private void ArrangeChildren()
   {
     _visibleChildren.Clear();
-    // Split children into absolute and normal flow
-    IEnumerable<LayoutElement> normalChildren = _children.Where(c => c is { IsAbsolute: false, IsHidden: false });
+
+    List<LayoutElement> normalChildren = _children.Where(c => c is { IsAbsolute: false, IsHidden: false }).ToList();
     IEnumerable<LayoutElement> absoluteChildren = _children.Where(c => c is { IsAbsolute: true, IsHidden: false });
 
-    // Handle normal flow children first
-    var offsetX = 0;
-    var offsetY = 0;
+    // Determine layout axes
+    bool isRow = _layoutDirection == LayoutDirection.Row;
+    int containerCrossSize = isRow ? ContentSize.Height : ContentSize.Width;
+    int containerMainSize = isRow ? ContentSize.Width : ContentSize.Height;
+
+    // Decode 9-grid alignment into horizontal and vertical intent
+    bool alignHCenter = _alignment is Alignment.TopCenter or Alignment.Center or Alignment.BottomCenter;
+    bool alignHEnd = _alignment is Alignment.TopRight or Alignment.MiddleRight or Alignment.BottomRight;
+    bool alignVCenter = _alignment is Alignment.MiddleLeft or Alignment.Center or Alignment.MiddleRight;
+    bool alignVEnd = _alignment is Alignment.BottomLeft or Alignment.BottomCenter or Alignment.BottomRight;
+
+    // Map horizontal/vertical intent to main/cross axis based on direction
+    bool mainCenter = isRow ? alignHCenter : alignVCenter;
+    bool mainEnd = isRow ? alignHEnd : alignVEnd;
+    bool crossCenter = isRow ? alignVCenter : alignHCenter;
+    bool crossEnd = isRow ? alignVEnd : alignHEnd;
+
+    // Calculate total main-axis size (children + spacing between them)
+    var totalMainSize = 0;
     foreach (LayoutElement child in normalChildren)
     {
-      _visibleChildren.Add(child);
-      child.Bounds.OffsetX = offsetX;
-      child.Bounds.OffsetY = offsetY;
-      Dimensions childSize = child.Bounds.Size;
-      switch (_layoutDirection)
-      {
-        case LayoutDirection.Row:
-          offsetX += childSize.Width;
-          break;
-        case LayoutDirection.Column:
-          offsetY += childSize.Height;
-          break;
-      }
+      totalMainSize += isRow ? child.Bounds.Width : child.Bounds.Height;
+    }
 
-      offsetX += _componentSpacingSize.Width;
-      offsetY += _componentSpacingSize.Height;
+    if (normalChildren.Count > 1)
+    {
+      totalMainSize += _componentSpacing * (normalChildren.Count - 1);
+    }
+
+    // Calculate starting offset along the main axis (justify-content)
+    int freeSpace = Math.Max(0, containerMainSize - totalMainSize);
+    int mainOffset = mainCenter ? freeSpace / 2 : mainEnd ? freeSpace : 0;
+
+    // Place flow children
+    for (var i = 0; i < normalChildren.Count; i++)
+    {
+      LayoutElement child = normalChildren[i];
+      _visibleChildren.Add(child);
+      Dimensions childSize = child.Bounds.Size;
+
+      int childMainSize = isRow ? childSize.Width : childSize.Height;
+      int childCrossSize = isRow ? childSize.Height : childSize.Width;
+
+      // Calculate cross-axis offset per child (align-items)
+      int crossOffset = crossCenter
+        ? (containerCrossSize - childCrossSize) / 2
+        : crossEnd
+          ? containerCrossSize - childCrossSize
+          : 0;
+
+      child.Bounds.OffsetX = isRow ? mainOffset : crossOffset;
+      child.Bounds.OffsetY = isRow ? crossOffset : mainOffset;
+
+      mainOffset += childMainSize;
+      if (i < normalChildren.Count - 1)
+      {
+        mainOffset += _componentSpacing;
+      }
     }
 
     // Handle absolute children
@@ -330,8 +391,8 @@ internal class LayoutContainer : LayoutElement, IDisposable
       (int? top, int? left, int? bottom, int? right) = child.Bounds.Position;
 
       // Default to Top=0, Left=0 if not specified
-      offsetX = left.OrZero();
-      offsetY = top.OrZero();
+      int offsetX = left.OrZero();
+      int offsetY = top.OrZero();
 
       // If bottom is specified but top isn't, position from bottom
       if (bottom.HasValue && !top.HasValue)
