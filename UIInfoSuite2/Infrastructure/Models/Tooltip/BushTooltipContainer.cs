@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.TerrainFeatures;
+using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
 using UIInfoSuite2.Infrastructure.Models.Layout;
@@ -13,13 +14,15 @@ namespace UIInfoSuite2.Infrastructure.Models.Tooltip;
 
 internal class BushTooltipContainer : LayoutContainer
 {
-  private readonly TooltipText _bushDaysRemainingElement = new(
+  private readonly TooltipText _bushDaysRemainingElement = new TooltipText(
     "UIIS2::UnknownTime",
     0.75f,
     identifier: "BushTimeRemaining"
-  );
+  ).WithMarginTop(10);
 
-  private readonly TooltipIcon _bushIcon = new(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40);
+  private readonly TooltipIcon _bushIcon = new TooltipIcon(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40)
+    .WithPadding(10)
+    .WithMarginTop(10);
 
   private readonly TooltipText _bushNameElement = TooltipText.Bold("UIIS2::UnknownBush", identifier: "BushName");
 
@@ -37,9 +40,6 @@ internal class BushTooltipContainer : LayoutContainer
   public BushTooltipContainer(Bush? crop = null) : base("BushTooltip")
   {
     _dropsHelper = ModEntry.GetSingleton<DropsHelper>();
-    _bushIcon.Padding.SetInsets(10, 10, 10, 10);
-    _bushIcon.Margin.Top = 10;
-    _bushDaysRemainingElement.Margin.Top = 10;
     Direction = LayoutDirection.Row;
 
     ComponentSpacing = 10;
@@ -81,8 +81,6 @@ internal class BushTooltipContainer : LayoutContainer
     IsHidden = false;
     _doesNotProduceElement.IsHidden = true;
     _bushDaysRemainingElement.IsHidden = true;
-
-    ComponentSpacing = 10;
 
     var ageToMature = 20;
     var isReadyToday = false;

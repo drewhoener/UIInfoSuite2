@@ -22,6 +22,7 @@ internal class CropStatusContainer : LayoutContainer
   {
     Direction = LayoutDirection.Row;
     ComponentSpacing = 5;
+    AutoHideWhenEmpty = true;
 
     _treeFertilizerIcon = CreateItemIcon("805");
     _wateringCanIcon = CreateItemIcon("(T)IridiumWateringCan");
@@ -67,19 +68,16 @@ internal class CropStatusContainer : LayoutContainer
   private void WatchFertilizerField(NetString field, string oldValue, string newValue)
   {
     UpdateFertilizerIcons();
-    UpdateHidden();
   }
 
   private void WatchWateredField(NetInt field, int oldValue, int newValue)
   {
     UpdateWateredIcon();
-    UpdateHidden();
   }
 
   private void WatchTreeFertilizerField(NetBool field, bool oldValue, bool newValue)
   {
     UpdateTreeFertilizerIcon();
-    UpdateHidden();
   }
 
   private void SetTree(Tree? tree)
@@ -102,7 +100,6 @@ internal class CropStatusContainer : LayoutContainer
     }
 
     UpdateTreeFertilizerIcon();
-    UpdateHidden();
   }
 
   private void SetHoeDirt(HoeDirt? hoeDirt)
@@ -141,18 +138,11 @@ internal class CropStatusContainer : LayoutContainer
         fertilizerIcon.IsHidden = true;
       }
 
-      UpdateHidden();
       return;
     }
 
     UpdateFertilizerIcons();
     UpdateWateredIcon();
-    UpdateHidden();
-  }
-
-  private void UpdateHidden()
-  {
-    IsHidden = AllChildrenHidden();
   }
 
   private void UpdateTreeFertilizerIcon()

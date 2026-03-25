@@ -32,6 +32,12 @@ internal class LayoutContainer : LayoutElement, IDisposable
   private Dimensions _componentSpacingSize = new(0, 2);
   private LayoutDirection _layoutDirection = LayoutDirection.Column;
 
+  /// <summary>
+  ///   When true, the container automatically hides itself whenever all of its children are hidden,
+  ///   and shows itself again as soon as any child becomes visible. Applied during the layout pass.
+  /// </summary>
+  public bool AutoHideWhenEmpty { get; set; }
+
   public LayoutContainer(string? identifier, params LayoutElement[] children) : base(identifier)
   {
     AddChildren(children);
@@ -89,6 +95,20 @@ internal class LayoutContainer : LayoutElement, IDisposable
     }
   }
 
+  /// <summary>Sets the spacing between children and returns this container for chaining.</summary>
+  public LayoutContainer WithSpacing(int spacing)
+  {
+    ComponentSpacing = spacing;
+    return this;
+  }
+
+  /// <summary>Sets the 9-grid alignment and returns this container for chaining.</summary>
+  public LayoutContainer WithAlignment(Alignment alignment)
+  {
+    Alignment = alignment;
+    return this;
+  }
+
   public override void Dispose()
   {
     if (Parent is LayoutContainer parentContainer)
@@ -113,9 +133,26 @@ internal class LayoutContainer : LayoutElement, IDisposable
     return newContainer;
   }
 
+  public static LayoutContainer Row(string? identifier, int spacing, params LayoutElement[] children)
+  {
+    var newContainer = new LayoutContainer(identifier);
+    newContainer.Direction = LayoutDirection.Row;
+    newContainer.ComponentSpacing = spacing;
+    newContainer.AddChildren(children);
+    return newContainer;
+  }
+
   public static LayoutContainer Column(string? identifier, params LayoutElement[] children)
   {
     var newContainer = new LayoutContainer(identifier);
+    newContainer.AddChildren(children);
+    return newContainer;
+  }
+
+  public static LayoutContainer Column(string? identifier, int spacing, params LayoutElement[] children)
+  {
+    var newContainer = new LayoutContainer(identifier);
+    newContainer.ComponentSpacing = spacing;
     newContainer.AddChildren(children);
     return newContainer;
   }
@@ -222,6 +259,18 @@ internal class LayoutContainer : LayoutElement, IDisposable
 
     // First measure ourselves (which includes measuring children)
     UpdateBounds();
+
+    // Auto-hide when all children are hidden. Re-measure if visibility changed so
+    // our bounds are correct before the parent reads them.
+    if (AutoHideWhenEmpty)
+    {
+      bool allHidden = AllChildrenHidden();
+      if (allHidden != IsHidden)
+      {
+        IsHidden = allHidden;
+        UpdateBounds();
+      }
+    }
 
     // Always do full child positioning since any child could affect layout
     ArrangeChildren();

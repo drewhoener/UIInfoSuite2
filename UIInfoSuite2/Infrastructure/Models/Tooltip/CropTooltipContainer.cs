@@ -11,13 +11,15 @@ namespace UIInfoSuite2.Infrastructure.Models.Tooltip;
 
 internal class CropTooltipContainer : LayoutContainer
 {
-  private readonly TooltipText _cropDaysRemainingElement = new(
+  private readonly TooltipText _cropDaysRemainingElement = new TooltipText(
     "UIIS2::UnknownTime",
     0.75f,
     identifier: "CropTimeRemaining"
-  );
+  ).WithMarginTop(10);
 
-  private readonly TooltipIcon _cropIcon = new(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40);
+  private readonly TooltipIcon _cropIcon = new TooltipIcon(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40)
+    .WithPadding(10)
+    .WithMarginTop(10);
 
   private readonly TooltipText _cropNameElement = TooltipText.Bold("UIIS2::UnknownCrop", identifier: "CropName");
 
@@ -27,9 +29,6 @@ internal class CropTooltipContainer : LayoutContainer
   public CropTooltipContainer(Crop? crop = null) : base("CropTooltip")
   {
     _dropsHelper = ModEntry.GetSingleton<DropsHelper>();
-    _cropIcon.Padding.SetInsets(10, 10, 10, 10);
-    _cropIcon.Margin.Top = 10;
-    _cropDaysRemainingElement.Margin.Top = 10;
     Direction = LayoutDirection.Row;
 
     ComponentSpacing = 10;
@@ -68,8 +67,6 @@ internal class CropTooltipContainer : LayoutContainer
     }
 
     IsHidden = false;
-
-    ComponentSpacing = 10;
 
     var daysLeft = 0;
     if (Crop.fullyGrown.Value && Crop.dayOfCurrentPhase.Value > 0)

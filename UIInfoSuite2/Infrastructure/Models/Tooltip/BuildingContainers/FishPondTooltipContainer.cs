@@ -79,8 +79,7 @@ internal class FishPondTooltipContainer : LayoutContainer
   {
     UpdateFishCount();
     UpdateFishDays();
-
-    IsHidden = AllChildrenHidden();
+    IsHidden = false;
   }
 
   private void UpdateFishCount()
