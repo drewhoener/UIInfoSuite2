@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using UIInfoSuite2.Infrastructure.Extensions;
-using UIInfoSuite2.Infrastructure.Models.Layout.Enums;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 namespace UIInfoSuite2.Infrastructure.Models.Layout.Strategy;
 
+/// <summary>
+///   String constants for well-known layout properties. Used by custom strategies that choose to
+///   implement dynamic property storage via <see cref="PropertyCache" />.
+/// </summary>
 public static class Property
 {
   public const string Gap = "gap";
@@ -33,36 +34,23 @@ public static class Property
   public const string Height = "height";
   public const string MinWidth = "minWidth";
 
-  private static readonly HashSet<string> SidedProps =
-  [
-    Margin,
-    Padding
-  ];
+  private static readonly HashSet<string> SidedProps = [Margin, Padding];
 
-  public static bool IsSided(string prop)
-  {
-    return SidedProps.Contains(prop);
-  }
+  public static bool IsSided(string prop) => SidedProps.Contains(prop);
 
-  public static (string, string, string, string) GetSidedProps(string prop)
-  {
-    return ($"{prop}Top", $"{prop}Right", $"{prop}Bottom", $"{prop}Left");
-  }
+  public static (string top, string right, string bottom, string left) GetSidedProps(string prop) =>
+    ($"{prop}Top", $"{prop}Right", $"{prop}Bottom", $"{prop}Left");
 }
 
+/// <summary>
+///   Optional dynamic property bag for custom <see cref="LayoutStrategy" /> implementations that prefer
+///   a string-keyed property system over typed C# properties.
+/// </summary>
 internal class PropertyCache : Dictionary<string, TrackableValue<object>>
 {
-  public Action<string?>? CallbackAction { get; set; }
-
   public string DefaultString { get; set; } = "";
   public int DefaultInt { get; set; } = 0;
   public bool DefaultBool { get; set; } = false;
-
-  // Convenience methods for common insets
-  public IInsets Margin => GetAsInsets(Property.Margin);
-  public IInsets Padding => GetAsInsets(Property.Padding);
-  public int MarginVertical => Margin.VerticalTotal();
-  public int MarginHorizontal => Margin.HorizontalTotal();
 
   private T Get<T>(string key, T defaultValue)
   {
@@ -76,41 +64,30 @@ internal class PropertyCache : Dictionary<string, TrackableValue<object>>
 
   public void Set(string key, object value)
   {
-    if (TryGetValue(key, out TrackableValue<object>? existingValue))
+    if (TryGetValue(key, out TrackableValue<object>? existing))
     {
-      existingValue.SetAndMark(value);
+      existing.SetAndMark(value);
     }
     else
     {
-      var newVal = new TrackableValue<object>(value, CallbackAction, $"prop-{key}");
+      var newVal = new TrackableValue<object>(value, debugIdentifier: $"prop-{key}");
       Add(key, newVal);
       newVal.Mark();
     }
   }
 
-  public string GetAsString(string propertyKey)
-  {
-    return Get(propertyKey, DefaultString);
-  }
+  public string GetAsString(string key) => Get(key, DefaultString);
+  public int GetAsInt(string key) => Get(key, DefaultInt);
+  public bool GetAsBool(string key) => Get(key, DefaultBool);
 
-  public int GetAsInt(string propertyKey)
+  public TEnum GetAsEnum<TEnum>(string key, TEnum defaultValue) where TEnum : struct, Enum
   {
-    return Get(propertyKey, DefaultInt);
-  }
-
-  public bool GetAsBool(string propertyKey)
-  {
-    return Get(propertyKey, DefaultBool);
-  }
-
-  public TEnum GetAsEnum<TEnum>(string propertyKey, TEnum defaultValue) where TEnum : struct, Enum
-  {
-    object value = Get<object>(propertyKey, defaultValue);
-    return value switch
+    object raw = Get<object>(key, defaultValue);
+    return raw switch
     {
-      TEnum enumValue => enumValue,
-      string str when Enum.TryParse(str, true, out TEnum parsed) => parsed,
-      int intValue when Enum.IsDefined(typeof(TEnum), intValue) => (TEnum)(object)intValue,
+      TEnum e => e,
+      string s when Enum.TryParse(s, true, out TEnum parsed) => parsed,
+      int i when Enum.IsDefined(typeof(TEnum), i) => (TEnum)(object)i,
       _ => defaultValue
     };
   }
@@ -125,115 +102,31 @@ internal class PropertyCache : Dictionary<string, TrackableValue<object>>
   }
 }
 
+/// <summary>
+///   Base class for all container layout strategies. A strategy is responsible for two phases:
+///   <list type="bullet">
+///     <item><description><see cref="MeasureContent"/> — computes how much space the children collectively require.</description></item>
+///     <item><description><see cref="ArrangeChildren"/> — positions each child within the measured space and populates the visible-children list for the draw pass.</description></item>
+///   </list>
+///   The container calls each phase in order during its own layout cycle.
+/// </summary>
 internal abstract class LayoutStrategy
 {
-  public PropertyCache Properties { get; } = new();
+  /// <summary>
+  ///   Measures the space required by <paramref name="allChildren" />. Called during the
+  ///   <c>UpdateBounds</c> phase. Implementations should call <c>child.Layout()</c> on each
+  ///   child so they measure themselves before reading <c>child.Bounds.Size</c>.
+  /// </summary>
+  public abstract Dimensions MeasureContent(IReadOnlyList<LayoutElement> allChildren);
 
-  public abstract void ArrangeChildren(LayoutContainer container, List<LayoutElement> visibleChildren);
-  public abstract Dimensions MeasureContent(LayoutContainer container, List<LayoutElement> visibleChildren);
+  /// <summary>
+  ///   Positions children within <paramref name="contentSize" /> and populates
+  ///   <paramref name="visibleChildren" /> with every child that should be drawn this frame.
+  ///   Implementations must call <c>visibleChildren.Clear()</c> at the start.
+  /// </summary>
+  public abstract void ArrangeChildren(
+    Dimensions contentSize,
+    IReadOnlyList<LayoutElement> allChildren,
+    List<LayoutElement> visibleChildren
+  );
 }
-
-internal class FlexLayoutStrategy : LayoutStrategy
-{
-  public override void ArrangeChildren(LayoutContainer container, List<LayoutElement> visibleChildren)
-  {
-    if (visibleChildren.IsEmpty())
-    {
-      return;
-    }
-
-    FlexDirection direction = Properties.GetAsEnum(Property.FlexDirection, FlexDirection.Row);
-    int gap = Properties.GetAsInt(Property.Gap);
-
-    bool isRow = direction is FlexDirection.Row or FlexDirection.RowReverse;
-
-    int totalChildrenSize = visibleChildren.Sum(child => isRow ? child.Bounds.Width : child.Bounds.Height);
-    int totalGaps = gap * (visibleChildren.Count - 1);
-    int availableSpace = (isRow ? container.ContentSize.Width : container.ContentSize.Height) -
-                         totalChildrenSize -
-                         totalGaps;
-  }
-
-  public override Dimensions MeasureContent(LayoutContainer container, List<LayoutElement> visibleChildren)
-  {
-    throw new NotImplementedException();
-  }
-
-  // private List<int> CalculateMainAxisPositions(
-  //   JustifyContent justify,
-  //   int childCount,
-  //   int totalSize,
-  //   int containerSize,
-  //   int gap
-  // )
-  // {
-  //   var positions = new List<int>(childCount);
-  //   int availableSpace = containerSize - totalSize;
-  // }
-}
-
-// using System;
-// using UIInfoSuite2.Infrastructure.Models.Layout.Enums;
-//
-// namespace UIInfoSuite2.Infrastructure.Models.Layout.Strategy;
-//
-// internal abstract class LayoutStrategy(LayoutElement owner)
-// {
-//   protected readonly LayoutElement Owner = owner;
-//
-//   // For measuring the element's own content (text, sprites, etc)
-//   public abstract Dimensions MeasureOwnContent(int? widthConstraint = null);
-//
-//   // For arranging the element's own content within its bounds
-//   public abstract void ArrangeOwnContent();
-//
-//   // For measuring child elements (only used by container strategies)
-//   public virtual Dimensions MeasureChildren(int? widthConstraint = null) => Dimensions.Empty;
-//
-//   // For arranging child elements (only used by container strategies)
-//   public virtual void ArrangeChildren() { }
-//
-//   // Combines own content and children measurements
-//   public Dimensions MeasureContent()
-//   {
-//
-//     // First pass - measure without constraints to get natural sizes
-//     var initialSize = new Dimensions(
-//       Math.Max(MeasureOwnContent().Width, MeasureChildren().Width),
-//       Math.Max(MeasureOwnContent().Height, MeasureChildren().Height)
-//     );
-//
-//     // Second pass - measure with width constraint
-//     var parentWidth = Owner.Parent?.ContentSize.Width;
-//     return new Dimensions(
-//       Math.Max(MeasureOwnContent(parentWidth).Width, MeasureChildren(parentWidth).Width),
-//       Math.Max(MeasureOwnContent(parentWidth).Height, MeasureChildren(parentWidth).Height)
-//     );
-//   }
-// }
-//
-// // Base strategy for elements with just content
-// internal abstract class ElementLayoutStrategy(LayoutElement owner) : LayoutStrategy(owner)
-// {
-//   // Override with NotSupportedException or return empty to make it clear
-//   // these strategies don't handle children
-//   public sealed override Dimensions MeasureChildren() =>
-//     throw new NotSupportedException("Element strategies do not support child measurement");
-//
-//   public sealed override void ArrangeChildren() =>
-//     throw new NotSupportedException("Element strategies do not support child arrangement");
-// }
-//
-// // Base strategy for containers
-// internal abstract class ContainerLayoutStrategy : LayoutStrategy
-// {
-//   protected ContainerLayoutStrategy(LayoutContainer owner) : base(owner) { }
-//
-//   // Make it clear these must be implemented for containers
-//   public abstract override Dimensions MeasureChildren();
-//   public abstract override void ArrangeChildren();
-//
-//   // Most containers don't have their own content
-//   public override Dimensions MeasureOwnContent() => Dimensions.Empty;
-//   public override void ArrangeOwnContent() { }
-// }

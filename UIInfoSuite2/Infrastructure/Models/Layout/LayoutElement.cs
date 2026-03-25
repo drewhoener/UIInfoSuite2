@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Interfaces;
+using UIInfoSuite2.Infrastructure.Models.Layout.Enums;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
 namespace UIInfoSuite2.Infrastructure.Models.Layout;
@@ -41,6 +42,14 @@ internal abstract class LayoutElement : ITrackable, IDisposable
   private LayoutElement? _parent;
   protected internal LayoutBounds Bounds = new();
   internal Dimensions ContentSize = Dimensions.Empty;
+
+  // ── Flex item properties (read by the parent container's layout strategy) ──
+  private float _flexGrow;
+  private float _flexShrink = 1f;
+  private int _order;
+  private AlignItems? _alignSelf;
+  private int? _fixedWidth;
+  private int? _fixedHeight;
 
   protected LayoutElement(string? identifier)
   {
@@ -87,6 +96,100 @@ internal abstract class LayoutElement : ITrackable, IDisposable
 
       Bounds.IsAbsolute = value;
       MarkFlagDirty(LayoutDirtyFlags.Position);
+    }
+  }
+
+  // ── Flex item properties ─────────────────────────────────────────────────
+
+  /// <summary>
+  ///   How much this element grows relative to siblings when positive free space is available
+  ///   along the main axis. <c>0</c> (default) means the element does not grow.
+  /// </summary>
+  public float FlexGrow
+  {
+    get => _flexGrow;
+    set
+    {
+      if (Math.Abs(_flexGrow - value) < 0.001f) return;
+      _flexGrow = value;
+      MarkLayoutDirty(Id);
+    }
+  }
+
+  /// <summary>
+  ///   How much this element shrinks relative to siblings when the children overflow the container.
+  ///   Default is <c>1</c> (proportional shrink). Set to <c>0</c> to prevent shrinking.
+  /// </summary>
+  public float FlexShrink
+  {
+    get => _flexShrink;
+    set
+    {
+      if (Math.Abs(_flexShrink - value) < 0.001f) return;
+      _flexShrink = value;
+      MarkLayoutDirty(Id);
+    }
+  }
+
+  /// <summary>
+  ///   Controls the placement order within the parent container, independent of DOM order.
+  ///   Lower values are placed first. Default is <c>0</c>.
+  /// </summary>
+  public int Order
+  {
+    get => _order;
+    set
+    {
+      if (_order == value) return;
+      _order = value;
+      MarkFlagDirty(LayoutDirtyFlags.Layout);
+    }
+  }
+
+  /// <summary>
+  ///   Overrides the parent container's <c>AlignItems</c> for this element specifically.
+  ///   <c>null</c> (default) defers to the container.
+  /// </summary>
+  public AlignItems? AlignSelf
+  {
+    get => _alignSelf;
+    set
+    {
+      if (_alignSelf == value) return;
+      _alignSelf = value;
+      MarkFlagDirty(LayoutDirtyFlags.Layout);
+    }
+  }
+
+  /// <summary>
+  ///   Forces a fixed content-box width in pixels, bypassing the measured content width.
+  ///   The total bounds will be <c>FixedWidth + margin + padding</c>. Set to <c>null</c> to
+  ///   let content drive the width.
+  /// </summary>
+  public int? FixedWidth
+  {
+    get => _fixedWidth;
+    set
+    {
+      if (_fixedWidth == value) return;
+      _fixedWidth = value;
+      MarkLayoutDirty(Id);
+    }
+  }
+
+  /// <summary>
+  ///   Forces a fixed content-box height in pixels, bypassing the measured content height.
+  ///   The total bounds will be <c>FixedHeight + margin + padding</c>. Set to <c>null</c> to
+  ///   let content drive the height.
+  /// </summary>
+  public int? FixedHeight
+  {
+    get => _fixedHeight;
+    set
+    {
+      if (_fixedHeight == value) return;
+      _fixedHeight = value;
+      MarkLayoutDirty(Id);
     }
   }
 
@@ -262,6 +365,17 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     }
 
     Dimensions newContentSize = MeasureContent();
+
+    // Apply fixed content-box overrides (content size only; bounds = content + margin + padding)
+    if (_fixedWidth.HasValue)
+    {
+      newContentSize = new Dimensions(_fixedWidth.Value, newContentSize.Height);
+    }
+
+    if (_fixedHeight.HasValue)
+    {
+      newContentSize = new Dimensions(newContentSize.Width, _fixedHeight.Value);
+    }
 
     // ReSharper disable once InvertIf
     if (newContentSize != ContentSize)
