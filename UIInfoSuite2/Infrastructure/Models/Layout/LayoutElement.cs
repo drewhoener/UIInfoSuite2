@@ -55,7 +55,7 @@ internal abstract class LayoutElement : ITrackable, IDisposable
 
   protected LayoutElement() : this(null) { }
 
-  protected LayoutDirtyFlags DirtyFlags { get; private set; } = LayoutDirtyFlags.Initial;
+  protected LayoutDirtyFlags DirtyFlags { get; set; } = LayoutDirtyFlags.Initial;
 
   public IInsets Margin
   {
@@ -140,6 +140,8 @@ internal abstract class LayoutElement : ITrackable, IDisposable
   {
     DirtyFlags = LayoutDirtyFlags.None;
     _hidden.ResetDirty();
+    MarginTracked.ResetDirty();
+    PaddingTracked.ResetDirty();
   }
 
   private static string NormalizeIdentifier(string? identifier)

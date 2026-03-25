@@ -25,9 +25,7 @@ internal class LayoutContainer : LayoutElement, IDisposable
     // TODO: Row Reverse, Column Reverse
   }
 
-  private readonly HashSet<string> _childIds = [];
   private readonly List<LayoutElement> _children = [];
-  private readonly HashSet<string> _dirtyChildren = [];
   private readonly List<LayoutElement> _visibleChildren = [];
   private Alignment _alignment = Alignment.TopLeft;
   private int _componentSpacing = 2;
@@ -91,8 +89,6 @@ internal class LayoutContainer : LayoutElement, IDisposable
     }
   }
 
-  protected override bool NeedsLayout => IsDirty || _dirtyChildren.Count != 0;
-
   public override void Dispose()
   {
     if (Parent is LayoutContainer parentContainer)
@@ -107,7 +103,6 @@ internal class LayoutContainer : LayoutElement, IDisposable
     }
 
     _children.Clear();
-    _childIds.Clear();
   }
 
   public static LayoutContainer Row(string? identifier, params LayoutElement[] children)
@@ -136,11 +131,6 @@ internal class LayoutContainer : LayoutElement, IDisposable
     {
       component.Parent = this;
       _children.Add(component);
-      _childIds.Add(component.Id);
-      if (component.IsDirty)
-      {
-        _dirtyChildren.Add(component.Id);
-      }
     }
 
     MarkLayoutDirty(Id);
@@ -154,7 +144,6 @@ internal class LayoutContainer : LayoutElement, IDisposable
   {
     element.UnsetParent();
     _children.Remove(element);
-    _childIds.Remove(element.Id);
     MarkLayoutDirty(Id);
   }
 
@@ -177,25 +166,18 @@ internal class LayoutContainer : LayoutElement, IDisposable
     return _children.TrueForAll(e => e.IsHidden);
   }
 
-  public override void ResetDirty()
-  {
-    base.ResetDirty();
-    MarginTracked.ResetDirty();
-    PaddingTracked.ResetDirty();
-    _dirtyChildren.Clear();
-  }
-
   protected internal override void PropagateLayoutChange(LayoutElement? caller = null)
   {
-    // Only prevent propagation if the calling element is already dirty
-    if (caller is not null && _dirtyChildren.Contains(caller.Id))
+    // If this was triggered by a child and we're already dirty, our parent already knows.
+    if (caller is not null && IsDirty)
     {
       return;
     }
 
-    if (caller is not null && _childIds.Contains(caller.Id))
+    // A child changed: mark our own layout dirty so NeedsLayout is true without a separate set.
+    if (caller is not null)
     {
-      _dirtyChildren.Add(caller.Id);
+      DirtyFlags |= LayoutDirtyFlags.Layout;
     }
 
     ModEntry.LayoutDebug($"{GetType().Name}::{caller?.Id} Propagated layout change");
