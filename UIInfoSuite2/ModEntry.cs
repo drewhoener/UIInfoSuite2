@@ -15,6 +15,7 @@ using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Compatibility.CustomBush;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Config.Configurable;
+using UIInfoSuite2.Infrastructure.DebugMenu;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Helpers.GameStateHelpers;
@@ -147,6 +148,21 @@ internal class ModEntry : Mod
     {
       patchable.Patch(harmony);
     }
+
+    helper.ConsoleCommands.Add(
+      "uiis2_layout_test",
+      "Opens the layout system test menu.",
+      (_, _) =>
+      {
+        if (!Context.IsWorldReady)
+        {
+          Monitor.Log("Load a save first.", LogLevel.Warn);
+          return;
+        }
+
+        Game1.activeClickableMenu = new LayoutTestMenu();
+      }
+    );
   }
 #endregion
 
