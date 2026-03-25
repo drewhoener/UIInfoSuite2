@@ -149,6 +149,14 @@ internal partial class ExtendedItemInfoModule
     return matcher.InstructionEnumeration();
   }
 
+  /*
+   * 1. Get height to add to the header box
+   * 2. Get height to add to the body
+   * 3. Get max width
+   * 4. Set total height to heightOverride + additional space : originalHeight
+   * 5.
+   */
+
   /// <summary>
   ///   Patches the drawHoverText method to add more space to the "title" box when hovering over an item.
   ///   Makes room for things like the Community Center bundle banner.

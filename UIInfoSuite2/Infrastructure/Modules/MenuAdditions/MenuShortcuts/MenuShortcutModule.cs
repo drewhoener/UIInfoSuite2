@@ -9,7 +9,6 @@ using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Events.Args;
 using UIInfoSuite2.Infrastructure.Models.Layout;
 using UIInfoSuite2.Infrastructure.Modules.Base;
-using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
 
 namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts;
 

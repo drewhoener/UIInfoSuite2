@@ -6,7 +6,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Locations;
 
-namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts.ShortcutModules;
+namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts;
 
 internal class MonsterSlayerShortcut : MenuShortcutElement
 {
