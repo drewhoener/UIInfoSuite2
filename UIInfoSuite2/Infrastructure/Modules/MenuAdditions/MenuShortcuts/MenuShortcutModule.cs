@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Menus;
+using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Events;
 using UIInfoSuite2.Infrastructure.Events.Args;
@@ -16,15 +18,16 @@ internal class MenuShortcutModule(
   IModEvents modEvents,
   IMonitor logger,
   ConfigManager configManager,
-  EventsManager eventsManager
+  EventsManager eventsManager,
+  ApiManager apiManager
 ) : BaseModule(modEvents, logger, configManager)
 {
   public const int PaddingAroundElements = 30;
   public const int SpaceAfterMenuBottom = 10;
 
+  private readonly LayoutContainer _container = LayoutContainer.Row("MenuShortcuts").WithSpacing(PaddingAroundElements);
+
   private readonly List<MenuShortcutElement> _menuShortcuts = new();
-  private readonly LayoutContainer _container = LayoutContainer.Row("MenuShortcuts")
-    .WithSpacing(PaddingAroundElements);
 
   public override bool ShouldEnable()
   {
@@ -33,12 +36,27 @@ internal class MenuShortcutModule(
 
   public override void OnEnable()
   {
-    eventsManager.OnRenderingMenuContentStep += Draw;
+    if (apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgmApi))
+    {
+      bgmApi.OnPageOverlayCreation(OnOverlayCreated);
+    }
+    else
+    {
+      Logger.Log("BetterGameMenu not detected, falling back to rendering menu content step.", LogLevel.Warn);
+      eventsManager.OnRenderingMenuContentStep += OnRenderingMenu;
+    }
   }
 
   public override void OnDisable()
   {
-    eventsManager.OnRenderingMenuContentStep -= Draw;
+    if (apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgmApi))
+    {
+      bgmApi.OffPageOverlayCreation(OnOverlayCreated);
+    }
+    else
+    {
+      eventsManager.OnRenderingMenuContentStep -= OnRenderingMenu;
+    }
   }
 
   public void Register(IModHelper helper)
@@ -55,14 +73,35 @@ internal class MenuShortcutModule(
     helper.Events.Input.ButtonPressed += shortcut.OnClick;
   }
 
-  public void Draw(object? sender, RenderingMenuContentStepArgs stepArgs)
+  private void OnRenderingMenu(object? sender, RenderingMenuContentStepArgs stepArgs)
   {
     if (stepArgs.Menu is not GameMenu menu || menu.invisible)
     {
       return;
     }
 
-    // Sync per-frame game-state conditions into layout visibility before measuring
+    Draw(stepArgs.SpriteBatch, menu);
+  }
+
+  private void OnOverlayCreated(IPageOverlayCreationEvent evt)
+  {
+    if (!apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgmApi))
+    {
+      return;
+    }
+
+    IBetterGameMenu? menu = bgmApi.AsMenu(evt.Menu);
+    if (menu is null || menu.Invisible)
+    {
+      return;
+    }
+
+    evt.AddOverlay(new BetterGameMenuShortcutOverlay(this, evt.Menu));
+  }
+
+  private void Draw(SpriteBatch batch, IClickableMenu menu)
+  {
+    // Sync draw requirements before calling layout
     foreach (MenuShortcutElement shortcut in _menuShortcuts)
     {
       shortcut.IsHidden = !shortcut.ShouldDraw;
@@ -75,10 +114,9 @@ internal class MenuShortcutModule(
       return;
     }
 
-    SpriteBatch batch = stepArgs.SpriteBatch;
     int xStart = menu.xPositionOnScreen;
-    int width = menu.pages[menu.currentTab].width;
-    int yStart = menu.yPositionOnScreen + menu.pages[menu.currentTab].height - 20 + SpaceAfterMenuBottom;
+    int width = menu.width;
+    int yStart = menu.yPositionOnScreen + menu.height - 20 + SpaceAfterMenuBottom;
     int height = _container.Bounds.Size.Height + PaddingAroundElements * 2;
 
     IClickableMenu.drawTextureBox(batch, xStart, yStart, width, height, Color.White);
@@ -88,6 +126,20 @@ internal class MenuShortcutModule(
     foreach (MenuShortcutElement shortcut in _menuShortcuts)
     {
       shortcut.DrawHoverText(batch);
+    }
+  }
+
+  /// <summary>
+  ///   Delegate class for when we have BetterGameMenu installed, we need a way to render our content.
+  /// </summary>
+  private class BetterGameMenuShortcutOverlay(MenuShortcutModule module, IClickableMenu menu) : IDisposable
+  {
+    public void Dispose() { }
+
+    // ReSharper disable once UnusedMember.Local (Used by BetterGameMenu)
+    public void Draw(SpriteBatch batch)
+    {
+      module.Draw(batch, menu);
     }
   }
 }

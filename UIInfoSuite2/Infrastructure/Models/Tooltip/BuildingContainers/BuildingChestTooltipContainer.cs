@@ -24,6 +24,7 @@ internal class BuildingChestTooltipContainer : LayoutContainer
 
   public BuildingChestTooltipContainer(Building? building = null) : base("BuildingContainersTooltip")
   {
+    Direction = LayoutDirection.Column;
     ComponentSpacing = 0;
     Margin.SetAll(0);
     AddChildren(_buildingInputs, _buildingOutputs);

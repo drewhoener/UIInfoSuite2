@@ -225,26 +225,26 @@ internal class Insets : IInsets, IEquatable<Insets>
 
   public void SetHorizontal(int? horizontal, bool quiet = false)
   {
-    Top = horizontal;
-    Bottom = horizontal;
+    Left = horizontal;
+    Right = horizontal;
   }
 
-  public void SetHorizontal(int? top, int? bottom, bool quiet = false)
+  public void SetHorizontal(int? left, int? right, bool quiet = false)
   {
-    Top = top;
-    Bottom = bottom;
+    Left = left;
+    Right = right;
   }
 
   public void SetVertical(int? vertical, bool quiet = false)
   {
-    Left = vertical;
-    Right = vertical;
+    Top = vertical;
+    Bottom = vertical;
   }
 
-  public void SetVertical(int? left, int? right, bool quiet = false)
+  public void SetVertical(int? top, int? bottom, bool quiet = false)
   {
-    Left = left;
-    Right = right;
+    Top = top;
+    Bottom = bottom;
   }
 
   public void Deconstruct(out int? top, out int? left, out int? bottom, out int? right)
@@ -402,10 +402,10 @@ internal class TrackedInsets(
     SetHorizontal(horizontal, horizontal, quiet);
   }
 
-  public void SetHorizontal(int? top, int? bottom, bool quiet = false)
+  public void SetHorizontal(int? left, int? right, bool quiet = false)
   {
-    _top.SetAndMark(top, runCallback: false);
-    _bottom.SetAndMark(bottom, runCallback: false);
+    _left.SetAndMark(left, runCallback: false);
+    _right.SetAndMark(right, runCallback: false);
     if (!quiet)
     {
       Callback("all");
@@ -417,10 +417,10 @@ internal class TrackedInsets(
     SetVertical(vertical, vertical, quiet);
   }
 
-  public void SetVertical(int? left, int? right, bool quiet = false)
+  public void SetVertical(int? top, int? bottom, bool quiet = false)
   {
-    _left.SetAndMark(left, runCallback: false);
-    _right.SetAndMark(right, runCallback: false);
+    _top.SetAndMark(top, runCallback: false);
+    _bottom.SetAndMark(bottom, runCallback: false);
     if (!quiet)
     {
       Callback("all");

@@ -21,6 +21,7 @@ internal class MouseTooltipDom : LayoutDom
 
     Margin.SetAll(5);
     Padding.SetAll(15);
+    Direction = LayoutDirection.Column;
 
     AddChildren(
       CropTooltipContainer,
@@ -107,5 +108,6 @@ internal class MouseTooltipDom : LayoutDom
     CropStatusContainer.Tree = null;
     WildTreeContainer.Tree = null;
     FruitTreeContainer.FruitTree = null;
+    BushTooltipContainer.Bush = null;
   }
 }

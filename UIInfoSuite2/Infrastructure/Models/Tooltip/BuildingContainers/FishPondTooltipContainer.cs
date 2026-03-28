@@ -17,6 +17,7 @@ internal class FishPondTooltipContainer : LayoutContainer
 
   public FishPondTooltipContainer(FishPond? pond = null) : base("BuildingTooltip")
   {
+    Direction = LayoutDirection.Column;
     ComponentSpacing = 0;
     Margin.SetAll(0);
     AddChildren(_capacityText, _daysUntilReady);

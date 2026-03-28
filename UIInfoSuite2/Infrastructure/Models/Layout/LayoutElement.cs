@@ -39,17 +39,17 @@ internal abstract class LayoutElement : ITrackable, IDisposable
   protected internal readonly string Id;
   protected readonly TrackedInsets MarginTracked;
   protected readonly TrackedInsets PaddingTracked;
-  private LayoutElement? _parent;
-  protected internal LayoutBounds Bounds = new();
-  internal Dimensions ContentSize = Dimensions.Empty;
+  private AlignItems? _alignSelf;
+  private int? _fixedHeight;
+  private int? _fixedWidth;
 
   // ── Flex item properties (read by the parent container's layout strategy) ──
   private float _flexGrow;
   private float _flexShrink = 1f;
   private int _order;
-  private AlignItems? _alignSelf;
-  private int? _fixedWidth;
-  private int? _fixedHeight;
+  private LayoutElement? _parent;
+  protected internal LayoutBounds Bounds = new();
+  internal Dimensions ContentSize = Dimensions.Empty;
 
   protected LayoutElement(string? identifier)
   {
@@ -110,7 +110,11 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     get => _flexGrow;
     set
     {
-      if (Math.Abs(_flexGrow - value) < 0.001f) return;
+      if (Math.Abs(_flexGrow - value) < 0.001f)
+      {
+        return;
+      }
+
       _flexGrow = value;
       MarkLayoutDirty(Id);
     }
@@ -125,7 +129,11 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     get => _flexShrink;
     set
     {
-      if (Math.Abs(_flexShrink - value) < 0.001f) return;
+      if (Math.Abs(_flexShrink - value) < 0.001f)
+      {
+        return;
+      }
+
       _flexShrink = value;
       MarkLayoutDirty(Id);
     }
@@ -140,7 +148,11 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     get => _order;
     set
     {
-      if (_order == value) return;
+      if (_order == value)
+      {
+        return;
+      }
+
       _order = value;
       MarkFlagDirty(LayoutDirtyFlags.Layout);
     }
@@ -155,7 +167,11 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     get => _alignSelf;
     set
     {
-      if (_alignSelf == value) return;
+      if (_alignSelf == value)
+      {
+        return;
+      }
+
       _alignSelf = value;
       MarkFlagDirty(LayoutDirtyFlags.Layout);
     }
@@ -171,7 +187,11 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     get => _fixedWidth;
     set
     {
-      if (_fixedWidth == value) return;
+      if (_fixedWidth == value)
+      {
+        return;
+      }
+
       _fixedWidth = value;
       MarkLayoutDirty(Id);
     }
@@ -187,7 +207,11 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     get => _fixedHeight;
     set
     {
-      if (_fixedHeight == value) return;
+      if (_fixedHeight == value)
+      {
+        return;
+      }
+
       _fixedHeight = value;
       MarkLayoutDirty(Id);
     }
@@ -286,7 +310,7 @@ internal abstract class LayoutElement : ITrackable, IDisposable
 
   protected internal void MarkVisibilityDirty(string? identifier)
   {
-    MarkFlagDirty(LayoutDirtyFlags.Visibility, identifier);
+    MarkFlagDirty(LayoutDirtyFlags.Visibility | LayoutDirtyFlags.Layout, identifier);
   }
 
   protected void MarkFlagDirty(LayoutDirtyFlags flags, string? identifier = null)
@@ -313,13 +337,22 @@ internal abstract class LayoutElement : ITrackable, IDisposable
     Parent?.PropagateLayoutChange(this);
   }
 
+  protected virtual void DrawContent(SpriteBatch spriteBatch, int positionX, int positionY) { }
+
   /// <summary>
   ///   Draws the element's own visual elements, if any.
   /// </summary>
   /// <param name="spriteBatch">The SpriteBatch to use for drawing.</param>
   /// <param name="positionX"></param>
   /// <param name="positionY"></param>
-  protected virtual void DrawSelf(SpriteBatch spriteBatch, int positionX, int positionY) { }
+  protected virtual void DrawSelf(SpriteBatch spriteBatch, int positionX, int positionY)
+  {
+    DrawContent(
+      spriteBatch,
+      positionX + Margin.Left.OrZero() + Padding.Left.OrZero(),
+      positionY + Margin.Top.OrZero() + Padding.Top.OrZero()
+    );
+  }
 
   public virtual void Draw(SpriteBatch spriteBatch, int positionX, int positionY)
   {
@@ -359,7 +392,7 @@ internal abstract class LayoutElement : ITrackable, IDisposable
   {
     if (IsHidden)
     {
-      ContentSize = Dimensions.Empty;
+      // Keep content sixe but zero out bounds so that when we reappear it forces a layout change.
       Bounds.Size = Dimensions.Empty;
       return;
     }
@@ -377,12 +410,8 @@ internal abstract class LayoutElement : ITrackable, IDisposable
       newContentSize = new Dimensions(newContentSize.Width, _fixedHeight.Value);
     }
 
-    // ReSharper disable once InvertIf
-    if (newContentSize != ContentSize)
-    {
-      ContentSize = newContentSize;
-      Bounds.Size = ContentSize + Margin.ToDimensions() + Padding.ToDimensions();
-    }
+    ContentSize = newContentSize;
+    Bounds.Size = ContentSize + Margin.ToDimensions() + Padding.ToDimensions();
   }
 
   /// <summary>

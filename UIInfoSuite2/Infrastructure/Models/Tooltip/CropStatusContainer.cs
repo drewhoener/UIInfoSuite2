@@ -20,7 +20,6 @@ internal class CropStatusContainer : LayoutContainer
 
   public CropStatusContainer(HoeDirt? dirt = null) : base("CropStatus")
   {
-    Direction = LayoutDirection.Row;
     ComponentSpacing = 5;
     AutoHideWhenEmpty = true;
 

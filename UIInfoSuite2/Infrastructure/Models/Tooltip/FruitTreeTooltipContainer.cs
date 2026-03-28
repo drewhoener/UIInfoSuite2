@@ -29,7 +29,6 @@ internal class FruitTreeTooltipContainer : LayoutContainer
   public FruitTreeTooltipContainer(FruitTree? fruitTree = null) : base("FruitTreeTooltip")
   {
     _dropsHelper = ModEntry.GetSingleton<DropsHelper>();
-    Direction = LayoutDirection.Row;
 
     ComponentSpacing = 10;
     AddChildren(Column(null, _cropNameElement, _cropDaysRemainingElement, _cropDropsElement), _cropIcon);

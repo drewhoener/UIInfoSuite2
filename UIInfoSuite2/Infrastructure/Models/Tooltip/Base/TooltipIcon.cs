@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
 using UIInfoSuite2.Infrastructure.Extensions;
+using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Models.Layout;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
@@ -28,14 +30,37 @@ internal class TooltipIcon : LayoutElement
     _primaryDimension = new TrackableValue<PrimaryDimension>(primaryDimension, MeasureAndUpdate, "StretchDimension");
     _finalSize = new TrackableValue<float>(finalSize, MeasureAndUpdate, "FinalSize");
 
-    Padding.SetInsets(5, 5, 5, 5);
     MeasureAndUpdate("init");
+  }
+
+  public static TooltipIcon FromBundle(
+    BundleRequiredItem bundleItem,
+    int finalSize,
+    PrimaryDimension primaryDimension = PrimaryDimension.Width
+  )
+  {
+    return new TooltipIcon(
+      bundleItem.Bundle.GetTexture(),
+      bundleItem.Bundle.GetSourceRect(),
+      finalSize,
+      primaryDimension,
+      $"bundle-tooltip-{bundleItem.ItemData.BundleId}"
+    );
+  }
+
+  public static TooltipIcon FromNpc(NPC npc, int finalSize, PrimaryDimension primaryDimension = PrimaryDimension.Width)
+  {
+    return new TooltipIcon(npc.Sprite.Texture, npc.GetHeadShot(), finalSize, primaryDimension);
   }
 
   private void MeasureAndUpdate(string? sender)
   {
+    AspectLockedDimensions previousDimensions = _dimensions;
     _dimensions = new AspectLockedDimensions(_sourceBounds.Value, _finalSize.Value, _primaryDimension.Value);
-    MarkLayoutDirty(sender ?? "unknown");
+    if (previousDimensions.Bounds != _dimensions.Bounds)
+    {
+      MarkLayoutDirty(sender ?? "unknown");
+    }
   }
 
   public void SetIcon(
@@ -53,29 +78,18 @@ internal class TooltipIcon : LayoutElement
     MeasureAndUpdate("SetIcon");
   }
 
+  public void SetSize(float finalSize, PrimaryDimension? primaryDimension = null)
+  {
+    PrimaryDimension dimension = primaryDimension ?? _primaryDimension.Value;
+    _finalSize.SetAndMark(finalSize, runCallback: false);
+    _primaryDimension.SetAndMark(dimension, runCallback: false);
+    MeasureAndUpdate("SetSize");
+  }
 
-  protected override void DrawSelf(SpriteBatch spriteBatch, int positionX, int positionY)
+
+  protected override void DrawContent(SpriteBatch spriteBatch, int positionX, int positionY)
   {
     Rectangle sourceRect = _sourceBounds.Value;
-    var debugRect = new Rectangle(0, 0, 1, 1);
-
-    positionX += Margin.Left.OrZero() + Padding.Left.OrZero();
-    positionY += Margin.Top.OrZero() + Padding.Top.OrZero();
-
-    // spriteBatch.Draw(
-    //   Game1.staminaRect,
-    //   new Vector2(
-    //     positionX + 0 + debugRect.Width / 2f * _dimensions.ScaleFactor,
-    //     positionY + 0 + debugRect.Height / 2f * _dimensions.ScaleFactor
-    //   ),
-    //   sourceRect,
-    //   Color.White,
-    //   0.0f,
-    //   new Vector2(debugRect.Width / 2f, debugRect.Height / 2f),
-    //   _dimensions.ScaleFactor,
-    //   SpriteEffects.None,
-    //   0
-    // );
 
     var position = new Vector2(
       positionX + sourceRect.Width / 2f * _dimensions.ScaleFactor,
@@ -95,18 +109,6 @@ internal class TooltipIcon : LayoutElement
       SpriteEffects.None,
       0
     );
-
-    // spriteBatch.Draw(
-    //   _texture.Value,
-    //   new Vector2(positionX + (float)sourceRect.Width / 2, positionY + (float)sourceRect.Height / 2),
-    //   sourceRect,
-    //   Color.White,
-    //   0.0f,
-    //   new Vector2((float)sourceRect.Width / 2, (float)sourceRect.Height / 2),
-    //   _dimensions.ScaleFactor,
-    //   SpriteEffects.None,
-    //   0
-    // );
   }
 
   protected override Dimensions MeasureContent()

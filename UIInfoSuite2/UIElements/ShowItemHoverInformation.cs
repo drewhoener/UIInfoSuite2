@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
@@ -17,8 +19,7 @@ namespace UIInfoSuite2.UIElements;
 
 internal class ShowItemHoverInformation : IDisposable
 {
-  private static readonly Lazy<ClickableTextureComponent> _shippingBottomIcon = new(
-    () => new ClickableTextureComponent(
+  private static readonly Lazy<ClickableTextureComponent> _shippingBottomIcon = new(() => new ClickableTextureComponent(
       new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
       Game1.mouseCursors,
       new Rectangle(526, 218, 30, 22),
@@ -26,17 +27,20 @@ internal class ShowItemHoverInformation : IDisposable
     )
   );
 
-  private static readonly Lazy<ClickableTextureComponent> _bundleIcon = new(
-    () => new ClickableTextureComponent(
-      new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
-      Game1.mouseCursors,
-      new Rectangle(331, 374, 15, 14),
-      3f
-    )
+  private static readonly Lazy<ClickableTextureComponent> _bundleIcon = new(() => new ClickableTextureComponent(
+                                                                              new Rectangle(
+                                                                                0,
+                                                                                0,
+                                                                                Game1.tileSize,
+                                                                                Game1.tileSize
+                                                                              ),
+                                                                              Game1.mouseCursors,
+                                                                              new Rectangle(331, 374, 15, 14),
+                                                                              3f
+                                                                            )
   );
 
-  private static readonly Lazy<ClickableTextureComponent> _shippingTopIcon = new(
-    () => new ClickableTextureComponent(
+  private static readonly Lazy<ClickableTextureComponent> _shippingTopIcon = new(() => new ClickableTextureComponent(
       new Rectangle(0, 0, Game1.tileSize, Game1.tileSize),
       Game1.mouseCursors,
       new Rectangle(134, 236, 30, 15),
@@ -169,13 +173,14 @@ internal class ShowItemHoverInformation : IDisposable
       Color? bundleColor = null;
       if (hoveredObject != null)
       {
-        BundleRequiredItem? bundleDisplayData = _bundleHelper.GetBundleItemIfNotDonated(hoveredObject);
+        List<BundleRequiredItem> items = _bundleHelper.BundlesRequiringItem(hoveredObject);
+        BundleRequiredItem? bundleDisplayData = items.Count == 0 ? null : items.First();
         if (bundleDisplayData != null)
         {
-          requiredBundleName = bundleDisplayData.Name;
+          requiredBundleName = bundleDisplayData.Bundle.DisplayName;
 
           // TODO cache these colors so we're not doing it every time
-          bundleColor = _bundleHelper.GetRealColorFromIndex(bundleDisplayData.Id)?.Desaturate(0.35f);
+          bundleColor = bundleDisplayData.Bundle.RealColor().Desaturate(0.35f);
         }
       }
 

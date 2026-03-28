@@ -88,17 +88,17 @@ public static class Tools
     }
   }
 
-  public static IClickableMenu? GetCurrentMenuPage()
+  public static IClickableMenu? GetCurrentMenuPage(IClickableMenu? pMenu = null)
   {
-    if (Game1.activeClickableMenu is GameMenu gameMenu)
+    IClickableMenu menu = pMenu ?? Game1.activeClickableMenu;
+
+    if (menu is GameMenu gameMenu)
     {
       return gameMenu.GetCurrentPage();
     }
 
     var apiManager = ModEntry.GetSingleton<ApiManager>();
-    return apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgm)
-      ? bgm.ActiveMenu?.CurrentPage
-      : null;
+    return apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgm) ? bgm.GetCurrentPage(menu) : null;
   }
 
   public static bool IsGameMenuOpen()
@@ -109,7 +109,8 @@ public static class Tools
     }
 
     var apiManager = ModEntry.GetSingleton<ApiManager>();
-    return apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgm) && bgm.ActiveMenu != null;
+    return apiManager.GetApi(ModCompat.BetterGameMenu, out IBetterGameMenuApi? bgm) &&
+           bgm.IsMenu(Game1.activeClickableMenu);
   }
 
   public static Item? GetHoveredItem()

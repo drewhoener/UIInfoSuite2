@@ -26,15 +26,9 @@ internal class LayoutContainer : LayoutElement, IDisposable
   }
 
   private readonly List<LayoutElement> _children = [];
-  private readonly List<LayoutElement> _visibleChildren = [];
   private readonly FlexLayoutStrategy _flexStrategy = new();
+  private readonly List<LayoutElement> _visibleChildren = [];
   private LayoutStrategy _strategy = null!; // set in every constructor path
-
-  /// <summary>
-  ///   When true, the container automatically hides itself whenever all of its children are hidden,
-  ///   and shows itself again as soon as any child becomes visible. Applied during the layout pass.
-  /// </summary>
-  public bool AutoHideWhenEmpty { get; set; }
 
   public LayoutContainer(string? identifier, params LayoutElement[] children) : base(identifier)
   {
@@ -43,6 +37,12 @@ internal class LayoutContainer : LayoutElement, IDisposable
   }
 
   public LayoutContainer(params LayoutElement[] children) : this(null, children) { }
+
+  /// <summary>
+  ///   When true, the container automatically hides itself whenever all of its children are hidden,
+  ///   and shows itself again as soon as any child becomes visible. Applied during the layout pass.
+  /// </summary>
+  public bool AutoHideWhenEmpty { get; set; }
 
   // ── Strategy ─────────────────────────────────────────────────────────────
 
@@ -70,13 +70,18 @@ internal class LayoutContainer : LayoutElement, IDisposable
   /// <summary>Gets or sets the layout direction (Row or Column).</summary>
   public LayoutDirection Direction
   {
-    get => _flexStrategy.Direction is FlexDirection.Row or FlexDirection.RowReverse
-      ? LayoutDirection.Row
-      : LayoutDirection.Column;
+    get =>
+      _flexStrategy.Direction is FlexDirection.Row or FlexDirection.RowReverse
+        ? LayoutDirection.Row
+        : LayoutDirection.Column;
     set
     {
       FlexDirection mapped = value == LayoutDirection.Row ? FlexDirection.Row : FlexDirection.Column;
-      if (_flexStrategy.Direction == mapped) return;
+      if (_flexStrategy.Direction == mapped)
+      {
+        return;
+      }
+
       _flexStrategy.Direction = mapped;
       MarkFlagDirty(LayoutDirtyFlags.Direction);
     }
@@ -91,7 +96,11 @@ internal class LayoutContainer : LayoutElement, IDisposable
     get => _flexStrategy.Direction;
     set
     {
-      if (_flexStrategy.Direction == value) return;
+      if (_flexStrategy.Direction == value)
+      {
+        return;
+      }
+
       _flexStrategy.Direction = value;
       MarkFlagDirty(LayoutDirtyFlags.Direction);
     }
@@ -103,7 +112,11 @@ internal class LayoutContainer : LayoutElement, IDisposable
     get => _flexStrategy.Gap;
     set
     {
-      if (_flexStrategy.Gap == value) return;
+      if (_flexStrategy.Gap == value)
+      {
+        return;
+      }
+
       _flexStrategy.Gap = value;
       MarkLayoutDirty(Id);
     }
@@ -121,7 +134,11 @@ internal class LayoutContainer : LayoutElement, IDisposable
     get => _flexStrategy.GridAlignment ?? Alignment.TopLeft;
     set
     {
-      if (_flexStrategy.GridAlignment == value) return;
+      if (_flexStrategy.GridAlignment == value)
+      {
+        return;
+      }
+
       _flexStrategy.GridAlignment = value;
       MarkFlagDirty(LayoutDirtyFlags.Direction);
     }
@@ -133,7 +150,11 @@ internal class LayoutContainer : LayoutElement, IDisposable
     get => _flexStrategy.JustifyContent;
     set
     {
-      if (_flexStrategy.JustifyContent == value) return;
+      if (_flexStrategy.JustifyContent == value)
+      {
+        return;
+      }
+
       // Clear GridAlignment so it does not override the explicit setting
       _flexStrategy.GridAlignment = null;
       _flexStrategy.JustifyContent = value;
@@ -147,12 +168,34 @@ internal class LayoutContainer : LayoutElement, IDisposable
     get => _flexStrategy.AlignItems;
     set
     {
-      if (_flexStrategy.AlignItems == value) return;
+      if (_flexStrategy.AlignItems == value)
+      {
+        return;
+      }
+
       // Clear GridAlignment so it does not override the explicit setting
       _flexStrategy.GridAlignment = null;
       _flexStrategy.AlignItems = value;
       MarkFlagDirty(LayoutDirtyFlags.Direction);
     }
+  }
+
+  // ── IDisposable ───────────────────────────────────────────────────────────
+
+  public override void Dispose()
+  {
+    if (Parent is LayoutContainer parentContainer)
+    {
+      parentContainer.RemoveChild(this);
+    }
+
+    UnsetParent();
+    foreach (LayoutElement child in _children)
+    {
+      child.UnsetParent();
+    }
+
+    _children.Clear();
   }
 
   // ── Fluent API ────────────────────────────────────────────────────────────
@@ -214,6 +257,7 @@ internal class LayoutContainer : LayoutElement, IDisposable
   public static LayoutContainer Column(string? identifier, params LayoutElement[] children)
   {
     var c = new LayoutContainer(identifier);
+    c.Direction = LayoutDirection.Column;
     c.AddChildren(children);
     return c;
   }
@@ -222,6 +266,7 @@ internal class LayoutContainer : LayoutElement, IDisposable
   {
     var c = new LayoutContainer(identifier);
     c.ComponentSpacing = spacing;
+    c.Direction = LayoutDirection.Column;
     c.AddChildren(children);
     return c;
   }
@@ -240,6 +285,17 @@ internal class LayoutContainer : LayoutElement, IDisposable
     MarkLayoutDirty(Id);
   }
 
+  public void RemoveChildren()
+  {
+    foreach (LayoutElement component in _children)
+    {
+      component.UnsetParent();
+    }
+
+    _children.Clear();
+    MarkLayoutDirty(Id);
+  }
+
   public void RemoveChild(LayoutElement element)
   {
     element.UnsetParent();
@@ -247,7 +303,10 @@ internal class LayoutContainer : LayoutElement, IDisposable
     MarkLayoutDirty(Id);
   }
 
-  protected bool AllChildrenHidden() => _children.TrueForAll(e => e.IsHidden);
+  protected bool AllChildrenHidden()
+  {
+    return _children.TrueForAll(e => e.IsHidden);
+  }
 
   // ── Layout ────────────────────────────────────────────────────────────────
 
@@ -348,23 +407,5 @@ internal class LayoutContainer : LayoutElement, IDisposable
       finalHeight,
       Color.White
     );
-  }
-
-  // ── IDisposable ───────────────────────────────────────────────────────────
-
-  public override void Dispose()
-  {
-    if (Parent is LayoutContainer parentContainer)
-    {
-      parentContainer.RemoveChild(this);
-    }
-
-    UnsetParent();
-    foreach (LayoutElement child in _children)
-    {
-      child.UnsetParent();
-    }
-
-    _children.Clear();
   }
 }

@@ -23,6 +23,7 @@ internal class MachineTooltipContainer : LayoutContainer
 
   public MachineTooltipContainer(SObject? machine = null) : base("MachineTooltip")
   {
+    Direction = LayoutDirection.Column;
     ComponentSpacing = 0;
     Margin.SetAll(0);
     AddChildren(_machineName, _timeRemaining);

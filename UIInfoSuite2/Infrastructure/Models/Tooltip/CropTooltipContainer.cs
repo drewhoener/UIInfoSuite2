@@ -4,6 +4,7 @@ using StardewValley.ItemTypeDefinitions;
 using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Models.Layout;
+using UIInfoSuite2.Infrastructure.Models.Layout.Enums;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 using UIInfoSuite2.Infrastructure.Models.Tooltip.Base;
 
@@ -11,15 +12,13 @@ namespace UIInfoSuite2.Infrastructure.Models.Tooltip;
 
 internal class CropTooltipContainer : LayoutContainer
 {
-  private readonly TooltipText _cropDaysRemainingElement = new TooltipText(
+  private readonly TooltipText _cropDaysRemainingElement = new(
     "UIIS2::UnknownTime",
     0.75f,
     identifier: "CropTimeRemaining"
-  ).WithMarginTop(10);
+  );
 
-  private readonly TooltipIcon _cropIcon = new TooltipIcon(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40)
-    .WithPadding(10)
-    .WithMarginTop(10);
+  private readonly TooltipIcon _cropIcon = new(Game1.mouseCursors, new Rectangle(322, 498, 12, 12), 40);
 
   private readonly TooltipText _cropNameElement = TooltipText.Bold("UIIS2::UnknownCrop", identifier: "CropName");
 
@@ -29,10 +28,11 @@ internal class CropTooltipContainer : LayoutContainer
   public CropTooltipContainer(Crop? crop = null) : base("CropTooltip")
   {
     _dropsHelper = ModEntry.GetSingleton<DropsHelper>();
-    Direction = LayoutDirection.Row;
+    Direction = LayoutDirection.Column;
 
-    ComponentSpacing = 10;
-    AddChildren(Column(null, _cropNameElement, _cropDaysRemainingElement), _cropIcon);
+    ComponentSpacing = 0;
+
+    AddChildren(Row(null, 10, _cropNameElement, _cropIcon).WithAlignment(Alignment.Center), _cropDaysRemainingElement);
     IsHidden = true;
 
     Crop = crop;

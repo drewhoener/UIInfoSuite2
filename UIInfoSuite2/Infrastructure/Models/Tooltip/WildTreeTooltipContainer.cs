@@ -22,7 +22,7 @@ internal class WildTreeTooltipContainer : LayoutContainer
   {
     Direction = LayoutDirection.Column;
 
-    ComponentSpacing = 10;
+    ComponentSpacing = 0;
     AddChildren(_treeNameElement, _treeDetailsElement);
     IsHidden = true;
 

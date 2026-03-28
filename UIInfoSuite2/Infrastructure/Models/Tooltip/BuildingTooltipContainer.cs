@@ -16,6 +16,7 @@ internal class BuildingTooltipContainer : LayoutContainer
 
   public BuildingTooltipContainer(Building? building = null) : base("BuildingTooltip")
   {
+    Direction = LayoutDirection.Column;
     ComponentSpacing = 0;
     Margin.SetAll(0);
     AddChildren(_buildingName, _fishPondContainer, _chestsContainer);
@@ -53,6 +54,7 @@ internal class BuildingTooltipContainer : LayoutContainer
       IsHidden = true;
       return;
     }
+
     IsHidden = false;
   }
 }

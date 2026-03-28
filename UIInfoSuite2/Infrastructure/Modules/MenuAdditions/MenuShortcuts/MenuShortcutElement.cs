@@ -5,7 +5,6 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
-using UIInfoSuite2.Infrastructure.Extensions;
 using UIInfoSuite2.Infrastructure.Models.Layout;
 using UIInfoSuite2.Infrastructure.Models.Layout.Measurement;
 
@@ -18,14 +17,13 @@ namespace UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts;
 internal abstract class MenuShortcutElement : LayoutElement
 {
   protected readonly PerScreen<ClickableTextureComponent?> PerScreenMenuButton = new(() => null);
-  private readonly int _renderedHeight;
 
   protected MenuShortcutElement(int renderedHeight, string? identifier = null) : base(identifier)
   {
-    _renderedHeight = renderedHeight;
+    RenderedHeight = renderedHeight;
   }
 
-  protected int RenderedHeight => _renderedHeight;
+  protected int RenderedHeight { get; }
 
   protected abstract Texture2D Texture { get; }
   protected abstract Rectangle SourceRectangle { get; }
@@ -38,7 +36,7 @@ internal abstract class MenuShortcutElement : LayoutElement
   public virtual bool ShouldDraw => true;
 
   /// <summary>
-  ///   The clickable component used for hit-testing and rendering. Lazily initialised once the
+  ///   The clickable component used for hit-testing and rendering. Lazily initialized once the
   ///   element has been measured so the initial bounds are correct.
   /// </summary>
   protected ClickableTextureComponent MenuButton
@@ -65,14 +63,11 @@ internal abstract class MenuShortcutElement : LayoutElement
     return new Dimensions((int)(SourceRectangle.Width * ScaleFactor), RenderedHeight);
   }
 
-  protected override void DrawSelf(SpriteBatch spriteBatch, int positionX, int positionY)
+  protected override void DrawContent(SpriteBatch spriteBatch, int positionX, int positionY)
   {
-    int contentX = positionX + Margin.Left.OrZero() + Padding.Left.OrZero();
-    int contentY = positionY + Margin.Top.OrZero() + Padding.Top.OrZero();
-
     // Keep the component bounds in sync with the rendered position so that
     // hit-testing in OnClick / DrawHoverText is always current.
-    MenuButton.bounds = new Rectangle(contentX, contentY, ContentSize.Width, ContentSize.Height);
+    MenuButton.bounds = new Rectangle(positionX, positionY, ContentSize.Width, ContentSize.Height);
     MenuButton.baseScale = ScaleFactor;
     MenuButton.draw(spriteBatch);
   }
@@ -82,9 +77,15 @@ internal abstract class MenuShortcutElement : LayoutElement
   // renders on top of all shortcut icons
   // ──────────────────────────────────────────────────────────
 
-  protected virtual string GetHoverText() => "";
+  protected virtual string GetHoverText()
+  {
+    return "";
+  }
 
-  protected virtual SpriteFont GetHoverTextFont() => Game1.dialogueFont;
+  protected virtual SpriteFont GetHoverTextFont()
+  {
+    return Game1.dialogueFont;
+  }
 
   public void DrawHoverText(SpriteBatch batch)
   {
@@ -110,8 +111,8 @@ internal abstract class MenuShortcutElement : LayoutElement
   {
     if (args.Button != SButton.MouseLeft ||
         Game1.player.CursorSlotItem is not null ||
-        Game1.activeClickableMenu is not GameMenu gameMenu ||
-        gameMenu.currentTab == GameMenu.mapTab)
+        !Tools.IsGameMenuOpen() ||
+        Tools.GetCurrentMenuPage() is MapPage)
     {
       return;
     }

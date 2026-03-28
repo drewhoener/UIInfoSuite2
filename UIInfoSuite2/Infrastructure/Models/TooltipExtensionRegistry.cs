@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using UIInfoSuite2.Infrastructure.Helpers;
 using UIInfoSuite2.Infrastructure.Models.Layout;
-using UIInfoSuite2.Infrastructure.Models.Tooltip.Base;
 
 namespace UIInfoSuite2.Infrastructure.Models;
 
 internal abstract class TooltipExtensionContainer : LayoutContainer
 {
-  private Item _item;
+  private Item? _item;
 
-  public Item Item
+  public Item? Item
   {
     get => _item;
     set
@@ -30,38 +27,7 @@ internal abstract class TooltipExtensionContainer : LayoutContainer
     }
   }
 
-  protected abstract void OnItemChange(Item item);
-}
-
-internal class BundleElement : LayoutContainer
-{
-  private BundleRequiredItem _bundle;
-
-  private readonly TooltipIcon _icon;
-  private readonly TooltipText _text;
-
-  public BundleElement(BundleRequiredItem bundle)
-  {
-    _bundle = bundle;
-    _icon = new TooltipIcon(Game1.mouseCursors, new Rectangle(331, 374, 15, 14), 64);
-    _text = new TooltipText(bundle.Name);
-
-    AddChildren(_icon, _text);
-  }
-}
-
-internal class BundleContainer : TooltipExtensionContainer
-{
-  public BundleContainer()
-  {
-    AutoHideWhenEmpty = true;
-    Direction = LayoutDirection.Column;
-  }
-
-  protected override void OnItemChange(Item item)
-  {
-    throw new NotImplementedException();
-  }
+  protected abstract void OnItemChange(Item? item);
 }
 
 internal enum ContainerPatchPoint
@@ -86,9 +52,32 @@ internal class TooltipExtensionRegistry
     ContainerPatchPoint.AfterCategory
   ];
 
-  private static readonly ContainerPatchPoint[] AllPoints = Enum.GetValues<ContainerPatchPoint>();
+  public static readonly ContainerPatchPoint[] AllPoints = Enum.GetValues<ContainerPatchPoint>();
 
   private static readonly Dictionary<ContainerPatchPoint, List<TooltipExtensionContainer>> Containers = new();
+
+  /// <summary>
+  ///   Helper field for what item we're hovering over in our inventory while in a ShopMenu.
+  ///   ShopMenu#draw only passes along an item to IClickableMenu#drawHoverText if it's for sale,
+  ///   not if the player is the one selling.
+  ///   Hold this while we're hovering over a valid item in our inventory.
+  /// </summary>
+  private static Item? _shopMenuHoverItem;
+
+  public static Item? ShopMenuHoverItem
+  {
+    get => _shopMenuHoverItem;
+    set
+    {
+      Item? oldValue = _shopMenuHoverItem;
+      _shopMenuHoverItem = value;
+      // ModEntry.Instance.Monitor.Log($"Setting ShopThing to {value?.DisplayName ?? "null"}");
+      if (oldValue != value)
+      {
+        UpdateHoveredItem(value);
+      }
+    }
+  }
 
   public static void Register(ContainerPatchPoint point, TooltipExtensionContainer container)
   {
@@ -105,18 +94,27 @@ internal class TooltipExtensionRegistry
     Containers.GetValueOrDefault(point)?.Remove(container);
   }
 
-  public static void UpdateHoveredItem(Item item)
+  public static void UpdateHoveredItem(Item? item)
   {
+    Item? updateItem = item;
+    if (item == null && ShopMenuHoverItem != null)
+    {
+      updateItem = ShopMenuHoverItem;
+    }
+
     foreach (TooltipExtensionContainer container in Containers.Values.SelectMany(c => c))
     {
-      container.Item = item;
+      container.Item = updateItem;
     }
   }
 
-  public static IEnumerable<TooltipExtensionContainer> GetContainers(ContainerPatchPoint point)
+  public static IEnumerable<TooltipExtensionContainer> GetContainers(
+    ContainerPatchPoint point,
+    bool includeHidden = false
+  )
   {
     List<TooltipExtensionContainer> containers = Containers.GetValueOrDefault(point) ?? [];
-    return containers.Where(c => !c.IsHidden);
+    return containers.Where(c => includeHidden || !c.IsHidden);
   }
 
   // ── Layout helpers ─────────────────────────────────────────────────────────
@@ -131,12 +129,12 @@ internal class TooltipExtensionRegistry
     );
   }
 
-  private static int MaxWidth(IEnumerable<ContainerPatchPoint> points)
+  public static int MaxWidth(IEnumerable<ContainerPatchPoint> points)
   {
     return points.Max(p =>
       {
         IEnumerable<TooltipExtensionContainer> containers = GetContainers(p);
-        return containers.Select(c => c.Bounds.Height).DefaultIfEmpty(0).Max();
+        return containers.Select(c => c.Bounds.Width).DefaultIfEmpty(0).Max();
       }
     );
   }
@@ -154,7 +152,7 @@ internal class TooltipExtensionRegistry
 
     if (boxWidthOverride == -1)
     {
-      num1 = Math.Max(num1, MaxWidth(AllPoints));
+      num1 = Math.Max(num1, MaxWidth(AllPoints) + 30);
     }
   }
 
@@ -180,7 +178,8 @@ internal class TooltipExtensionRegistry
     foreach (TooltipExtensionContainer c in GetContainers(point))
     {
       // c.Draw(b, x, ref drawY, innerWidth, alpha, hoveredItem);
-      c.Draw(b, x, drawY);
+      c.Draw(b, x + 16, drawY + 12);
+      drawY += c.Bounds.Height;
     }
   }
 }

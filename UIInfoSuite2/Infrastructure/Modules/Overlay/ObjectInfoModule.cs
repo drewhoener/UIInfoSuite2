@@ -7,6 +7,7 @@ using StardewValley.TerrainFeatures;
 using UIInfoSuite2.Compatibility;
 using UIInfoSuite2.Infrastructure.Config;
 using UIInfoSuite2.Infrastructure.Events;
+using UIInfoSuite2.Infrastructure.Events.Args;
 using UIInfoSuite2.Infrastructure.Interfaces;
 using UIInfoSuite2.Infrastructure.Models.Tooltip;
 using UIInfoSuite2.Infrastructure.Modules.Base;
@@ -17,13 +18,18 @@ namespace UIInfoSuite2.Infrastructure.Modules.Overlay;
 
 internal class ObjectInfoModule : BaseModule, IConfigurable
 {
+  private readonly EventsManager _eventsManager;
   private MouseTooltipDom _mouseTooltipDom = null!;
 
-  public ObjectInfoModule(IModEvents modEvents, IMonitor logger, ConfigManager configManager) : base(
-    modEvents,
-    logger,
-    configManager
-  ) { }
+  public ObjectInfoModule(
+    IModEvents modEvents,
+    IMonitor logger,
+    ConfigManager configManager,
+    EventsManager eventsManager
+  ) : base(modEvents, logger, configManager)
+  {
+    _eventsManager = eventsManager;
+  }
 
   public override bool ShouldEnable()
   {
@@ -33,6 +39,7 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
   public override void OnEnable()
   {
     _mouseTooltipDom = new MouseTooltipDom();
+    _eventsManager.OnBushShakeItem += OnBushShake;
     ModEvents.GameLoop.UpdateTicked += OnUpdateTicked;
     ModEvents.Display.RenderingHud += OnRenderingHud;
 #if DEBUG
@@ -44,6 +51,7 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
   {
     ModEvents.GameLoop.UpdateTicked -= OnUpdateTicked;
     ModEvents.Display.RenderingHud -= OnRenderingHud;
+    _eventsManager.OnBushShakeItem -= OnBushShake;
 #if DEBUG
     HotReloadService.UpdateApplicationEvent -= OnHotReload;
 #endif
@@ -110,6 +118,14 @@ internal class ObjectInfoModule : BaseModule, IConfigurable
     _mouseTooltipDom.HoeDirt = currentDirtTile;
     _mouseTooltipDom.FruitTree = GetTerrainObjectAtTile<FruitTree>(tile);
     _mouseTooltipDom.Bush = GetBushFromTile(tile);
+  }
+
+  private void OnBushShake(object? sender, BushShakeItemArgs evt)
+  {
+    if (_mouseTooltipDom.Bush == evt.Bush)
+    {
+      _mouseTooltipDom.BushTooltipContainer.ForceUpdate();
+    }
   }
 
   private static Object? GetMachineAtTile(Vector2 tile)

@@ -29,6 +29,7 @@ using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.ExtendedItemInfo;
 using UIInfoSuite2.Infrastructure.Modules.MenuAdditions.MenuShortcuts;
 using UIInfoSuite2.Infrastructure.Modules.Overlay;
 using UIInfoSuite2.Infrastructure.Patches;
+using UIInfoSuite2.Infrastructure.Patches.ExtensibleItemTooltips;
 
 #if DEBUG
 [assembly: MetadataUpdateHandler(typeof(HotReloadService))]
@@ -38,6 +39,11 @@ namespace UIInfoSuite2;
 
 internal class ModEntry : Mod
 {
+  private static readonly Type[] BucketTypes =
+  [
+    typeof(BaseModule), typeof(HudIconModule), typeof(IPatchable), typeof(IConfigurable)
+  ];
+
   private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
 
   private readonly Container _container = new();
@@ -71,6 +77,9 @@ internal class ModEntry : Mod
   {
     Instance = this;
     I18n.Init(helper.Translation);
+#if DEBUG
+    Harmony.DEBUG = true;
+#endif
 
     // Add Mod singletons to container
     _container.RegisterInstance(Helper);
@@ -102,16 +111,18 @@ internal class ModEntry : Mod
     _container.RegisterSingleton<FloatingTextManager>();
 
     // Set up empty registry sets
-    _container.Collection.Register<BaseModule>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
-    _container.Collection.Register<HudIconModule>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
-    _container.Collection.Register<IPatchable>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
-    _container.Collection.Register<IConfigurable>(Enumerable.Empty<Type>(), Lifestyle.Singleton);
+    foreach (Type bucketType in BucketTypes)
+    {
+      _container.Collection.Register(bucketType, Enumerable.Empty<Type>(), Lifestyle.Singleton);
+    }
 
     // Register Modules
     Register<ConfigurableHudIconPositioning>();
     Register<ConfigurableDebugOptions>();
-    Register<PatchRenderingMenuContentStep>();
+    Register<ExtensibleItemTooltips>();
     Register<PatchMasteryXpGainEvent>();
+    Register<PatchBushShakeItemEvent>();
+    Register<PatchRenderingMenuContentStep>();
     Register<MenuShortcutModule>();
     // RegisterBaseModuleSingleton<ShowCropAndBarrelTime>();
     Register<ArtifactTrackerModule>();
@@ -175,7 +186,7 @@ internal class ModEntry : Mod
     }
 
     // Recalculate the icon rows if necessary
-    GetSingleton<HudIconStorage>().MarkRowsDirty();
+    _container.GetInstance<HudIconStorage>().MarkRowsDirty();
 
     foreach (BaseModule module in GetAllModules())
     {
@@ -232,9 +243,24 @@ internal class ModEntry : Mod
   private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
   {
     _container.GetInstance<ApiManager>().TryRegisterApi<ICustomBushApi>(Helper, ModCompat.CustomBush, "1.5.0", true);
-    _container.GetInstance<ApiManager>().TryRegisterApi<IBetterGameMenuApi>(Helper, ModCompat.BetterGameMenu, "0.1.0");
+    _container.GetInstance<ApiManager>().TryRegisterApi<IBetterGameMenuApi>(Helper, ModCompat.BetterGameMenu, "1.0.1");
     _container.GetInstance<ApiManager>().TryRegisterApi<ICloudySkiesApi>(Helper, ModCompat.CloudySkies, "1.9.0");
   }
+
+#region Module Setup
+  private void Register<T>() where T : class
+  {
+    _container.RegisterSingleton<T>();
+
+    foreach (Type bucketType in BucketTypes)
+    {
+      if (bucketType.IsAssignableFrom(typeof(T)))
+      {
+        _container.Collection.Append(bucketType, typeof(T));
+      }
+    }
+  }
+#endregion
 
 #region Debug
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -251,38 +277,6 @@ internal class ModEntry : Mod
 #if LAYOUT_DEBUG
     Instance.Monitor.Log(message, level);
 #endif
-  }
-#endregion
-
-#region Module Setup
-
-  private void Register<T>() where T : class
-  {
-    _container.RegisterSingleton<T>();
-
-    // Check if T implements BaseModule using interface check
-    if (typeof(BaseModule).IsAssignableFrom(typeof(T)))
-    {
-      _container.Collection.Append(typeof(BaseModule), typeof(T));
-    }
-
-    // Check if T implements HudIconModule using interface check
-    if (typeof(HudIconModule).IsAssignableFrom(typeof(T)))
-    {
-      _container.Collection.Append(typeof(HudIconModule), typeof(T));
-    }
-
-    // Check if T implements IPatchable using interface check
-    if (typeof(IPatchable).IsAssignableFrom(typeof(T)))
-    {
-      _container.Collection.Append(typeof(IPatchable), typeof(T));
-    }
-
-    // Check if T implements IConfigurable using interface check
-    if (typeof(IConfigurable).IsAssignableFrom(typeof(T)))
-    {
-      _container.Collection.Append(typeof(IConfigurable), typeof(T));
-    }
   }
 #endregion
 }
